@@ -1,14 +1,18 @@
-//
-//  git.swift
-//  magit
-//
-//  Created by Bendik Solheim on 28/03/2020.
-//
+import Foundation
 
 private let git = "/usr/local/bin/git"
 
 func branchName() -> String {
-    let branchName = run(cmd: git, args: "symbolic-ref", "--short", "HEAD")
-    return branchName ?? ""
+    let process = ProcessDescription(
+        workingDirectory: currentDirectory(),
+        executable: git,
+        arguments: ["symbolic-ref", "--short", "HEAD"])
+    
+    let result = run(process: process)
+    return result.output
+}
+
+private func currentDirectory() -> String {
+    return FileManager.default.currentDirectoryPath
 }
 
