@@ -33,6 +33,7 @@ struct Magit: Program {
     enum Message {
         case quit
         case setStatus(StatusEnum)
+        case refresh
     }
 
     struct Model {
@@ -49,8 +50,11 @@ struct Magit: Program {
         switch message {
         case .quit:
             return .quit
-        case let .setStatus(status):
+        case .setStatus(let status):
             model.status = status
+        case .refresh:
+            let (_, command) = initial()
+            return .update(model, command)
         }
         
         return .model(model)
@@ -79,7 +83,7 @@ struct Magit: Program {
         }
         
         return Window(
-          components: components + [OnKeyPress(.q, {Message.quit})]
+            components: components + [OnKeyPress(.q, {Message.quit}), OnKeyPress(.g, { Message.refresh })]
         )
     }
 }
