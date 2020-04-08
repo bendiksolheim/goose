@@ -25,7 +25,7 @@ public struct Git {
         ProcessDescription(
             workingDirectory: currentDirectory(),
             executable: git,
-            arguments: ["log", "-n\(num)", "--format=\(commitFormat)", "-z", "--reverse"]
+            arguments: ["log", "-n\(num)", "--format=\(commitFormat)", "-z"]
         )
     }
     
@@ -47,8 +47,10 @@ private let AUTHOR_DATE = "%at"
 private let COMMITER_DATE = "%ct"
 private let PARENT_HASHES = "%P"
 private let RAW_BODY = "%B"
+private let SUBJECT = "%s"
+private let REF_NAME = "%D"
 
-private let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, RAW_BODY].joined(separator: NEWLINE)
+private let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, SUBJECT, REF_NAME].joined(separator: NEWLINE)
 
 private func currentDirectory() -> String {
     return FileManager.default.currentDirectoryPath
