@@ -7,33 +7,37 @@
 
 import Foundation
 import os.log
+import BowEffects
 
-struct ProcessDescription {
+public struct ProcessDescription {
     let workingDirectory: String
     let executable: String
     let arguments: [String]
 }
 
-struct ProcessResult {
+public struct ProcessResult {
     let output: String
     let exitCode: Int32
 }
 
-func run(process: ProcessDescription) -> ProcessResult {
-    logCommand(process: process)
-    let task = Process()
-    task.launchPath = process.executable
-    task.arguments = process.arguments
-    task.currentDirectoryPath = process.workingDirectory
+func execute(process: ProcessDescription) -> Task<ProcessResult> {
+    return Task.invoke {
+        logCommand(process: process)
+        let task = Process()
+        task.launchPath = process.executable
+        task.arguments = process.arguments
+        task.currentDirectoryPath = process.workingDirectory
     
-    let pipe = Pipe()
-    task.standardOutput = pipe
-    task.launch()
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.launch()
     
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    let output = String(data: data, encoding: String.Encoding.utf8)
-    
-    return ProcessResult(output: output ?? "", exitCode: task.terminationStatus)
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: String.Encoding.utf8)
+        task.waitUntilExit()
+        
+        return ProcessResult(output: output?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
+    }
 }
 
 private func logCommand(process: ProcessDescription) -> Void {
