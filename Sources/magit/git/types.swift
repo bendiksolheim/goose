@@ -10,6 +10,7 @@ struct GitCommit {
     let authorDate: Date
     let author: String
     let email: String
+    let refName: Option<String>
 }
 
 struct GitHash {
@@ -20,16 +21,31 @@ struct GitHash {
 func parseCommits(_ input: String) -> [GitCommit] {
     let commits = input.trimmingCharacters(in: .init(charactersIn: "\0")).split(regex: "\0")
     return commits.map({ commit in
-        let lines = commit.split(separator: "\n");
+        let lines = commit.split(separator: "\n", omittingEmptySubsequences: false);
+        os_log("%{public}d", lines.count)
         return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
                       message: String(lines[7]),
                       parents: lines[6].split(separator: " ").map { parent in String(parent) },
                       commitDate: Date(timeIntervalSince1970: Double(lines[4])!),
                       authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
                       author: String(lines[2]),
-                      email: String(lines[3])
+                      email: String(lines[3]),
+                      refName: parseRefName(lines[8])
         )
     })
+}
+
+func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
+    if (input == "") {
+        return .none()
+    }
+    
+    let parts = String(input).split(regex: " -> ")
+    if parts.count < 2 {
+        return .none()
+    } else {
+        return .some(parts[1])
+    }
 }
 
 func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
@@ -65,7 +81,7 @@ func parseStatus(_ input: String) -> Either<Error, GitStatus> {
     return lines
         .map(parseChange)
         .traverse { either in either }
-        .map{ changes in GitStatus(changes: changes.flatMap { $0 }) }^
+        .map { changes in GitStatus(changes: changes.flatMap { $0 }) }^
 }
 
 func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [Change]> {
