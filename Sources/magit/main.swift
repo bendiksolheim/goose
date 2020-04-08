@@ -1,6 +1,7 @@
 import Darwin
 import Ashen
 import os.log
+import Bow
 import BowEffects
 
 //public class Cmd: Command {
@@ -68,7 +69,7 @@ struct Magit: Program {
             let staged = status.changes.filter(isStaged)
             components = [
                 FlowLayout.vertical(size: DesiredSize(width: screenSize.width, height: screenSize.height), components: [
-                    Section(title: .LabelView(LabelView(text: "Head:     " + Text(status.branch, [.foreground(Color.cyan)]) + " " + status.log[0].message)), items: [], itemMapper: { $0 }, open: true, screenSize: screenSize),
+                    Section(title: .LabelView(headMapper(status.log[0])), items: [], itemMapper: { $0 }, open: true, screenSize: screenSize),
                     Section(title: .String("Untracked files (\(untracked.count))"), items: untracked, itemMapper: changeMapper, open: true, screenSize: screenSize),
                     Section(title: .String("Unstaged changes (\(unstaged.count))"), items: unstaged, itemMapper: changeMapper, open: true, screenSize: screenSize),
                     Section(title: .String("Staged changes (\(staged.count))"), items: staged, itemMapper: changeMapper, open: true, screenSize: screenSize),
@@ -83,8 +84,15 @@ struct Magit: Program {
     }
 }
 
+func headMapper(_ commit: GitCommit) -> LabelView {
+    let ref = commit.refName.getOrElse("")
+    return LabelView(text: "Head:     " + Text(ref, [.foreground(.cyan)]) + " " + commit.message)
+}
+
 func commitMapper(_ commit: GitCommit) -> LabelView {
-    LabelView(text: Text(commit.hash.short, [.foreground(.any(241))]) + " \(commit.message)")
+    let message = commit.refName
+        .fold(constant(Text(" ")), { name in Text(" \(name) ", [.foreground(.cyan)]) }) + commit.message
+    return LabelView(text: Text(commit.hash.short, [.foreground(.any(241))]) + message)
 }
 
 func changeMapper(_ change: Change) -> LabelView {
