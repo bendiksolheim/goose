@@ -94,7 +94,7 @@ func changeMapper(_ change: Change) -> LabelView {
     case .Modified:
         return LabelView(text: "modified  \(change.file)")
     case .Deleted:
-        return LabelView(text: "modified  \(change.file)")
+        return LabelView(text: "deleted  \(change.file)")
     case .Renamed:
         return LabelView(text: "renamed   \(change.file)")
     case .Copied:
