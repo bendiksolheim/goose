@@ -125,7 +125,7 @@ func parseOrdinaryChange<S: StringProtocol>(_ input: S) -> [Change] {
     
     if worktree == "M" {
         changes.append(Change(area: .Worktree, status: .Modified, file: file))
-    } else {
+    } else if worktree == "D" {
         changes.append(Change(area: .Worktree, status: .Deleted, file: file))
     }
     
