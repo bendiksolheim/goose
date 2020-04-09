@@ -8,11 +8,27 @@
 import Foundation
 import os.log
 import BowEffects
+import GitLib
+
 
 public struct ProcessDescription {
     let workingDirectory: String
     let executable: String
     let arguments: [String]
+    
+    private init(workingDirectory: String, executable: String, arguments: [String]) {
+        self.workingDirectory = workingDirectory
+        self.executable = executable
+        self.arguments = arguments
+    }
+    
+    public static func git(_ cmd: GitCommand) -> ProcessDescription {
+        ProcessDescription(
+            workingDirectory: currentDirectory(),
+            executable: gitExecutable,
+            arguments: cmd.arguments
+        )
+    }
 }
 
 public struct ProcessResult {
@@ -41,6 +57,13 @@ func execute(process: ProcessDescription) -> Task<ProcessResult> {
 }
 
 private func logCommand(process: ProcessDescription) -> Void {
-    let command = "Process(executable=\(process.executable), arguments=\(process.arguments), workingDirectory=\(process.workingDirectory))"
+    let executedCommand = ([process.executable] + process.arguments).joined(separator: " ")
+    let command = "Process(executable=\(process.executable), arguments=\(process.arguments), workingDirectory=\(process.workingDirectory), cmd=\(executedCommand)"
     os_log("%{public}@", command)
+}
+
+private let gitExecutable = "/usr/local/bin/git"
+
+private func currentDirectory() -> String {
+    return FileManager.default.currentDirectoryPath
 }

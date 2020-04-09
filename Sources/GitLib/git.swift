@@ -1,38 +1,32 @@
 import Foundation
 
+public struct GitCommand {
+    public let arguments: [String]
+}
 
 public struct Git {
     
-    private static let git = "/usr/local/bin/git"
 
-    static func branchName() -> ProcessDescription {
-        ProcessDescription(
-            workingDirectory: currentDirectory(),
-            executable: git,
+    public static func branchName() -> GitCommand {
+        GitCommand(
             arguments: ["symbolic-ref", "--short", "HEAD"]
         )
     }
 
-    static func getCommit(_ ref: String) -> ProcessDescription {
-        ProcessDescription(
-            workingDirectory: currentDirectory(),
-            executable: git,
+    public static func getCommit(_ ref: String) -> GitCommand {
+        GitCommand(
             arguments: ["show", "-s", "-z", "--format=\(commitFormat)", ref]
         )
     }
     
-    static func log(num: Int) -> ProcessDescription {
-        ProcessDescription(
-            workingDirectory: currentDirectory(),
-            executable: git,
+    public static func log(num: Int) -> GitCommand {
+        GitCommand(
             arguments: ["log", "-n\(num)", "--format=\(commitFormat)", "-z"]
         )
     }
     
-    static func status() -> ProcessDescription {
-        ProcessDescription(
-            workingDirectory: currentDirectory(),
-            executable: git,
+    public static func status() -> GitCommand {
+        GitCommand(
             arguments: ["status", "--porcelain=v2"]
         )
     }
@@ -52,7 +46,4 @@ private let REF_NAME = "%D"
 
 private let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, SUBJECT, REF_NAME].joined(separator: NEWLINE)
 
-private func currentDirectory() -> String {
-    return FileManager.default.currentDirectoryPath
-}
 

@@ -1,7 +1,7 @@
 import XCTest
 
-import magitTests
+import GitLibTests
 
 var tests = [XCTestCaseEntry]()
-tests += magitTests.allTests()
+tests += GitLibTests.allTests()
 XCTMain(tests)

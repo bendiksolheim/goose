@@ -8,6 +8,7 @@
 import Foundation
 import BowEffects
 import Ashen
+import GitLib
 
 public enum StatusEnum {
     case loading
@@ -32,9 +33,9 @@ public class Status: Command {
     }
     
     public func start(_ send: @escaping (AnyMessage) -> Void) {
-        let tasks = IO.parZip (execute(process: Git.branchName()),
-                               execute(process: Git.status()).flatMap({ result in parseStatus(result.output).fold(IO.raiseError, IO.pure) }),
-                               execute(process: Git.log(num: 10))
+        let tasks = IO.parZip (execute(process: ProcessDescription.git(Git.branchName())),
+                               execute(process: ProcessDescription.git(Git.status())).flatMap({ result in parseStatus(result.output).fold(IO.raiseError, IO.pure) }),
+                               execute(process: ProcessDescription.git(Git.log(num: 10)))
             )^
         let result = tasks.unsafeRunSyncEither()
         let status: StatusEnum = result.fold(self.error, self.success)

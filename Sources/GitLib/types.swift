@@ -2,23 +2,23 @@ import Foundation
 import Bow
 import os.log
 
-struct GitCommit {
-    let hash: GitHash
-    let message: String
-    let parents: [String]
-    let commitDate: Date
-    let authorDate: Date
-    let author: String
-    let email: String
-    let refName: Option<String>
+public struct GitCommit {
+    public let hash: GitHash
+    public let message: String
+    public let parents: [String]
+    public let commitDate: Date
+    public let authorDate: Date
+    public let author: String
+    public let email: String
+    public let refName: Option<String>
 }
 
-struct GitHash {
-    let full: String
-    let short: String
+public struct GitHash {
+    public let full: String
+    public let short: String
 }
 
-func parseCommits(_ input: String) -> [GitCommit] {
+public func parseCommits(_ input: String) -> [GitCommit] {
     let commits = input.trimmingCharacters(in: .init(charactersIn: "\0")).split(regex: "\0")
     return commits.map({ commit in
         let lines = commit.split(separator: "\n", omittingEmptySubsequences: false);
@@ -35,7 +35,7 @@ func parseCommits(_ input: String) -> [GitCommit] {
     })
 }
 
-func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
+public func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
     if (input == "") {
         return .none()
     }
@@ -48,16 +48,16 @@ func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
     }
 }
 
-func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
+public func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
     GitHash(full: String(input), short: String(input.prefix(7)))
 }
 
-enum Area {
+public enum Area {
     case Worktree
     case Index
 }
 
-enum FileStatus {
+public enum FileStatus {
     case Untracked
     case Modified
     case Deleted
@@ -66,17 +66,28 @@ enum FileStatus {
     case Copied
 }
 
-struct Change {
-    let area: Area
-    let status: FileStatus
-    let file: String
+public struct Change: Equatable {
+    public let area: Area
+    public let status: FileStatus
+    public let file: String
+    
+    public init(area: Area, status: FileStatus, file: String) {
+        self.area = area
+        self.status = status
+        self.file = file
+        
+    }
 }
 
-struct GitStatus {
-    let changes: [Change]
+public struct GitStatus {
+    public let changes: [Change]
+    
+    public init(changes: [Change]) {
+        self.changes = changes
+    }
 }
 
-func parseStatus(_ input: String) -> Either<Error, GitStatus> {
+public func parseStatus(_ input: String) -> Either<Error, GitStatus> {
     let lines = input.split(separator: "\n")
     return lines
         .map(parseChange)
@@ -84,7 +95,7 @@ func parseStatus(_ input: String) -> Either<Error, GitStatus> {
         .map { changes in GitStatus(changes: changes.flatMap { $0 }) }^
 }
 
-func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [Change]> {
+public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [Change]> {
     let type = input.prefix(1)
     switch type {
     case "1":
@@ -130,12 +141,12 @@ func parseUntrackedChange<S: StringProtocol>(_ input: S) -> [Change] {
     return [Change(area: .Worktree, status: .Untracked, file: String(output[1]))]
 }
 
-func isUntracked(_ change: Change) -> Bool {
+public func isUntracked(_ change: Change) -> Bool {
     change.area == .Worktree
         && change.status == .Untracked
 }
 
-func isUnstaged(_ change: Change) -> Bool {
+public func isUnstaged(_ change: Change) -> Bool {
     change.area == .Worktree
         && (change.status == .Modified
         || change.status == .Renamed
@@ -143,6 +154,6 @@ func isUnstaged(_ change: Change) -> Bool {
         || change.status == .Deleted)
 }
 
-func isStaged(_ change: Change) -> Bool {
+public func isStaged(_ change: Change) -> Bool {
     change.area == .Index
 }

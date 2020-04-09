@@ -3,31 +3,7 @@ import Ashen
 import os.log
 import Bow
 import BowEffects
-
-//public class Cmd: Command {
-//    
-//    public typealias OnResult = (String) -> AnyMessage
-//    
-//    let process: ProcessDescription
-//    let onResult: OnResult
-//    
-//    public init(process: ProcessDescription, onResult: @escaping OnResult) {
-//        self.process = process
-//        self.onResult = onResult
-//    }
-//    
-//    static func run(process: ProcessDescription, onResult: @escaping OnResult) -> Cmd {
-//        Cmd(process: process, onResult: onResult)
-//    }
-//    
-//    public func start(_ send: @escaping (AnyMessage) -> Void) {
-//        let task = execute(process: self.process)
-//        let result = task.unsafeRunSyncEither(on: .global(qos: .background))
-//        let branch = result.fold({ error in error.localizedDescription }, { result in result.output})
-//        let message = self.onResult(branch)
-//        send(message)
-//    }
-//}
+import GitLib
 
 struct Magit: Program {
     enum Message {
@@ -68,17 +44,27 @@ struct Magit: Program {
         case .error(let error):
             components = [LabelView(at: .topLeft(), text: error.localizedDescription)]
         case .success(let status):
+            var sections: [Component] = [Section(title: .LabelView(headMapper(status.log[0])), items: [], itemMapper: { $0 }, open: true, screenSize: screenSize)]
+            
             let untracked = status.changes.filter(isUntracked)
+            if untracked.count > 0 {
+                sections.append(Section(title: .String("Untracked files (\(untracked.count))"), items: untracked, itemMapper: changeMapper, open: true, screenSize: screenSize))
+            }
+            
             let unstaged = status.changes.filter(isUnstaged)
+            if unstaged.count > 0 {
+                sections.append(Section(title: .String("Unstaged changes (\(unstaged.count))"), items: unstaged, itemMapper: changeMapper, open: true, screenSize: screenSize))
+            }
+            
             let staged = status.changes.filter(isStaged)
+            if staged.count > 0 {
+                sections.append(Section(title: .String("Staged changes (\(staged.count))"), items: staged, itemMapper: changeMapper, open: true, screenSize: screenSize))
+            }
+            
+            sections.append(Section(title: .String("Recent commits"), items: status.log, itemMapper: commitMapper, open: true, screenSize: screenSize))
+            
             components = [
-                FlowLayout.vertical(size: DesiredSize(width: screenSize.width, height: screenSize.height), components: [
-                    Section(title: .LabelView(headMapper(status.log[0])), items: [], itemMapper: { $0 }, open: true, screenSize: screenSize),
-                    Section(title: .String("Untracked files (\(untracked.count))"), items: untracked, itemMapper: changeMapper, open: true, screenSize: screenSize),
-                    Section(title: .String("Unstaged changes (\(unstaged.count))"), items: unstaged, itemMapper: changeMapper, open: true, screenSize: screenSize),
-                    Section(title: .String("Staged changes (\(staged.count))"), items: staged, itemMapper: changeMapper, open: true, screenSize: screenSize),
-                    Section(title: .String("Recent commits"), items: status.log, itemMapper: commitMapper, open: true, screenSize: screenSize)
-                ])
+                FlowLayout.vertical(size: DesiredSize(width: screenSize.width, height: screenSize.height), components: sections)
             ]
         }
         
