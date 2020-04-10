@@ -10,9 +10,9 @@ import BowEffects
 import Ashen
 import GitLib
 
-public enum StatusEnum {
+public enum AsyncData<T> {
     case loading
-    case success(StatusInfo)
+    case success(T)
     case error(Error)
 }
 
@@ -24,7 +24,7 @@ public struct StatusInfo {
 
 public class Status: Command {
     
-    public typealias OnResult = (StatusEnum) -> AnyMessage
+    public typealias OnResult = (AsyncData<StatusInfo>) -> AnyMessage
     
     let onResult: OnResult
     
@@ -38,16 +38,16 @@ public class Status: Command {
                                execute(process: ProcessDescription.git(Git.log(num: 10)))
             )^
         let result = tasks.unsafeRunSyncEither()
-        let status: StatusEnum = result.fold(self.error, self.success)
+        let status: AsyncData = result.fold(self.error, self.success)
         let message = self.onResult(status)
         send(message)
     }
     
-    func error(error: Error) -> StatusEnum {
+    func error(error: Error) -> AsyncData<StatusInfo> {
         return .error(error)
     }
     
-    func success(branch: ProcessResult, status: GitStatus, log: ProcessResult) -> StatusEnum {
+    func success(branch: ProcessResult, status: GitStatus, log: ProcessResult) -> AsyncData<StatusInfo> {
         let branch = branch.output
         let log = parseCommits(log.output)
         
