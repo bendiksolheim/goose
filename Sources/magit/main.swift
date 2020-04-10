@@ -2,7 +2,7 @@ import Darwin
 import Ashen
 
 
-let app = App(program: StatusView(), screen: TermboxScreen())
+let app = App(program: Magit(), screen: TermboxScreen())
 let exitState = app.run()
 
 switch exitState {

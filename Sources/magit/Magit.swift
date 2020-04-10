@@ -37,7 +37,7 @@ func renderStatus(status: AsyncData<StatusInfo>, screenSize: Size) -> [Component
     }
 }
 
-struct StatusView: Program {
+struct Magit: Program {
     enum Message {
         case quit
         case setStatus(AsyncData<StatusInfo>)
