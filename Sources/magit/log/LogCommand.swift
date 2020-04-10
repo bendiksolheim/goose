@@ -7,9 +7,12 @@
 
 import Foundation
 import Ashen
+import BowEffects
+import GitLib
 
 public struct LogInfo {
-    let logs: String
+    let branch: String
+    let commits: [GitCommit]
 }
 
 public class Log: Command {
@@ -21,9 +24,24 @@ public class Log: Command {
     init(onResult: @escaping OnResult) {
         self.onResult = onResult
     }
-    
+
     public func start(_ send: @escaping (AnyMessage) -> Void) {
-        let message = onResult(.success(LogInfo(logs: "Hei")))
+        let tasks = IO.parZip(execute(process: ProcessDescription.git(Git.branchName())),
+                              execute(process: ProcessDescription.git(Git.log(num: 100))))^
+        let result = tasks.unsafeRunSyncEither()
+        let log: AsyncData = result.fold(error, success)
+        let message = onResult(log)
         send(message)
+    }
+
+    func error(error: Error) -> AsyncData<LogInfo> {
+        return .error(error)
+    }
+
+    func success(branchResult: ProcessResult, logResult: ProcessResult) -> AsyncData<LogInfo> {
+        let branch = branchResult.output
+        let log = parseCommits(logResult.output)
+
+        return .success(LogInfo(branch: branch, commits: log))
     }
 }
