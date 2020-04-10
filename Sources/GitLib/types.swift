@@ -22,7 +22,6 @@ public func parseCommits(_ input: String) -> [GitCommit] {
     let commits = input.trimmingCharacters(in: .init(charactersIn: "\0")).split(regex: "\0")
     return commits.map({ commit in
         let lines = commit.split(separator: "\n", omittingEmptySubsequences: false);
-        os_log("%{public}d", lines.count)
         return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
                       message: String(lines[7]),
                       parents: lines[6].split(separator: " ").map { parent in String(parent) },
