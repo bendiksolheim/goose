@@ -9,7 +9,7 @@ import Foundation
 import Ashen
 
 func Section(title: LabelView, items: [LabelView], open: Bool) -> FlowLayout {
-    let components = [title] + items
+    let components = [title] + ( open ? items : [])
     let height = Dimension.literal(components.count + 1)
     let width = Dimension.max
     
