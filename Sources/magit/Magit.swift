@@ -9,7 +9,7 @@ enum View {
 
 struct Magit: Program {
     enum Message {
-        case quit
+        case close
         case setStatus(AsyncData<StatusInfo>)
         case setLog(AsyncData<LogInfo>)
         case viewLog
@@ -29,7 +29,7 @@ struct Magit: Program {
 
     func update(model: inout Model, message: Message) -> Update<Model> {
         switch message {
-        case .quit:
+        case .close:
             if model.views.count > 1 {
                 model.views.removeLast()
                 return .update(model, [])
@@ -64,7 +64,7 @@ struct Magit: Program {
 
         return Window(
             components: components +
-                [OnKeyPress(.q, { Message.quit }),
+                [OnKeyPress(.q, { Message.close }),
                  OnKeyPress(.g, { Message.refresh }),
                  OnKeyPress(.l, { Message.viewLog })
                 ]
