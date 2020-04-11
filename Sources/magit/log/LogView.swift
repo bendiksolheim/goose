@@ -15,6 +15,6 @@ func renderLog(log: AsyncData<LogInfo>, screenSize: Size) -> [Component] {
     case .error(let error):
         return [LabelView(text: "Error: \(error.localizedDescription)")]
     case .success(let log):
-        return [Section(at: .topLeft(), title: .LabelView(LabelView(text: "Commits in \(log.branch)")), items: log.commits, itemMapper: commitMapper, open: true, screenSize: screenSize)]
+        return [Section(title: LabelView(text: "Commits in \(log.branch)"), items: log.commits.map(commitMapper), open: true)]
     }
 }

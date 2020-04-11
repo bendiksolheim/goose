@@ -58,7 +58,6 @@ struct Magit: Program {
         case .status:
             components = renderStatus(status: model.status, screenSize: screenSize)
         case .log:
-            os_log("renderLog")
             components = renderLog(log: model.log, screenSize: screenSize)
         }
 

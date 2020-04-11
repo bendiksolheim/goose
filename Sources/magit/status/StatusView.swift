@@ -17,29 +17,33 @@ func renderStatus(status: AsyncData<StatusInfo>, screenSize: Size) -> [Component
     case .error(let error):
         return [LabelView(at: .topLeft(), text: error.localizedDescription)]
     case .success(let status):
-        var sections: [Component] = [Section(title: .LabelView(headMapper(status.log[0])), items: [], itemMapper: { $0 }, open: true, screenSize: screenSize)]
-
+        var sections: [Component] = [Section(title: headMapper(status.log[0]), items: [], open: true)]
+        
         let untracked = status.changes.filter(isUntracked)
         if untracked.count > 0 {
-            sections.append(Section(title: .String("Untracked files (\(untracked.count))"), items: untracked, itemMapper: changeMapper, open: true, screenSize: screenSize))
+            sections.append(Section(title: fileStatusTitle("Untracked files (\(untracked.count))"), items: untracked.map(changeMapper), open: true))
         }
 
         let unstaged = status.changes.filter(isUnstaged)
         if unstaged.count > 0 {
-            sections.append(Section(title: .String("Unstaged changes (\(unstaged.count))"), items: unstaged, itemMapper: changeMapper, open: true, screenSize: screenSize))
+            sections.append(Section(title: fileStatusTitle("Unstaged changes (\(unstaged.count))"), items: unstaged.map(changeMapper), open: true))
         }
 
         let staged = status.changes.filter(isStaged)
         if staged.count > 0 {
-            sections.append(Section(title: .String("Staged changes (\(staged.count))"), items: staged, itemMapper: changeMapper, open: true, screenSize: screenSize))
+            sections.append(Section(title: fileStatusTitle("Staged changes (\(staged.count))"), items: staged.map(changeMapper), open: true))
         }
 
-        sections.append(Section(title: .String("Recent commits"), items: status.log, itemMapper: commitMapper, open: true, screenSize: screenSize))
+        sections.append(Section(title: LabelView(text: "Recent commits"), items: status.log.map(commitMapper), open: true))
 
         return [
             FlowLayout.vertical(size: DesiredSize(width: screenSize.width, height: screenSize.height), components: sections)
         ]
     }
+}
+
+func fileStatusTitle(_ title: String) -> LabelView {
+    LabelView(text: Text(title, [.foreground(.blue)]))
 }
 
 func headMapper(_ commit: GitCommit) -> LabelView {
