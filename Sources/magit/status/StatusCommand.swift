@@ -7,22 +7,36 @@
 
 import Foundation
 import BowEffects
-import Ashen
+//import Ashen
 import GitLib
 
-public enum AsyncData<T> {
+
+public enum AsyncData<T: Equatable>: Equatable {
     case loading
     case success(T)
     case error(Error)
+    
+    public static func == (lhs: AsyncData<T>, rhs: AsyncData<T>) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading):
+            return true
+        case (.success(let l), .success(let r)):
+            return l == r
+        case (.error(let l), .error(let r)):
+            return l.localizedDescription == r.localizedDescription
+        default:
+            return false
+        }
+    }
 }
 
-public struct StatusInfo {
+public struct StatusInfo: Equatable {
     let branch: String
     let changes: [Change]
     let log: [GitCommit]
 }
 
-public class Status: Command {
+/*public class Status: Command {
     
     public typealias OnResult = (AsyncData<StatusInfo>) -> AnyMessage
     
@@ -57,4 +71,4 @@ public class Status: Command {
             log: log
         ))
     }
-}
+}*/

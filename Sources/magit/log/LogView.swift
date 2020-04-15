@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Ashen
+/*import Ashen
 
 func renderLog(log: AsyncData<LogInfo>, screenSize: Size) -> [Component] {
     switch log {
@@ -17,4 +17,4 @@ func renderLog(log: AsyncData<LogInfo>, screenSize: Size) -> [Component] {
     case .success(let log):
         return [Section(title: LabelView(text: "Commits in \(log.branch)"), items: log.commits.map(commitMapper), open: true)]
     }
-}
+}*/

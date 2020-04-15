@@ -1,13 +1,13 @@
 import Foundation
-import Ashen
+//import Ashen
 import os.log
 
-enum View {
+/*enum View {
     case status
     case log
-}
+}*/
 
-struct Magit: Program {
+/*struct Magit: Program {
     enum Message {
         case close
         case setStatus(AsyncData<StatusInfo>)
@@ -70,3 +70,4 @@ struct Magit: Program {
         )
     }
 }
+*/

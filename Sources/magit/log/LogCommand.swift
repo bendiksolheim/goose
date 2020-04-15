@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Ashen
+//import Ashen
 import BowEffects
 import GitLib
 
@@ -15,7 +15,7 @@ public struct LogInfo {
     let commits: [GitCommit]
 }
 
-public class Log: Command {
+/*public class Log: Command {
     
     public typealias OnResult = (AsyncData<LogInfo>) -> AnyMessage
     
@@ -45,3 +45,4 @@ public class Log: Command {
         return .success(LogInfo(branch: branch, commits: log))
     }
 }
+*/

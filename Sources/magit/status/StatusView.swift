@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Ashen
+/*import Ashen
 import GitLib
 import Bow
 
@@ -73,3 +73,4 @@ func changeMapper(_ change: Change) -> LabelView {
         return LabelView(text: "copied    \(change.file)")
     }
 }
+*/

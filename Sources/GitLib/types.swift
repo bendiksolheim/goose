@@ -2,7 +2,7 @@ import Foundation
 import Bow
 import os.log
 
-public struct GitCommit {
+public struct GitCommit: Equatable {
     public let hash: GitHash
     public let message: String
     public let parents: [String]
@@ -13,7 +13,7 @@ public struct GitCommit {
     public let refName: Option<String>
 }
 
-public struct GitHash {
+public struct GitHash: Equatable {
     public let full: String
     public let short: String
 }
