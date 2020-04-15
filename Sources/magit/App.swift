@@ -1,15 +1,17 @@
-//
-//  App.swift
-//  magit
-//
-//  Created by Bendik Solheim on 12/04/2020.
-//
-
 import Foundation
 import Darwin
 import Termbox
 import os.log
 import ReactiveSwift
+
+enum Sub<Message> {
+    case cursor((UInt, UInt) -> Message)
+    case none
+}
+
+func cursor<Message>(_ callback: @escaping (UInt, UInt) -> Message) -> Sub<Message> {
+    return Sub.cursor(callback)
+}
 
 enum Cmd<T> {
     case task(() -> T)
@@ -20,10 +22,27 @@ func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
     return .task(task)
 }
 
+func renderToScreen<Model>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: Model, _ render: (Model) -> [Line]) {
+    let content = render(model)
+    let lines = content.map { $0.chars }
+    for y in 0..<lines.count {
+        let line = lines[y]
+        for x in 0..<line.count {
+            let char = line[x]
+            buffer.write(char, x: x, y: y)
+        }
+    }
+    
+    DispatchQueue.main.async {
+        screen.render(buffer: buffer)
+    }
+}
+
 func run<Model: Equatable, Message>(
     initialize: () -> (Model, Cmd<Message>),
-    render: @escaping (Model) -> [AttrCharType],
-    update: @escaping (Message, Model) -> (Model, Cmd<Message>)) {
+    render: @escaping (Model) -> [Line],
+    update: @escaping (Message, Model) -> (Model, Cmd<Message>),
+    subscriptions: [Sub<Message>]) {
     do {
         try Termbox.initialize()
     } catch let error {
@@ -49,12 +68,13 @@ func run<Model: Equatable, Message>(
             commandProducer.send(value: command)
         }
         model = updatedModel
-        let content = render(model)
+        renderToScreen(buffer, app, model, render)
+        /*let content = render(model)
         buffer.write(lines: content)
         
         DispatchQueue.main.async {
             app.render(buffer: buffer)
-        }
+        }*/
     }
     
     commandConsumer.observeValues { command in
@@ -86,6 +106,12 @@ func run<Model: Equatable, Message>(
                             polling = false
                             messageProducer.sendCompleted()
                             commandProducer.sendCompleted()
+                        case .j:
+                            buffer.moveCursor(.down)
+                            renderToScreen(buffer, app, model, render)
+                        case .k:
+                            buffer.moveCursor(.up)
+                            renderToScreen(buffer, app, model, render)
                         default:
                             let letter = char.toString
                             os_log("Letter: %{public}@", letter)

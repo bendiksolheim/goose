@@ -58,6 +58,21 @@ public class TermboxScreen {
                 )
             }
         }
+        
+        let cursor = buffer.cursor
+        let char: UnicodeScalar
+        if let row = chars[Int(cursor.1)], let col = row[Int(cursor.0)], let c = col.char?.unicodeScalars.first {
+            char = c
+        } else{
+            char = " "
+        }
+        Termbox.putc(
+            x: Int32(cursor.0),
+            y: Int32(cursor.1),
+            char: char,
+            foreground:
+            .black, background: .white
+        )
 
         Termbox.render()
     }

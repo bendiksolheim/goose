@@ -15,24 +15,39 @@ case .error: exit(EX_IOERR)
 
 enum Message {
     case gotStatus(AsyncData<StatusInfo>)
+    case cursorUpdate(UInt, UInt)
+}
+
+struct CursorModel: Equatable {
+    let x: UInt
+    let y: UInt
+    
+    init(_ x: UInt, _ y: UInt) {
+        self.x = x
+        self.y = y
+    }
 }
 
 struct Model: Equatable {
     let status: AsyncData<StatusInfo>
+    let cursor: CursorModel
 }
 
 func initialize() -> (Model, Cmd<Message>) {
-    return (Model(status: .loading), task(getStatus))
+    return (Model(status: .loading, cursor: CursorModel(0, 0)), task(getStatus))
 }
 
-func render(model: Model) -> [AttrCharType] {
-    return ["Hello"]
+func render(model: Model) -> [Line] {
+    return renderStatus(status: model.status)
+    //return [Line(Text("Hello", [.foreground(Color.blue), .background(Color.green)]))]
 }
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
     case .gotStatus(let status):
-        return (Model(status: status), .none)
+        return (Model(status: status, cursor: model.cursor), .none)
+    case .cursorUpdate(let x, let y):
+        return (Model(status: model.status, cursor: CursorModel(x, y)), .none)
     }
 }
 
@@ -61,4 +76,8 @@ func success(branch: ProcessResult, status: GitStatus, log: ProcessResult) -> As
     ))
 }
 
-run(initialize: initialize, render: render, update: update)
+let subscriptions = [
+    cursor({ (x, y) in Message.cursorUpdate(x, y) })
+]
+
+run(initialize: initialize, render: render, update: update, subscriptions: subscriptions)

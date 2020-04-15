@@ -7,6 +7,11 @@
 
 import Foundation
 
+public enum CursorVerticalDirection {
+    case up
+    case down
+}
+
 public class Buffer {
     typealias Chars = [Int: [Int: AttrCharType]]
     //typealias Mouse = [Int: [Int: (Component, Point)]]
@@ -15,9 +20,11 @@ public class Buffer {
     //private var offset: Point = .zero
     //private var zeroOrigin: Point = .zero
     private var size: Size
+    private(set) var cursor: (UInt, UInt)
 
     init(size: Size) {
         self.size = size
+        self.cursor = (0, 0)
     }
 
     /*public func claimMouse(rect: Rect, component: Component) {
@@ -67,6 +74,28 @@ public class Buffer {
         zeroOrigin = prevZeroOrigin
         size = prevSize
     }*/
+    
+    public func moveCursor(_ direction: CursorVerticalDirection) {
+        switch direction {
+        case .up:
+            if cursor.1 > 0 {
+                cursor = (cursor.0, cursor.1 - 1)
+            }
+        case .down:
+            if cursor.1 < size.height - 1 {
+                cursor = (cursor.0, cursor.1 + 1)
+            }
+        }
+    }
+    
+    public func updateCursor(x: UInt, y: UInt) {
+        guard
+            x < size.width,
+            y < size.height
+        else { return }
+        
+        cursor = (x, y)
+    }
 
     public func write(_ attrChar: AttrCharType, x localX: Int, y localY: Int) {
         guard
@@ -88,7 +117,11 @@ public class Buffer {
             }
         }
         else {*/
+        /*if x == cursor.0 && y == cursor.1 {
+            row[x] = AttrChar(attrChar.char, [.background(Color.white), .foreground(Color.black)])
+        } else {*/
             row[x] = attrChar
+        //}
         //}
         chars[y] = row
     }
