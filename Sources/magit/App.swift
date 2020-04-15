@@ -6,6 +6,7 @@ import ReactiveSwift
 
 enum Sub<Message> {
     case cursor((UInt, UInt) -> Message)
+    case keyboard((KeyEvent) -> Message)
     case none
 }
 
@@ -13,29 +14,18 @@ func cursor<Message>(_ callback: @escaping (UInt, UInt) -> Message) -> Sub<Messa
     return Sub.cursor(callback)
 }
 
+func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Sub<Message> {
+    return Sub.keyboard(callback)
+}
+
 enum Cmd<T> {
     case task(() -> T)
+    case exit
     case none
 }
 
 func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
     return .task(task)
-}
-
-func renderToScreen<Model>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: Model, _ render: (Model) -> [Line]) {
-    let content = render(model)
-    let lines = content.map { $0.chars }
-    for y in 0..<lines.count {
-        let line = lines[y]
-        for x in 0..<line.count {
-            let char = line[x]
-            buffer.write(char, x: x, y: y)
-        }
-    }
-    
-    DispatchQueue.main.async {
-        screen.render(buffer: buffer)
-    }
 }
 
 func run<Model: Equatable, Message>(
@@ -50,6 +40,8 @@ func run<Model: Equatable, Message>(
         return
     }
     
+    let keyboardSubscription = getKeyboardSubscription(subscriptions: subscriptions)
+    
     let termboxDispatchQueue = DispatchQueue(label: "termbox.queue.producer", qos: .background)
 
     Termbox.outputMode = .color256
@@ -63,18 +55,13 @@ func run<Model: Equatable, Message>(
     let (commandConsumer, commandProducer) = Signal<Cmd<Message>, Never>.pipe()
     
     messageConsumer.observeValues { message in
+        //os_log("message: %{public}@", "\(message)")
         let (updatedModel, command) = update(message, model)
+        model = updatedModel
         DispatchQueue.main.async {
             commandProducer.send(value: command)
         }
-        model = updatedModel
         renderToScreen(buffer, app, model, render)
-        /*let content = render(model)
-        buffer.write(lines: content)
-        
-        DispatchQueue.main.async {
-            app.render(buffer: buffer)
-        }*/
     }
     
     commandConsumer.observeValues { command in
@@ -84,6 +71,9 @@ func run<Model: Equatable, Message>(
             DispatchQueue.main.async {
                 messageProducer.send(value: message)
             }
+        case .exit:
+            messageProducer.sendCompleted()
+            commandProducer.sendCompleted()
         case .none:
             break;
         }
@@ -94,18 +84,13 @@ func run<Model: Equatable, Message>(
     termboxDispatchQueue.async {
         var polling = true
         while polling {
-            os_log("termbox poll event")
             if let event = app.pollEvent() {
                 switch event {
                 case .key(let key):
+                    var bubble = false
                     switch key {
                     case .char(let char):
                         switch char {
-                        case .q:
-                            os_log("quitting")
-                            polling = false
-                            messageProducer.sendCompleted()
-                            commandProducer.sendCompleted()
                         case .j:
                             buffer.moveCursor(.down)
                             renderToScreen(buffer, app, model, render)
@@ -113,13 +98,29 @@ func run<Model: Equatable, Message>(
                             buffer.moveCursor(.up)
                             renderToScreen(buffer, app, model, render)
                         default:
+                            bubble = true
                             let letter = char.toString
-                            os_log("Letter: %{public}@", letter)
                             let attrChar = AttrChar(letter)
                             buffer.write(attrChar, x: 0, y: 0)
                         }
+                    case .ctrl(let char):
+                        switch char {
+                        case .c:
+                            polling = false
+                            messageProducer.sendCompleted()
+                            commandProducer.sendCompleted()
+                        default:
+                            break
+                        }
                     default:
                         continue
+                    }
+                    if bubble {
+                        if let message = keyboardSubscription?(key) {
+                            DispatchQueue.main.async {
+                                messageProducer.send(value: message)
+                            }
+                        }
                     }
                 case .window(let width, let height):
                     os_log("New width %{public}d height %{public}d", width, height)
@@ -135,4 +136,34 @@ func run<Model: Equatable, Message>(
     CFRunLoopRun()
     
     app.teardown()
+}
+
+func renderToScreen<Model>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: Model, _ render: (Model) -> [Line]) {
+    let content = render(model)
+    let lines = content.map { $0.chars }
+    buffer.clear()
+    for y in 0..<lines.count {
+        let line = lines[y]
+        for x in 0..<line.count {
+            let char = line[x]
+            buffer.write(char, x: x, y: y)
+        }
+    }
+    
+    DispatchQueue.main.async {
+        screen.render(buffer: buffer)
+    }
+}
+
+func getKeyboardSubscription<Message>(subscriptions: [Sub<Message>]) -> ((KeyEvent) -> Message)? {
+    for subscription in subscriptions {
+        switch subscription {
+        case .keyboard(let fn):
+            return fn
+        default:
+            break;
+        }
+    }
+    
+    return nil
 }

@@ -75,6 +75,10 @@ public class Buffer {
         size = prevSize
     }*/
     
+    public func clear() {
+        chars = [:]
+    }
+    
     public func moveCursor(_ direction: CursorVerticalDirection) {
         switch direction {
         case .up:

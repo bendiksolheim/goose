@@ -6,11 +6,10 @@
 //
 
 import Foundation
-//import Ashen
 import BowEffects
 import GitLib
 
-public struct LogInfo {
+public struct LogInfo: Equatable {
     let branch: String
     let commits: [GitCommit]
 }

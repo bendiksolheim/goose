@@ -38,7 +38,7 @@ public struct ProcessResult {
 
 func execute(process: ProcessDescription) -> Task<ProcessResult> {
     return Task.invoke {
-        logCommand(process: process)
+        //logCommand(process: process)
         let task = Process()
         task.launchPath = process.executable
         task.arguments = process.arguments
