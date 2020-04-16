@@ -19,6 +19,7 @@ func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Sub<Messa
 }
 
 enum Cmd<T> {
+    case cmd(T)
     case task(() -> T)
     case exit
     case none
@@ -67,6 +68,10 @@ func run<Model: Equatable, Message>(
     
     commandConsumer.observeValues { command in
         switch command {
+        case .cmd(let message):
+            DispatchQueue.main.async {
+                messageProducer.send(value: message)
+            }
         case .task(let task):
             let message = task()
             DispatchQueue.main.async {
