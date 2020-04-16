@@ -4,32 +4,32 @@ import Termbox
 import os.log
 import ReactiveSwift
 
-enum Sub<Message> {
+public enum Sub<Message> {
     case cursor((UInt, UInt) -> Message)
     case keyboard((KeyEvent) -> Message)
     case none
 }
 
-func cursor<Message>(_ callback: @escaping (UInt, UInt) -> Message) -> Sub<Message> {
+public func cursor<Message>(_ callback: @escaping (UInt, UInt) -> Message) -> Sub<Message> {
     return Sub.cursor(callback)
 }
 
-func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Sub<Message> {
+public func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Sub<Message> {
     return Sub.keyboard(callback)
 }
 
-enum Cmd<T> {
+public enum Cmd<T> {
     case cmd(T)
     case task(() -> T)
     case exit
     case none
 }
 
-func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
+public func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
     return .task(task)
 }
 
-func run<Model: Equatable, Message>(
+public func run<Model: Equatable, Message>(
     initialize: () -> (Model, Cmd<Message>),
     render: @escaping (Model) -> [Line<Message>],
     update: @escaping (Message, Model) -> (Model, Cmd<Message>),

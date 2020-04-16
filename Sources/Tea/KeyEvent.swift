@@ -1,10 +1,3 @@
-//
-//  KeyEvent.swift
-//  magit
-//
-//  Created by Bendik Solheim on 12/04/2020.
-//
-
 public enum KeyEvent {
     case ctrl(CtrlKeyEvent)
     case alt(AltKeyEvent)

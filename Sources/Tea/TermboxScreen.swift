@@ -1,19 +1,12 @@
-//
-//  TermboxScreen.swift
-//  magit
-//
-//  Created by Bendik Solheim on 11/04/2020.
-//
-
 import Termbox
 
-public struct Size {
+struct Size {
     let width: Int
     let height: Int
 }
 
 
-public class TermboxScreen {
+class TermboxScreen {
     public var size: Size { Size(width: Int(Termbox.width), height: Int(Termbox.height)) }
     private var queuedEvents: [Event] = []
     //private var currentMouseClick: (x: UInt16, y: UInt16, button: MouseEvent.Button)?

@@ -1,5 +1,6 @@
 import Foundation
 import GitLib
+import Tea
 import os.log
 
 enum Message {

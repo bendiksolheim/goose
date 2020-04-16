@@ -1,12 +1,6 @@
-//
-//  StatusView.swift
-//  magit
-//
-//  Created by Bendik Solheim on 10/04/2020.
-//
-
 import Foundation
 import GitLib
+import Tea
 import Bow
 
 func renderStatus(status: AsyncData<StatusInfo>) -> [Line<Message>] {

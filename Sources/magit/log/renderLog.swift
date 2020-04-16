@@ -1,4 +1,5 @@
 import Foundation
+import Tea
 
 func renderLog(log: AsyncData<LogInfo>) -> [Line<Message>] {
     switch log {
