@@ -32,7 +32,7 @@ public enum AsyncData<T: Equatable>: Equatable {
 
 public struct StatusInfo: Equatable {
     let branch: String
-    let changes: [Change]
+    let changes: [GitChange]
     let log: [GitCommit]
 }
 

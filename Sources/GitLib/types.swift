@@ -65,7 +65,7 @@ public enum FileStatus {
     case Copied
 }
 
-public struct Change: Equatable {
+public struct GitChange: Equatable {
     public let area: Area
     public let status: FileStatus
     public let file: String
@@ -79,9 +79,9 @@ public struct Change: Equatable {
 }
 
 public struct GitStatus {
-    public let changes: [Change]
+    public let changes: [GitChange]
     
-    public init(changes: [Change]) {
+    public init(changes: [GitChange]) {
         self.changes = changes
     }
 }
@@ -94,7 +94,7 @@ public func parseStatus(_ input: String) -> Either<Error, GitStatus> {
         .map { changes in GitStatus(changes: changes.flatMap { $0 }) }^
 }
 
-public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [Change]> {
+public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [GitChange]> {
     let type = input.prefix(1)
     switch type {
     case "1":
@@ -108,44 +108,44 @@ public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [Change]
     }
 }
 
-func parseOrdinaryChange<S: StringProtocol>(_ input: S) -> [Change] {
-    var changes: [Change] = []
+func parseOrdinaryChange<S: StringProtocol>(_ input: S) -> [GitChange] {
+    var changes: [GitChange] = []
     let output = input.split(separator: " ")
     let index = String(output[1])[0]
     let worktree = String(output[1])[1]
     let file = String(output[8])
     if index == "A" {
-        changes.append(Change(area: .Index, status: .Added, file: file))
+        changes.append(GitChange(area: .Index, status: .Added, file: file))
     } else if index == "M" {
-        changes.append(Change(area: .Index, status: .Modified, file: file))
+        changes.append(GitChange(area: .Index, status: .Modified, file: file))
     } else if index == "D" {
-        changes.append(Change(area: .Index, status: .Deleted, file: file))
+        changes.append(GitChange(area: .Index, status: .Deleted, file: file))
     }
     
     if worktree == "M" {
-        changes.append(Change(area: .Worktree, status: .Modified, file: file))
+        changes.append(GitChange(area: .Worktree, status: .Modified, file: file))
     } else if worktree == "D" {
-        changes.append(Change(area: .Worktree, status: .Deleted, file: file))
+        changes.append(GitChange(area: .Worktree, status: .Deleted, file: file))
     }
     
     return changes
 }
 
-func parseRenamedChange<S: StringProtocol>(_ input: S) -> [Change] {
+func parseRenamedChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     return []
 }
 
-func parseUntrackedChange<S: StringProtocol>(_ input: S) -> [Change] {
+func parseUntrackedChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     let output = input.split(separator: " ")
-    return [Change(area: .Worktree, status: .Untracked, file: String(output[1]))]
+    return [GitChange(area: .Worktree, status: .Untracked, file: String(output[1]))]
 }
 
-public func isUntracked(_ change: Change) -> Bool {
+public func isUntracked(_ change: GitChange) -> Bool {
     change.area == .Worktree
         && change.status == .Untracked
 }
 
-public func isUnstaged(_ change: Change) -> Bool {
+public func isUnstaged(_ change: GitChange) -> Bool {
     change.area == .Worktree
         && (change.status == .Modified
         || change.status == .Renamed
@@ -153,6 +153,6 @@ public func isUnstaged(_ change: Change) -> Bool {
         || change.status == .Deleted)
 }
 
-public func isStaged(_ change: Change) -> Bool {
+public func isStaged(_ change: GitChange) -> Bool {
     change.area == .Index
 }
