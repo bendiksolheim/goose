@@ -40,11 +40,7 @@ public func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
     }
     
     let parts = String(input).split(regex: " -> ")
-    if parts.count < 2 {
-        return .none()
-    } else {
-        return .some(parts[1])
-    }
+    return .some(parts.last!)
 }
 
 public func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
