@@ -1,13 +1,5 @@
-//
-//  StatusCommand.swift
-//  magit
-//
-//  Created by Bendik Solheim on 02/04/2020.
-//
-
 import Foundation
 import BowEffects
-//import Ashen
 import GitLib
 
 
@@ -59,4 +51,16 @@ func statusSuccess(branch: ProcessResult, status: GitStatus, log: ProcessResult)
         changes: status.changes,
         log: log
     ))
+}
+
+func addFile(files: [String]) -> Message {
+    let task = execute(process: ProcessDescription.git(Git.add(files)))
+    let result = task.unsafeRunSyncEither()
+    return result.fold({ Message.commandFailed($0.localizedDescription) }, { _ in Message.commandSuccess })
+}
+
+func resetFile(files: [String]) -> Message {
+    let task = execute(process: ProcessDescription.git(Git.reset(files)))
+    let result = task.unsafeRunSyncEither()
+    return result.fold({ Message.commandFailed($0.localizedDescription) }, { _ in Message.commandSuccess})
 }

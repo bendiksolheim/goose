@@ -1,4 +1,5 @@
 import Foundation
+import GitLib
 import os.log
 
 enum Message {
@@ -6,13 +7,17 @@ enum Message {
     case gotLog(AsyncData<LogInfo>)
     case cursorUpdate(UInt, UInt)
     case keyboard(KeyEvent)
+    case stage(GitChange)
+    case unstage(GitChange)
+    case commandSuccess
+    case commandFailed(String)
 }
 
 func initialize() -> (Model, Cmd<Message>) {
     return (Model(views: [.status], status: .loading, log: .loading, cursor: CursorModel(0, 0)), task(getStatus))
 }
 
-func render(model: Model) -> [Line] {
+func render(model: Model) -> [Line<Message>] {
     let view = model.views.last!
     switch view {
     case .status:
@@ -45,6 +50,15 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         default:
             return (model, .none)
         }
+    case .stage(let change):
+        return (model, task({ addFile(files: [change.file]) }))
+    case .unstage(let change):
+        return (model, task({ resetFile(files: [change.file]) }))
+    case .commandSuccess:
+        return (model, task(getStatus))
+    case .commandFailed(let error):
+        os_log("%{public}@", error)
+        return (model, .none)
     }
 }
 

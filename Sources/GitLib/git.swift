@@ -5,8 +5,6 @@ public struct GitCommand {
 }
 
 public struct Git {
-    
-
     public static func branchName() -> GitCommand {
         GitCommand(
             arguments: ["symbolic-ref", "--short", "HEAD"]
@@ -28,6 +26,18 @@ public struct Git {
     public static func status() -> GitCommand {
         GitCommand(
             arguments: ["status", "--porcelain=v2"]
+        )
+    }
+    
+    public static func add(_ files: [String]) -> GitCommand {
+        GitCommand(
+            arguments: ["add", "--"] + files
+        )
+    }
+    
+    public static func reset(_ files: [String]) -> GitCommand {
+        GitCommand(
+            arguments: ["reset", "--"] + files
         )
     }
 }

@@ -7,6 +7,6 @@
 
 import Foundation
 
-func Section(title: Line, items: [Line], open: Bool) -> [Line] {
+func Section<Message>(title: Line<Message>, items: [Line<Message>], open: Bool) -> [Line<Message>] {
     return [title] + ( open ? items + [EmptyLine()] : [EmptyLine()])
 }

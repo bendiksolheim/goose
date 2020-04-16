@@ -30,7 +30,7 @@ func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
 
 func run<Model: Equatable, Message>(
     initialize: () -> (Model, Cmd<Message>),
-    render: @escaping (Model) -> [Line],
+    render: @escaping (Model) -> [Line<Message>],
     update: @escaping (Message, Model) -> (Model, Cmd<Message>),
     subscriptions: [Sub<Message>]) {
     do {
@@ -50,6 +50,7 @@ func run<Model: Equatable, Message>(
     
     let (initialModel, initialCommand) = initialize()
     var model = initialModel
+    var renderedContent: [Line<Message>]?
     
     let (messageConsumer, messageProducer) = Signal<Message, Never>.pipe()
     let (commandConsumer, commandProducer) = Signal<Cmd<Message>, Never>.pipe()
@@ -61,7 +62,7 @@ func run<Model: Equatable, Message>(
         DispatchQueue.main.async {
             commandProducer.send(value: command)
         }
-        renderToScreen(buffer, app, model, render)
+        renderedContent = renderToScreen(buffer, app, model, render)
     }
     
     commandConsumer.observeValues { command in
@@ -93,15 +94,23 @@ func run<Model: Equatable, Message>(
                         switch char {
                         case .j:
                             buffer.moveCursor(.down)
-                            renderToScreen(buffer, app, model, render)
+                            renderedContent = renderToScreen(buffer, app, model, render)
                         case .k:
                             buffer.moveCursor(.up)
-                            renderToScreen(buffer, app, model, render)
+                            renderedContent = renderToScreen(buffer, app, model, render)
                         default:
                             bubble = true
-                            let letter = char.toString
-                            let attrChar = AttrChar(letter)
-                            buffer.write(attrChar, x: 0, y: 0)
+                            let (_, y) = buffer.cursor
+                            if let line = renderedContent?[Int(y)] {
+                                for (eventChar, messageFn) in line.events {
+                                    if (eventChar == char) {
+                                        bubble = false
+                                        DispatchQueue.main.async {
+                                            messageProducer.send(value: messageFn())
+                                        }
+                                    }
+                                }
+                            }
                         }
                     case .ctrl(let char):
                         switch char {
@@ -110,7 +119,7 @@ func run<Model: Equatable, Message>(
                             messageProducer.sendCompleted()
                             commandProducer.sendCompleted()
                         default:
-                            break
+                                break
                         }
                     default:
                         continue
@@ -138,7 +147,7 @@ func run<Model: Equatable, Message>(
     app.teardown()
 }
 
-func renderToScreen<Model>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: Model, _ render: (Model) -> [Line]) {
+func renderToScreen<Model, Message>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: Model, _ render: (Model) -> [Line<Message>]) -> [Line<Message>] {
     let content = render(model)
     let lines = content.map { $0.chars }
     buffer.clear()
@@ -153,6 +162,8 @@ func renderToScreen<Model>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: M
     DispatchQueue.main.async {
         screen.render(buffer: buffer)
     }
+    
+    return content
 }
 
 func getKeyboardSubscription<Message>(subscriptions: [Sub<Message>]) -> ((KeyEvent) -> Message)? {

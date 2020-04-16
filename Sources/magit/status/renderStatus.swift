@@ -9,7 +9,7 @@ import Foundation
 import GitLib
 import Bow
 
-func renderStatus(status: AsyncData<StatusInfo>) -> [Line] {
+func renderStatus(status: AsyncData<StatusInfo>) -> [Line<Message>] {
     switch status {
     case .loading:
         return [Line("Loading...")]
@@ -39,35 +39,38 @@ func renderStatus(status: AsyncData<StatusInfo>) -> [Line] {
     }
 }
 
-func fileStatusTitle(_ title: String) -> Line {
+func fileStatusTitle(_ title: String) -> Line<Message> {
     Line(Text(title, [.foreground(.blue)]))
 }
 
-func headMapper(_ commit: GitCommit) -> Line {
+func headMapper(_ commit: GitCommit) -> Line<Message> {
     let ref = commit.refName.getOrElse("")
     return Line("Head:     " + Text(ref, [.foreground(.cyan)]) + " " + commit.message)
 }
 
-func commitMapper(_ commit: GitCommit) -> Line {
+func commitMapper(_ commit: GitCommit) -> Line<Message> {
     let message = commit.refName
         .fold(constant(Text(" ")), { name in Text(" \(name) ", [.foreground(.cyan)]) }) + commit.message
     return Line(Text(commit.hash.short, [.foreground(.any(241))]) + message)
 }
 
-func changeMapper(_ change: Change) -> Line {
+func changeMapper(_ change: GitChange) -> Line<Message> {
+    let events: [LineEventHandler<Message>] = [
+        (.s, { .stage(change) }),
+        (.u, { .unstage(change) })
+    ]
     switch change.status {
     case .Added:
-        return Line("new file  \(change.file)")
+        return Line("new file  \(change.file)", events)
     case .Untracked:
-        return Line(change.file)
+        return Line(change.file, events)
     case .Modified:
-        return Line("modified  \(change.file)")
+        return Line("modified  \(change.file)", events)
     case .Deleted:
-        return Line("deleted  \(change.file)")
+        return Line("deleted  \(change.file)", events)
     case .Renamed:
-        return Line("renamed   \(change.file)")
+        return Line("renamed   \(change.file)", events)
     case .Copied:
-        return Line("copied    \(change.file)")
+        return Line("copied    \(change.file)", events)
     }
 }
-

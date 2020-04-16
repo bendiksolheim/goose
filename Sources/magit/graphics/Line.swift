@@ -7,15 +7,19 @@
 
 import Foundation
 
-struct Line {
+typealias LineEventHandler<Message> = (CharKeyEvent, () -> Message)
+
+struct Line<Message> {
     let chars: [AttrCharType]
+    let events: [LineEventHandler<Message>]
     
-    init(_ text: TextType) {
+    init(_ text: TextType, _ events: [LineEventHandler<Message>] = []) {
         let chars = text.chars
         self.chars = chars
+        self.events = events
     }
 }
 
-func EmptyLine() -> Line {
+func EmptyLine<Message>() -> Line<Message> {
     Line(" ")
 }

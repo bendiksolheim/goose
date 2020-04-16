@@ -1,6 +1,6 @@
 import Foundation
 
-func renderLog(log: AsyncData<LogInfo>) -> [Line] {
+func renderLog(log: AsyncData<LogInfo>) -> [Line<Message>] {
     switch log {
     case .loading:
         return [Line("Loading...")]
