@@ -57,7 +57,11 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
             return (model, .cmd(.info("Already staged")))
         }
     case .unstage(let change):
-        return (model, task({ resetFile(files: [change.file]) }))
+        if change.area == .Index {
+            return (model, task({ resetFile(files: [change.file]) }))
+        } else {
+            return (model, .cmd(.info("Already unstaged")))
+        }
     case .commandSuccess:
         return (model, task(getStatus))
     case .info(let error):
