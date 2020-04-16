@@ -56,11 +56,11 @@ func statusSuccess(branch: ProcessResult, status: GitStatus, log: ProcessResult)
 func addFile(files: [String]) -> Message {
     let task = execute(process: ProcessDescription.git(Git.add(files)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.commandFailed($0.localizedDescription) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess })
 }
 
 func resetFile(files: [String]) -> Message {
     let task = execute(process: ProcessDescription.git(Git.reset(files)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.commandFailed($0.localizedDescription) }, { _ in Message.commandSuccess})
+    return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess})
 }

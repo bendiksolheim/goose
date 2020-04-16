@@ -10,7 +10,7 @@ enum Message {
     case stage(GitChange)
     case unstage(GitChange)
     case commandSuccess
-    case commandFailed(String)
+    case info(String)
 }
 
 func initialize() -> (Model, Cmd<Message>) {
@@ -56,7 +56,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model, task({ resetFile(files: [change.file]) }))
     case .commandSuccess:
         return (model, task(getStatus))
-    case .commandFailed(let error):
+    case .info(let error):
         os_log("%{public}@", error)
         return (model, .none)
     }
