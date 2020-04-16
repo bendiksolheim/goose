@@ -51,7 +51,11 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
             return (model, .none)
         }
     case .stage(let change):
+        if change.area == .Worktree {
         return (model, task({ addFile(files: [change.file]) }))
+        } else {
+            return (model, .cmd(.info("Already staged")))
+        }
     case .unstage(let change):
         return (model, task({ resetFile(files: [change.file]) }))
     case .commandSuccess:
