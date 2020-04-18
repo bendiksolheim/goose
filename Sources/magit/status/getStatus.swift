@@ -22,15 +22,8 @@ public enum AsyncData<T: Equatable>: Equatable {
     }
 }
 
-public struct StatusInfo: Equatable {
-    let branch: String
-    let changes: [GitChange]
-    let log: [GitCommit]
-}
-
 func getStatus() -> Message {
-    let tasks = IO.parZip (execute(process: ProcessDescription.git(Git.branchName())),
-                           execute(process: ProcessDescription.git(Git.status())).flatMap({ result in parseStatus(result.output).fold(IO.raiseError, IO.pure) }),
+    let tasks = IO.parZip (execute(process: ProcessDescription.git(Git.status())).flatMap({ result in parseStatus(result.output).fold(IO.raiseError, IO.pure) }),
                            execute(process: ProcessDescription.git(Git.log(num: 10)))
         )^
     let result = tasks.unsafeRunSyncEither()
@@ -42,14 +35,12 @@ func error<T>(error: Error) -> AsyncData<T> {
     return .error(error)
 }
 
-func statusSuccess(branch: ProcessResult, status: GitStatus, log: ProcessResult) -> AsyncData<StatusInfo> {
-    let branch = branch.output
-    let log = parseCommits(log.output)
-    
-    return .success(StatusInfo(
-        branch: branch,
-        changes: status.changes,
-        log: log
+func statusSuccess(status: GitStatus, log: ProcessResult) -> AsyncData<StatusModel> {
+    return .success(StatusModel(
+        untracked: status.changes.filter(isUntracked),
+        unstaged: status.changes.filter(isUnstaged),
+        staged: status.changes.filter(isStaged),
+        log: parseCommits(log.output)
     ))
 }
 

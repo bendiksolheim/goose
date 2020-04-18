@@ -135,20 +135,3 @@ func parseUntrackedChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     let output = input.split(separator: " ")
     return [GitChange(area: .Worktree, status: .Untracked, file: String(output[1]))]
 }
-
-public func isUntracked(_ change: GitChange) -> Bool {
-    change.area == .Worktree
-        && change.status == .Untracked
-}
-
-public func isUnstaged(_ change: GitChange) -> Bool {
-    change.area == .Worktree
-        && (change.status == .Modified
-        || change.status == .Renamed
-        || change.status == .Copied
-        || change.status == .Deleted)
-}
-
-public func isStaged(_ change: GitChange) -> Bool {
-    change.area == .Index
-}

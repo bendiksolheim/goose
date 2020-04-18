@@ -4,7 +4,7 @@ import Tea
 import os.log
 
 enum Message {
-    case gotStatus(AsyncData<StatusInfo>)
+    case gotStatus(AsyncData<StatusModel>)
     case gotLog(AsyncData<LogInfo>)
     case cursorUpdate(UInt, UInt)
     case keyboard(KeyEvent)
@@ -67,7 +67,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case .commandSuccess:
         return (model, task(getStatus))
     case .info(let error):
-        os_log("%{public}@", error)
+        os_log("Info: %{public}@", error)
         return (model, .none)
     }
 }

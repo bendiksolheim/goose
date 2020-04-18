@@ -17,12 +17,12 @@ struct CursorModel: Equatable {
 
 struct Model: Equatable {
     let views: [View]
-    let status: AsyncData<StatusInfo>
+    let status: AsyncData<StatusModel>
     let log: AsyncData<LogInfo>
     let cursor: CursorModel
     
     func copy(withViews views: [View]? = nil,
-              withStatus status: AsyncData<StatusInfo>? = nil,
+              withStatus status: AsyncData<StatusModel>? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
               withCursor cursor: CursorModel? = nil) -> Model {
         Model(views: views ?? self.views,

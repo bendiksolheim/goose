@@ -3,7 +3,7 @@ import GitLib
 import Tea
 import Bow
 
-func renderStatus(status: AsyncData<StatusInfo>) -> [Line<Message>] {
+func renderStatus(status: AsyncData<StatusModel>) -> [Line<Message>] {
     switch status {
     case .loading:
         return [Line("Loading...")]
@@ -12,25 +12,22 @@ func renderStatus(status: AsyncData<StatusInfo>) -> [Line<Message>] {
     case .success(let status):
         var sections: [Line] = Section(title: headMapper(status.log[0]), items: [], open: true)
         
-        let untracked = status.changes.filter(isUntracked)
-        if untracked.count > 0 {
-            let stageAll: [LineEventHandler<Message>] = [(.s, { .stage(untracked) })]
-            let title = Line<Message>(Text("Untracked files (\(untracked.count))", [.foreground(.blue)]), stageAll)
-            sections.append(contentsOf: Section(title: title, items: untracked.map(changeMapper), open: true))
+        if status.untracked.count > 0 {
+            let stageAll: [LineEventHandler<Message>] = [(.s, { .stage(status.untracked) })]
+            let title = Line<Message>(Text("Untracked files (\(status.untracked.count))", [.foreground(.blue)]), stageAll)
+            sections.append(contentsOf: Section(title: title, items: status.untracked.map(changeMapper), open: true))
         }
 
-        let unstaged = status.changes.filter(isUnstaged)
-        if unstaged.count > 0 {
-            let stageAll: [LineEventHandler<Message>] = [(.s, { .stage(unstaged) })]
-            let title = Line<Message>(Text("Unstaged changes (\(unstaged.count))", [.foreground(.blue)]), stageAll)
-            sections.append(contentsOf: Section(title: title, items: unstaged.map(changeMapper), open: true))
+        if status.unstaged.count > 0 {
+            let stageAll: [LineEventHandler<Message>] = [(.s, { .stage(status.unstaged) })]
+            let title = Line<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), stageAll)
+            sections.append(contentsOf: Section(title: title, items: status.unstaged.map(changeMapper), open: true))
         }
 
-        let staged = status.changes.filter(isStaged)
-        if staged.count > 0 {
-            let unstageAll: [LineEventHandler<Message>] = [(.u, { .unstage(staged) })]
-            let title = Line<Message>(Text("Staged changes (\(staged.count))", [.foreground(.blue)]), unstageAll)
-            sections.append(contentsOf: Section(title: title, items: staged.map(changeMapper), open: true))
+        if status.staged.count > 0 {
+            let unstageAll: [LineEventHandler<Message>] = [(.u, { .unstage(status.staged) })]
+            let title = Line<Message>(Text("Staged changes (\(status.staged.count))", [.foreground(.blue)]), unstageAll)
+            sections.append(contentsOf: Section(title: title, items: status.staged.map(changeMapper), open: true))
         }
 
         sections.append(contentsOf: Section(title: Line("Recent commits"), items: status.log.map(commitMapper), open: true))
