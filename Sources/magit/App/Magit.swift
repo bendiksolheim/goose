@@ -8,8 +8,8 @@ enum Message {
     case gotLog(AsyncData<LogInfo>)
     case cursorUpdate(UInt, UInt)
     case keyboard(KeyEvent)
-    case stage(GitChange)
-    case unstage(GitChange)
+    case stage([GitChange])
+    case unstage([GitChange])
     case commandSuccess
     case info(String)
 }
@@ -17,6 +17,7 @@ enum Message {
 func initialize() -> (Model, Cmd<Message>) {
     return (Model(views: [.status], status: .loading, log: .loading, cursor: CursorModel(0, 0)), task(getStatus))
 }
+
 
 func render(model: Model) -> [Line<Message>] {
     let view = model.views.last!
@@ -51,15 +52,15 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         default:
             return (model, .none)
         }
-    case .stage(let change):
-        if change.area == .Worktree {
-        return (model, task({ addFile(files: [change.file]) }))
+    case .stage(let changes):
+        if changes[0].area == .Worktree {
+            return (model, task({ addFile(files: changes.map { $0.file }) }))
         } else {
             return (model, .cmd(.info("Already staged")))
         }
-    case .unstage(let change):
-        if change.area == .Index {
-            return (model, task({ resetFile(files: [change.file]) }))
+    case .unstage(let changes):
+        if changes[0].area == .Index {
+            return (model, task({ resetFile(files: changes.map { $0.file }) }))
         } else {
             return (model, .cmd(.info("Already unstaged")))
         }

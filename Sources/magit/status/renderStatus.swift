@@ -50,8 +50,8 @@ func commitMapper(_ commit: GitCommit) -> Line<Message> {
 
 func changeMapper(_ change: GitChange) -> Line<Message> {
     let events: [LineEventHandler<Message>] = [
-        (.s, { .stage(change) }),
-        (.u, { .unstage(change) })
+        (.s, { .stage([change]) }),
+        (.u, { .unstage([change]) })
     ]
     switch change.status {
     case .Added:

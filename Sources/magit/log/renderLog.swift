@@ -11,3 +11,4 @@ func renderLog(log: AsyncData<LogInfo>) -> [Line<Message>] {
         return Section(title: Line("Commits in \(log.branch)"), items: log.commits.map(commitMapper), open: true)
     }
 }
+
