@@ -38,21 +38,30 @@ public struct ProcessResult {
 
 func execute(process: ProcessDescription) -> Task<ProcessResult> {
     return Task.invoke {
-        //logCommand(process: process)
+        logCommand(process: process)
         let task = Process()
         task.launchPath = process.executable
         task.arguments = process.arguments
         task.currentDirectoryPath = process.workingDirectory
     
-        let pipe = Pipe()
-        task.standardOutput = pipe
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        task.standardOutput = stdoutPipe
+        task.standardError = stderrPipe
         task.launch()
     
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: String.Encoding.utf8)
+        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
         task.waitUntilExit()
         
-        return ProcessResult(output: output?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
+        let exitCode = task.terminationStatus
+        if exitCode == 0 {
+            let stdOutput = String(data: stdoutData, encoding: String.Encoding.utf8)
+            return ProcessResult(output: stdOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
+        } else {
+            let errOutput = String(data: stderrData, encoding: String.Encoding.utf8)
+            throw StringError(errOutput ?? "Command exited without error message")
+        }
     }
 }
 
