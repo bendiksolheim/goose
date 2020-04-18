@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct StringError<S: StringProtocol>: Error {
+public struct StringError<S: StringProtocol>: Error {
     let message: S
     
-    init(_ message: S) {
+    public init(_ message: S) {
         self.message = message
     }
     
