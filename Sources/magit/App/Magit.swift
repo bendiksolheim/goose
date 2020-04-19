@@ -4,18 +4,20 @@ import Tea
 import os.log
 
 enum Message {
-    case gotStatus(AsyncData<StatusModel>)
+    case gotStatus(AsyncData<StatusInfo>)
     case gotLog(AsyncData<LogInfo>)
     case cursorUpdate(UInt, UInt)
     case keyboard(KeyEvent)
     case stage([GitChange])
     case unstage([GitChange])
+    case updateVisibility([String : Bool])
     case commandSuccess
     case info(String)
 }
 
 func initialize() -> (Model, Cmd<Message>) {
-    return (Model(views: [.status], status: .loading, log: .loading, cursor: CursorModel(0, 0)), task(getStatus))
+    let statusModel = StatusModel(info: .loading, visibility: [:])
+    return (Model(views: [.status], status: statusModel, log: .loading, cursor: CursorModel(0, 0)), task(getStatus))
 }
 
 
@@ -23,7 +25,7 @@ func render(model: Model) -> [Line<Message>] {
     let view = model.views.last!
     switch view {
     case .status:
-        return renderStatus(status: model.status)
+        return renderStatus(model: model.status)
     case .log:
         return renderLog(log: model.log)
     }
@@ -32,7 +34,7 @@ func render(model: Model) -> [Line<Message>] {
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
     case .gotStatus(let newStatus):
-        return (model.copy(withStatus: newStatus), .none)
+        return (model.copy(withStatus: StatusModel(info: newStatus, visibility: model.status.visibility)), .none)
     case .gotLog(let log):
         return (model.copy(withLog: log), .none)
     case .cursorUpdate(let x, let y):
@@ -64,6 +66,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         } else {
             return (model, .cmd(.info("Already unstaged")))
         }
+    case .updateVisibility(let visibility):
+        return (model.copy(withStatus: model.status.copy(withVisibility: visibility)), .none)
     case .commandSuccess:
         return (model, task(getStatus))
     case .info(let error):

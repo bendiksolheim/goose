@@ -108,11 +108,24 @@ public func run<Model: Equatable, Message>(
                             let (_, y) = buffer.cursor
                             if let line = renderedContent?[Int(y)] {
                                 for (eventChar, messageFn) in line.events {
-                                    if (eventChar == char) {
+                                    if (eventChar == .char(char)) {
                                         bubble = false
                                         DispatchQueue.main.async {
                                             messageProducer.send(value: messageFn())
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    case .fn(let key):
+                        bubble = true
+                        let (_, y) = buffer.cursor
+                        if let line = renderedContent?[Int(y)] {
+                            for (eventChar, messageFn) in line.events {
+                                if (eventChar == .fn(key)) {
+                                    bubble = false
+                                    DispatchQueue.main.async {
+                                        messageProducer.send(value: messageFn())
                                     }
                                 }
                             }

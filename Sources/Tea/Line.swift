@@ -1,6 +1,6 @@
 import Foundation
 
-public typealias LineEventHandler<Message> = (CharKeyEvent, () -> Message)
+public typealias LineEventHandler<Message> = (KeyEvent, () -> Message)
 
 public struct Line<Message> {
     let chars: [AttrCharType]

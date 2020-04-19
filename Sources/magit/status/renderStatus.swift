@@ -3,41 +3,54 @@ import GitLib
 import Tea
 import Bow
 
-func renderStatus(status: AsyncData<StatusModel>) -> [Line<Message>] {
-    switch status {
+func renderStatus(model: StatusModel) -> [Line<Message>] {
+    switch model.info {
     case .loading:
         return [Line("Loading...")]
     case .error(let error):
         return [Line(error.localizedDescription)]
     case .success(let status):
+        let visibility = model.visibility
         var sections: [Line] = Section(title: headMapper(status.log[0]), items: [], open: true)
         
         if status.untracked.count > 0 {
-            let stageAll: [LineEventHandler<Message>] = [(.s, { .stage(status.untracked) })]
-            let title = Line<Message>(Text("Untracked files (\(status.untracked.count))", [.foreground(.blue)]), stageAll)
-            sections.append(contentsOf: Section(title: title, items: status.untracked.map(changeMapper), open: true))
+            let open = model.visibility["untracked", default: true]
+            let events: [LineEventHandler<Message>] = [
+                (.s, { .stage(status.untracked) }),
+                (.tab, { .updateVisibility(visibility.merging(["untracked": !open]) { $1 }) })
+            ]
+            let title = Line<Message>(Text("Untracked files (\(status.untracked.count))", [.foreground(.blue)]), events)
+            sections.append(contentsOf: Section(title: title, items: status.untracked.map(changeMapper), open: open))
         }
 
         if status.unstaged.count > 0 {
-            let stageAll: [LineEventHandler<Message>] = [(.s, { .stage(status.unstaged) })]
-            let title = Line<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), stageAll)
-            sections.append(contentsOf: Section(title: title, items: status.unstaged.map(changeMapper), open: true))
+            let open = model.visibility["unstaged", default: true]
+            let events: [LineEventHandler<Message>] = [
+                (.s, { .stage(status.unstaged) }),
+                (.tab, { .updateVisibility(visibility.merging(["unstaged": !open]) { $1 })})
+            ]
+            let title = Line<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), events)
+            sections.append(contentsOf: Section(title: title, items: status.unstaged.map(changeMapper), open: open))
         }
 
         if status.staged.count > 0 {
-            let unstageAll: [LineEventHandler<Message>] = [(.u, { .unstage(status.staged) })]
-            let title = Line<Message>(Text("Staged changes (\(status.staged.count))", [.foreground(.blue)]), unstageAll)
-            sections.append(contentsOf: Section(title: title, items: status.staged.map(changeMapper), open: true))
+            let open = model.visibility["staged", default: true]
+            let events: [LineEventHandler<Message>] = [
+                (.u, { .unstage(status.staged) }),
+                (.tab, { .updateVisibility(visibility.merging(["staged": !open]) { $1 })})
+            ]
+            let title = Line<Message>(Text("Staged changes (\(status.staged.count))", [.foreground(.blue)]), events)
+            sections.append(contentsOf: Section(title: title, items: status.staged.map(changeMapper), open: open))
         }
 
-        sections.append(contentsOf: Section(title: Line("Recent commits"), items: status.log.map(commitMapper), open: true))
+        let open = model.visibility["recent", default: true]
+        let events: [LineEventHandler<Message>] = [
+            (.tab, { .updateVisibility(visibility.merging(["recent": !open]) { $1 })})
+        ]
+        sections.append(contentsOf: Section(title: Line("Recent commits", events), items: status.log.map(commitMapper), open: open))
 
         return sections
     }
-}
-
-func fileStatusTitle(_ title: String) -> Line<Message> {
-    Line(Text(title, [.foreground(.blue)]))
 }
 
 func headMapper(_ commit: GitCommit) -> Line<Message> {

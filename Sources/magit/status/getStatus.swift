@@ -35,8 +35,8 @@ func error<T>(error: Error) -> AsyncData<T> {
     return .error(error)
 }
 
-func statusSuccess(status: GitStatus, log: ProcessResult) -> AsyncData<StatusModel> {
-    return .success(StatusModel(
+func statusSuccess(status: GitStatus, log: ProcessResult) -> AsyncData<StatusInfo> {
+    return .success(StatusInfo(
         untracked: status.changes.filter(isUntracked),
         unstaged: status.changes.filter(isUnstaged),
         staged: status.changes.filter(isStaged),
