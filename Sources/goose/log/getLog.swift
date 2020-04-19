@@ -1,10 +1,3 @@
-//
-//  LogCommand.swift
-//  magit
-//
-//  Created by Bendik Solheim on 10/04/2020.
-//
-
 import Foundation
 import BowEffects
 import GitLib

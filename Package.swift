@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "magit",
+    name: "goose",
     platforms: [ .macOS(.v10_14) ],
     dependencies: [
         // .package(url: /* package url */, from: "1.0.0"),
@@ -16,7 +16,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "magit",
+            name: "goose",
             dependencies: ["BowEffects", "GitLib", "Tea"]),
         .target(
             name: "GitLib",
