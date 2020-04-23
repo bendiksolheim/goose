@@ -51,6 +51,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
             return (model.pushView(view: .log), task(getLog))
         case .g:
             return (model, task(getStatus))
+        case .c:
+            return (model, process(commit))
         default:
             return (model, .none)
         }
