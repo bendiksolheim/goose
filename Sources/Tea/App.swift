@@ -21,6 +21,7 @@ public func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Su
 public enum Cmd<T> {
     case cmd(T)
     case task(() -> T)
+    case process(() -> T)
     case exit
     case none
 }
@@ -29,25 +30,24 @@ public func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
     return .task(task)
 }
 
+public func process<Message>(_ process: @escaping () -> Message) -> Cmd<Message> {
+    return .process(process)
+}
+
 public func run<Model: Equatable, Message>(
     initialize: () -> (Model, Cmd<Message>),
     render: @escaping (Model) -> [Line<Message>],
     update: @escaping (Message, Model) -> (Model, Cmd<Message>),
     subscriptions: [Sub<Message>]) {
-    do {
-        try Termbox.initialize()
-    } catch let error {
-        print(error)
-        return
-    }
     
     let keyboardSubscription = getKeyboardSubscription(subscriptions: subscriptions)
     
     let termboxDispatchQueue = DispatchQueue(label: "termbox.queue.producer", qos: .background)
 
-    Termbox.outputMode = .color256
-    let app = TermboxScreen()
-    let buffer = Buffer(size: app.size)
+    var app = TermboxScreen()
+    try! app.setup()
+    var buffer = Buffer(size: app.size)
+    var polling = true
     
     let (initialModel, initialCommand) = initialize()
     var model = initialModel
@@ -56,41 +56,11 @@ public func run<Model: Equatable, Message>(
     let (messageConsumer, messageProducer) = Signal<Message, Never>.pipe()
     let (commandConsumer, commandProducer) = Signal<Cmd<Message>, Never>.pipe()
     
-    messageConsumer.observeValues { message in
-        //os_log("message: %{public}@", "\(message)")
-        let (updatedModel, command) = update(message, model)
-        model = updatedModel
-        DispatchQueue.main.async {
-            commandProducer.send(value: command)
-        }
-        renderedContent = renderToScreen(buffer, app, model, render)
-    }
-    
-    commandConsumer.observeValues { command in
-        switch command {
-        case .cmd(let message):
-            DispatchQueue.main.async {
-                messageProducer.send(value: message)
-            }
-        case .task(let task):
-            let message = task()
-            DispatchQueue.main.async {
-                messageProducer.send(value: message)
-            }
-        case .exit:
-            messageProducer.sendCompleted()
-            commandProducer.sendCompleted()
-        case .none:
-            break;
-        }
-    }
-    
-    commandProducer.send(value: initialCommand)
-    
+    func startEventPolling() {
     termboxDispatchQueue.async {
-        var polling = true
         while polling {
-            if let event = app.pollEvent() {
+            if let event = app.nextEvent() {
+                os_log("Event: %{public}@", "\(event)")
                 switch event {
                 case .key(let key):
                     var bubble = false
@@ -140,7 +110,7 @@ public func run<Model: Equatable, Message>(
                                 break
                         }
                     default:
-                        continue
+                        break
                     }
                     if bubble {
                         if let message = keyboardSubscription?(key) {
@@ -155,6 +125,58 @@ public func run<Model: Equatable, Message>(
             }
         }
     }
+    }
+    
+    messageConsumer.observeValues { message in
+        //os_log("message: %{public}@", "\(message)")
+        let (updatedModel, command) = update(message, model)
+        model = updatedModel
+        DispatchQueue.main.async {
+            commandProducer.send(value: command)
+        }
+        renderedContent = renderToScreen(buffer, app, model, render)
+    }
+    
+    commandConsumer.observeValues { command in
+        switch command {
+        case .cmd(let message):
+            DispatchQueue.main.async {
+                messageProducer.send(value: message)
+            }
+        case .task(let task):
+            let message = task()
+            DispatchQueue.main.async {
+                messageProducer.send(value: message)
+            }
+        case .process(let process):
+            polling = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
+                app.teardown()
+                os_log("starting process")
+                let message = process()
+                os_log("process ended")
+                polling = true
+                DispatchQueue.main.async {
+                    try! app.setup()
+                    renderedContent = renderToScreen(buffer, app, model, render)
+                    startEventPolling()
+                }
+                    
+                DispatchQueue.main.async {
+                    messageProducer.send(value: message)
+                }
+                
+            }
+        case .exit:
+            messageProducer.sendCompleted()
+            commandProducer.sendCompleted()
+        case .none:
+            break;
+        }
+    }
+    
+    commandProducer.send(value: initialCommand)
+    startEventPolling()
     
     let runLoop = CFRunLoopGetCurrent()
     messageConsumer.observeCompleted {
@@ -163,6 +185,7 @@ public func run<Model: Equatable, Message>(
     CFRunLoopRun()
     
     app.teardown()
+    
 }
 
 func renderToScreen<Model, Message>(_ buffer: Buffer, _ screen: TermboxScreen, _ model: Model, _ render: (Model) -> [Line<Message>]) -> [Line<Message>] {
