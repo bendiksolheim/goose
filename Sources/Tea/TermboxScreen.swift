@@ -77,7 +77,7 @@ class TermboxScreen {
     }
 
     func nextEvent() -> Event? {
-        let termboxEvent = Termbox.peekEvent(timeoutInMilliseconds: 1)
+        let termboxEvent = Termbox.peekEvent(timeoutInMilliseconds: 10)
         return convertTermboxEvent(termboxEvent)
     }
 
