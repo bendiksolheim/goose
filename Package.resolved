@@ -81,6 +81,15 @@
           "revision": "077c096c3ddfc38db223ac8e525ad16ffb987138",
           "version": "0.12.0"
         }
+      },
+      {
+        "package": "SwiftParsec",
+        "repositoryURL": "https://github.com/davedufresne/SwiftParsec",
+        "state": {
+          "branch": "master",
+          "revision": "47c2fc47fb0610ee317e9a5ca4bdcfd596a16241",
+          "version": null
+        }
       }
     ]
   },
