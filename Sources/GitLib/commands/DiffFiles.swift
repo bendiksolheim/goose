@@ -12,7 +12,6 @@ public struct DiffFiles {
     
     public static func parse(_ input: String) -> Bow.Either<Error, GitDiff> {
         os_log("test")
-        do {
         let diff = parseDiff.runSafe(userState: (), sourceName: "", input: input)
         switch diff {
         case .left(let error):
@@ -22,9 +21,6 @@ public struct DiffFiles {
         case .right(let diff):
             os_log("%{public}@", "\(diff)")
             return Bow.Either.right(diff)
-        }
-        } catch {
-            os_log("what")
         }
     }
 }
