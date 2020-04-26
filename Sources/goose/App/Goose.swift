@@ -8,11 +8,17 @@ enum Message {
     case gotLog(AsyncData<LogInfo>)
     case cursorUpdate(UInt, UInt)
     case keyboard(KeyEvent)
-    case stage([GitChange])
-    case unstage([GitChange])
+    case stage(Type)
+    case unstage(Type)
     case updateVisibility([String : Bool])
     case commandSuccess
     case info(String)
+}
+
+enum Type {
+    case untracked([Untracked])
+    case unstaged([Unstaged])
+    case staged([Staged])
 }
 
 func initialize() -> (Model, Cmd<Message>) {
@@ -46,18 +52,10 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return parseKey(event, model: model)
         
     case .stage(let changes):
-        if changes[0].area == .Worktree {
-            return (model, task({ addFile(files: changes.map { $0.file }) }))
-        } else {
-            return (model, .cmd(.info("Already staged")))
-        }
+        return stage(model, changes)
         
     case .unstage(let changes):
-        if changes[0].area == .Index {
-            return (model, task({ resetFile(files: changes.map { $0.file }) }))
-        } else {
-            return (model, .cmd(.info("Already unstaged")))
-        }
+        return unstage(model, changes)
         
     case .updateVisibility(let visibility):
         return (model.copy(withStatus: model.status.copy(withVisibility: visibility)), .none)
@@ -68,6 +66,28 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case .info(let error):
         os_log("Info: %{public}@", error)
         return (model, .none)
+    }
+}
+
+func stage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
+    switch type {
+    case .untracked(let untracked):
+        return (model, task({ addFile(files: untracked.map { $0.file }) }))
+    case .unstaged(let unstaged):
+        return (model, task({ addFile(files: unstaged.map { $0.file }) }))
+    case .staged(_):
+        return (model, .cmd(.info("Already staged")))
+    }
+}
+
+func unstage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
+    switch type {
+    case .untracked(_):
+        return (model, .cmd(.info("Already unstaged")))
+    case .unstaged(_):
+        return (model, .cmd(.info("Already unstaged")))
+    case .staged(let staged):
+        return (model, task({ addFile(files: staged.map { $0.file }) }))
     }
 }
 

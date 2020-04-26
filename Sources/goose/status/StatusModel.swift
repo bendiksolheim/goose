@@ -13,10 +13,38 @@ public struct StatusModel: Equatable {
     }
 }
 
+public struct Untracked: Equatable {
+    let file: String
+    
+    init(_ file: String) {
+        self.file = file
+    }
+}
+
+public struct Unstaged: Equatable {
+    let file: String
+    let status: FileStatus
+    
+    init(_ file: String, _ status: FileStatus) {
+        self.file = file
+        self.status = status
+    }
+}
+
+public struct Staged: Equatable {
+    let file: String
+    let status: FileStatus
+    
+    init(_ file: String, _ status: FileStatus) {
+        self.file = file
+        self.status = status
+    }
+}
+
 public struct StatusInfo: Equatable {
-    let untracked: [GitChange]
-    let unstaged: [GitChange]
-    let staged: [GitChange]
+    let untracked: [Untracked]
+    let unstaged: [Unstaged]
+    let staged: [Staged]
     let log: [GitCommit]
 }
 

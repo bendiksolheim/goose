@@ -40,6 +40,12 @@ public struct Git {
             arguments: ["reset", "--"] + files
         )
     }
+    
+    public static func diffFiles() -> GitCommand {
+        GitCommand(
+            arguments: ["diff-files", "-z", "--patch", "--no-color"]
+        )
+    }
 }
 
 private let NEWLINE = "%n"
