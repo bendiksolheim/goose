@@ -11,7 +11,7 @@ import os.log
 
 
 func commit() -> Message {
-    let result = runCommand("git commit")
+    let result = runCommand("git commit -v")
     if result == 0 {
         return Message.commandSuccess
     } else {
