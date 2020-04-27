@@ -37,10 +37,13 @@ func error<T>(error: Error) -> AsyncData<T> {
     return .error(error)
 }
 
-func statusSuccess(status: GitStatus, log: ProcessResult, diff: GitDiff) -> AsyncData<StatusInfo> {
+func statusSuccess(status: GitStatus, log: ProcessResult, diff: ProcessResult) -> AsyncData<StatusInfo> {
+    let gitDiff = DiffFiles.parse(diff.output)
+    let files = gitDiff.fold({ _ in []}, { diff in diff.files })
+    let fileMap = files.reduce(into: [:]) { $0[$1.source] = $1.hunks }
     return .success(StatusInfo(
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
-        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status) },
+        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, fileMap[$0.file]!) },
         staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status) },
         log: parseCommits(log.output)
     ))
