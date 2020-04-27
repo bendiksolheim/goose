@@ -31,7 +31,8 @@ func renderStatus(model: StatusModel) -> [Line<Message>] {
                 (.tab, { .updateVisibility(visibility.merging(["unstaged": !open]) { $1 })})
             ]
             let title = Line<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), events)
-            sections.append(contentsOf: Section(title: title, items: status.unstaged.map(unstagedMapper), open: open))
+            let mapper = unstagedMapper(visibility)
+            sections.append(contentsOf: Section(title: title, items: status.unstaged.flatMap(mapper), open: open))
         }
 
         if status.staged.count > 0 {
@@ -74,26 +75,53 @@ func untrackedMapper(_ untracked: Untracked) -> Line<Message> {
     return Line(untracked.file, events)
 }
 
-func unstagedMapper(_ unstaged: Unstaged) -> Line<Message> {
-    let events: [LineEventHandler<Message>] = [
-        (.s, { .stage(.unstaged([unstaged])) }),
-        (.u, { .unstage(.unstaged([unstaged])) })
-    ]
+func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [Line<Message>] {
+    return { unstaged in
+        let open = visibility["unstaged-\(unstaged.file)", default: false]
+        let events: [LineEventHandler<Message>] = [
+            (.s, { .stage(.unstaged([unstaged])) }),
+            (.u, { .unstage(.unstaged([unstaged])) }),
+            (.tab, { .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }) })
+        ]
+        
+        let hunks = open ? unstaged.diff.flatMap(mapHunks) : []
     
-    switch unstaged.status {
-    case .Modified:
-    return Line("modified  \(unstaged.file)", events)
-    case .Deleted:
-    return Line("deleted  \(unstaged.file)", events)
-    case .Added:
-        return Line("new file  \(unstaged.file)", events)
-    case .Renamed:
-        return Line("renamed   \(unstaged.file)", events)
-    case .Copied:
-        return Line("copied    \(unstaged.file)", events)
-    default:
-        return Line("Unknown status \(unstaged.status) \(unstaged.file)")
+        switch unstaged.status {
+        case .Modified:
+            return [Line("modified  \(unstaged.file)", events)] + hunks
+        case .Deleted:
+            return [Line("deleted  \(unstaged.file)", events)] + hunks
+        case .Added:
+            return [Line("new file  \(unstaged.file)", events)] + hunks
+        case .Renamed:
+            return [Line("renamed   \(unstaged.file)", events)] + hunks
+        case .Copied:
+            return [Line("copied    \(unstaged.file)", events)] + hunks
+        default:
+            return [Line("Unknown status \(unstaged.status) \(unstaged.file)")]
+        }
     }
+}
+
+func mapHunks(_ hunk: GitHunk) -> [Line<Message>] {
+    hunk.lines.map { mapDiffLine($0) }
+}
+
+func mapDiffLine(_ line: GitHunkLine) -> Line<Message> {
+    var foreground = Color.any(0x00)
+    var background = Color.any(0x00)
+    switch line.annotation {
+    case .Summary:
+        background = Color.magenta
+    case .Added:
+        foreground = Color.green
+    case .Removed:
+        foreground = Color.red
+    case .Context:
+        break;
+    }
+    
+    return Line(Text(line.content, [.foreground(foreground), .background(background)]))
 }
 
 func stagedMapper(_ staged: Staged) -> Line<Message> {
