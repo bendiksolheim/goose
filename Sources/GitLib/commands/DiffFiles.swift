@@ -25,15 +25,42 @@ public struct DiffFiles {
     }
 }
 
-public struct GitHunk {
-    public let lines: [String]
+public enum GitAnnotation: Equatable {
+    case Summary
+    case Added
+    case Removed
+    case Context
+}
+
+public struct GitHunkLine: Equatable {
+    public let annotation: GitAnnotation
+    public let content: String
     
-    init(_ lines: [String]) {
-        self.lines = lines
+    init(_ line: String) {
+        let first = line[0]
+        switch first {
+        case "@":
+            self.annotation = .Summary
+        case "+":
+            self.annotation = .Added
+        case "-":
+            self.annotation = .Removed
+        default:
+            self.annotation = .Context
+        }
+        self.content = line
     }
 }
 
-public struct GitFile {
+public struct GitHunk: Equatable {
+    public let lines: [GitHunkLine]
+    
+    init(_ lines: [String]) {
+        self.lines = lines.map(GitHunkLine.init)
+    }
+}
+
+public struct GitFile: Equatable {
     public let source: String
     public let hunks: [GitHunk]
     
@@ -43,7 +70,7 @@ public struct GitFile {
     }
 }
 
-public struct GitDiff {
+public struct GitDiff: Equatable {
     public let files: [GitFile]
     
     init(_ files: [GitFile]) {
