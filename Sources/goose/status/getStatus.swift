@@ -26,7 +26,7 @@ public enum AsyncData<T: Equatable>: Equatable {
 func getStatus() -> Message {
     let tasks = IO.parZip (execute(process: ProcessDescription.git(Git.status())).flatMap(mapStatus),
                            execute(process: ProcessDescription.git(Git.log(num: 10))),
-                           execute(process: ProcessDescription.git(DiffFiles.command())).flatMap(mapDiff)
+                           execute(process: ProcessDescription.git(DiffFiles.command()))
         )^
     let result = tasks.unsafeRunSyncEither()
     let status = result.fold(error, statusSuccess)
