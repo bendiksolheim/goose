@@ -43,7 +43,7 @@ func statusSuccess(status: GitStatus, log: ProcessResult, diff: ProcessResult) -
     let fileMap = files.reduce(into: [:]) { $0[$1.source] = $1.hunks }
     return .success(StatusInfo(
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
-        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, fileMap[$0.file]!) },
+        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, fileMap[$0.file] ?? []) },
         staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status) },
         log: parseCommits(log.output)
     ))
