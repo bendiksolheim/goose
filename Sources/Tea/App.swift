@@ -21,6 +21,7 @@ public func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Su
 public enum Cmd<T> {
     case cmd(T)
     case task(() -> T)
+    case asyncTask((@escaping (T) -> Void) -> Void)
     case process(() -> T)
     case exit
     case none
@@ -28,6 +29,10 @@ public enum Cmd<T> {
 
 public func task<Message>(_ task: @escaping () -> Message) -> Cmd<Message> {
     return .task(task)
+}
+
+public func asyncTask<Message>(_ task: @escaping (@escaping (Message) -> Void) -> Void) -> Cmd<Message> {
+    return .asyncTask(task)
 }
 
 public func process<Message>(_ process: @escaping () -> Message) -> Cmd<Message> {
@@ -43,6 +48,7 @@ public func run<Model: Equatable, Message>(
     let keyboardSubscription = getKeyboardSubscription(subscriptions: subscriptions)
     
     let termboxDispatchQueue = DispatchQueue(label: "termbox.queue.producer", qos: .background)
+    let taskDispatchQueue = DispatchQueue(label: "tea.task.queue", qos: .userInitiated)
 
     var app = TermboxScreen()
     try! app.setup()
@@ -147,6 +153,14 @@ public func run<Model: Equatable, Message>(
             let message = task()
             DispatchQueue.main.async {
                 messageProducer.send(value: message)
+            }
+        case .asyncTask(let task):
+            taskDispatchQueue.async {
+                task({ message in
+                    DispatchQueue.main.async {
+                        messageProducer.send(value: message)
+                    }
+                })
             }
         case .process(let process):
             polling = false
