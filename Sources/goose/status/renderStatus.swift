@@ -93,8 +93,8 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [Line<Messag
             return [Line("deleted  \(unstaged.file)", events)] + hunks
         case .Added:
             return [Line("new file  \(unstaged.file)", events)] + hunks
-        case .Renamed:
-            return [Line("renamed   \(unstaged.file)", events)] + hunks
+        case .Renamed(let target):
+            return [Line("renamed   \(unstaged.file) -> \(target)", events)] + hunks
         case .Copied:
             return [Line("copied    \(unstaged.file)", events)] + hunks
         default:
@@ -138,8 +138,8 @@ func stagedMapper(_ staged: Staged) -> Line<Message> {
         return Line("modified  \(staged.file)", events)
     case .Deleted:
         return Line("deleted  \(staged.file)", events)
-    case .Renamed:
-        return Line("renamed   \(staged.file)", events)
+    case .Renamed(let target):
+        return Line("renamed   \(staged.file) -> \(target)", events)
     case .Copied:
         return Line("copied    \(staged.file)", events)
     }

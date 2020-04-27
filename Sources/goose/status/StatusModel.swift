@@ -58,9 +58,17 @@ public func isUntracked(_ change: GitChange) -> Bool {
 public func isUnstaged(_ change: GitChange) -> Bool {
     change.area == .Worktree
         && (change.status == .Modified
-        || change.status == .Renamed
+        || isRenamed(change.status)
         || change.status == .Copied
         || change.status == .Deleted)
+}
+
+func isRenamed(_ change: FileStatus) -> Bool {
+    if case .Renamed(_) = change {
+        return true
+    } else {
+        return false
+    }
 }
 
 public func isStaged(_ change: GitChange) -> Bool {

@@ -52,12 +52,12 @@ public enum Area {
     case Index
 }
 
-public enum FileStatus {
+public enum FileStatus: Equatable {
     case Untracked
     case Modified
     case Deleted
     case Added
-    case Renamed
+    case Renamed(String)
     case Copied
 }
 
@@ -128,7 +128,21 @@ func parseOrdinaryChange<S: StringProtocol>(_ input: S) -> [GitChange] {
 }
 
 func parseRenamedChange<S: StringProtocol>(_ input: S) -> [GitChange] {
-    return []
+    var changes: [GitChange] = []
+    let output = input.split(separator: " ")
+    let index = String(output[1])[0]
+    let worktree = String(output[1])[1]
+    let files = output[9].split(separator: "\t")
+    let target = String(files[0])
+    let source = String(files[1])
+    
+    if index == "R" {
+        changes.append(GitChange(area: .Index, status: .Renamed(target), file: source))
+    } else if worktree == "R" {
+        changes.append(GitChange(area: .Worktree, status: .Renamed(target), file: source))
+    }
+    
+    return changes
 }
 
 func parseUntrackedChange<S: StringProtocol>(_ input: S) -> [GitChange] {

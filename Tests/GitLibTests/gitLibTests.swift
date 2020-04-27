@@ -31,6 +31,13 @@ final class changeParseTests: XCTestCase {
         let expected = [GitChange(area: .Index, status: .Added, file: "file.md"), GitChange(area: .Worktree, status: .Deleted, file: "file.md")]
         XCTAssertEqual(changes, expected)
     }
+    
+    func testRenamedFile() {
+        let input = "2 R. N... 100644 100644 100644 f405ea577c341afbbd7c8d3aee0bb5c1e13ca508 f405ea577c341afbbd7c8d3aee0bb5c1e13ca508 R100 README.org\tREADME.md"
+        let changes = parseChange(input).getOrElse([])
+        let expected = [GitChange(area: .Index, status: .Renamed("README.org"), file: "README.md")]
+        XCTAssertEqual(changes, expected)
+    }
 
     static var allTests = [
         ("testOneUntrackedFile", testOneUntrackedFile),
