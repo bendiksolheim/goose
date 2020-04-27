@@ -87,7 +87,7 @@ func unstage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
     case .unstaged(_):
         return (model, .cmd(.info("Already unstaged")))
     case .staged(let staged):
-        return (model, task({ addFile(files: staged.map { $0.file }) }))
+        return (model, task({ resetFile(files: staged.map { $0.file }) }))
     }
 }
 
