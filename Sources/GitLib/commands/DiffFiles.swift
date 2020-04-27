@@ -110,8 +110,13 @@ let hunks = hunk.many
 let path = anyCharacter *> character("/") *> StringParser.noneOf(" ").many.stringValue
 let diff = string("diff --git ") *> path <* takeLine
 let index = string("index") <* takeLine
+let fileStatus =
+    (string("deleted file mode") <* takeLine)
+        <|> (string("new file mode") <* takeLine)
+        <|> (string("rename to") <* takeLine)
+let statusAndindex = (fileStatus <* index) <|> index
 let aLine = string("---") <* takeLine
 let bLine = string("+++") <* takeLine
-let fileHeader = diff <* index <* aLine <* bLine
+let fileHeader = diff <* statusAndindex <* aLine <* bLine
 let file = makeFile <^> fileHeader <*> hunks
 let parseDiff = file.many.map(GitDiff.init)
