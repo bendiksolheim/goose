@@ -1,6 +1,6 @@
 # goose
 
-**So alpha it hurts. This is just a toy right now, so please don’t use it for anything serious. Let me be the one destorying my
+**So alpha it hurts. This is just a toy right now, so please don’t use it for anything serious. Let me be the one destroying my
 git repos, not you.**
 
 Goose is a git client for your terminal. It is highly inspired by the best git client ever created – magit. It strives to be more
