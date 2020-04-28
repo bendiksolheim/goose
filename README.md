@@ -30,6 +30,7 @@ Next up
 - Discard change
 - Transient command system
 - Amend commit
+- Search in active buffer to quickly move around
 - ... soooo much more
 
 ## Instructions
