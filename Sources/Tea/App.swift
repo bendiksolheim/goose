@@ -74,10 +74,12 @@ public func run<Model: Equatable, Message>(
                     case .char(let char):
                         switch char {
                         case .j:
-                            buffer.moveCursor(.down)
+                            buffer.moveCursor(.down(1))
                             renderedContent = renderToScreen(buffer, app, model, render)
                         case .k:
-                            buffer.moveCursor(.up)
+                            os_log("1")
+                            buffer.moveCursor(.up(1))
+                            os_log("2")
                             renderedContent = renderToScreen(buffer, app, model, render)
                         default:
                             bubble = true
@@ -112,6 +114,12 @@ public func run<Model: Equatable, Message>(
                             polling = false
                             messageProducer.sendCompleted()
                             commandProducer.sendCompleted()
+                        case .d:
+                            buffer.moveCursor(.down(10))
+                            renderedContent = renderToScreen(buffer, app, model, render)
+                        case .u:
+                            buffer.moveCursor(.up(10))
+                            renderedContent = renderToScreen(buffer, app, model, render)
                         default:
                                 break
                         }

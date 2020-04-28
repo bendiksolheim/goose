@@ -1,8 +1,9 @@
 import Foundation
+import os.log
 
 public enum CursorVerticalDirection {
-    case up
-    case down
+    case up(Int)
+    case down(Int)
 }
 
 public class Buffer {
@@ -13,7 +14,7 @@ public class Buffer {
     //private var offset: Point = .zero
     //private var zeroOrigin: Point = .zero
     private var size: Size
-    private(set) var cursor: (UInt, UInt)
+    private(set) var cursor: (Int, Int)
 
     init(size: Size) {
         self.size = size
@@ -74,18 +75,14 @@ public class Buffer {
     
     public func moveCursor(_ direction: CursorVerticalDirection) {
         switch direction {
-        case .up:
-            if cursor.1 > 0 {
-                cursor = (cursor.0, cursor.1 - 1)
-            }
-        case .down:
-            if cursor.1 < size.height - 1 {
-                cursor = (cursor.0, cursor.1 + 1)
-            }
+        case .up(let n):
+            cursor = (cursor.0, max(cursor.1 - n, 0))
+        case .down(let n):
+            cursor = (cursor.0, min(cursor.1 + n, size.height - 1))
         }
     }
     
-    public func updateCursor(x: UInt, y: UInt) {
+    public func updateCursor(x: Int, y: Int) {
         guard
             x < size.width,
             y < size.height
