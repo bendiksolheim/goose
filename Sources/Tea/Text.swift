@@ -2,7 +2,7 @@ import Foundation
 import Termbox
 
 public enum Color {
-    case none
+    case normal
     case black
     case red
     case green
@@ -15,7 +15,7 @@ public enum Color {
 
     var toTermbox: Attributes {
         switch self {
-        case .none:
+        case .normal:
             return .default
         case .black:
             return .black

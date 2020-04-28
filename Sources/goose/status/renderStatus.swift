@@ -108,8 +108,8 @@ func mapHunks(_ hunk: GitHunk) -> [Line<Message>] {
 }
 
 func mapDiffLine(_ line: GitHunkLine) -> Line<Message> {
-    var foreground = Color.any(0x00)
-    var background = Color.any(0x00)
+    var foreground = Color.normal
+    var background = Color.normal
     switch line.annotation {
     case .Summary:
         background = Color.magenta
