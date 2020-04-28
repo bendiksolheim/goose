@@ -1,5 +1,8 @@
 # goose
 
+**So alpha it hurts. This is just a toy right now, so please don’t use it for anything serious. Let me be the one destorying my
+git repos, not you.**
+
 Goose is a git client for your terminal. It is highly inspired by the best git client ever created – magit. It strives to be more
 or less identical, with the only difference being that it lives in your terminal, and not in your Emacs.
 
@@ -9,3 +12,28 @@ and even though I really enjoy using Emacs I don’t like being tied to one sing
 the best git client out of the best code editor and make it stand alone.
 
 What could possibly go wrong.
+
+## Status
+
+Working
+- Staging
+- Unstaging
+- Diffing file
+- Commiting
+- Listing log
+
+Next up
+- More advanced rendering system: attach do edges, scrolling
+- Information line
+- Stage / unstage hunks
+- Stage / unstage lines
+- Discard change
+- Transient command system
+- Amend commit
+- ... soooo much more
+
+## Instructions
+
+- Run: `swift run`
+- Build debug: `swift build`
+- Build production: `swift build -c release`
