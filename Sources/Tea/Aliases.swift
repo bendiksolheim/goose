@@ -7,7 +7,6 @@ import enum Termbox.Key
 import typealias Termbox.AttrSize
 
 typealias TermboxEvent = Termbox.Event
-typealias TermboxMouse = Termbox.Mouse
 typealias TermboxModifier = Termbox.Modifier
 typealias TermboxKey = Termbox.Key
 public typealias AttrSize = Termbox.AttrSize

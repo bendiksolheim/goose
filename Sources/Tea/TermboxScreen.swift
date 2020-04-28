@@ -9,16 +9,13 @@ struct Size {
 class TermboxScreen {
     public var size: Size { Size(width: Int(Termbox.width), height: Int(Termbox.height)) }
     private var queuedEvents: [Event] = []
-    //private var currentMouseClick: (x: UInt16, y: UInt16, button: MouseEvent.Button)?
 
     public init() {
-        //Termbox.debug = debug
     }
 
     public func setup() throws {
         try Termbox.initialize()
         Termbox.outputMode = .color256
-        //Termbox.enableMouse()
         Termbox.clear(foreground: .default, background: .default)
         Termbox.render()
     }
@@ -97,57 +94,12 @@ class TermboxScreen {
         }
         return nil
     }
-
-    /*private func termboxMouseEvent(_ x: UInt16, _ y: UInt16, _ type: TermboxMouse) -> MouseEvent
-        .Event
-    {
-        if let prevMouseClick = currentMouseClick,
-            type != .release,
-            type != .wheelUp,
-            type != .wheelDown
-        {
-            if type == .left, prevMouseClick.button == .left {
-                return .drag(.left)
-            }
-            else if type == .middle, prevMouseClick.button == .middle {
-                return .drag(.middle)
-            }
-            else if type == .right, prevMouseClick.button == .right {
-                return .drag(.right)
-            }
-
-            currentMouseClick = nil
-            let nextEvent = termboxMouseEvent(x, y, type)
-            queuedEvents.append(.mouse(MouseEvent(x: Int(x), y: Int(y), event: nextEvent)))
-            return .release(prevMouseClick.button)
-        }
-
-        switch type {
-        case .left:
-            currentMouseClick = (x: x, y: y, button: .left)
-            return .click(.left)
-        case .right:
-            currentMouseClick = (x: x, y: y, button: .right)
-            return .click(.right)
-        case .middle:
-            currentMouseClick = (x: x, y: y, button: .middle)
-            return .click(.middle)
-        case .release:
-            let button = currentMouseClick?.button ?? .left
-            currentMouseClick = nil
-            return .release(button)
-        case .wheelUp:
-            return .scroll(.up)
-        case .wheelDown:
-            return .scroll(.down)
-        }
-    }*/
 }
 
 private func foregroundAttrs(_ attrs: [Attr]) -> Attributes {
     let retval = attrs.reduce(Attributes.zero) { memo, attr -> Attributes in
         switch attr {
-        case .foreground(.none):
+        case .foreground(.normal):
             return memo.union(Attributes.default)
         case .background:
             return memo
@@ -161,7 +113,7 @@ private func foregroundAttrs(_ attrs: [Attr]) -> Attributes {
 private func backgroundAttrs(_ attrs: [Attr]) -> Attributes {
     let retval = attrs.reduce(Attributes.zero) { memo, attr -> Attributes in
         switch attr {
-        case .background(.none):
+        case .background(.normal):
             return memo.union(Attributes.default)
         case .foreground:
             return memo
