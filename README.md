@@ -25,8 +25,8 @@ Working
 Next up
 - More advanced rendering system: attach do edges, scrolling
 - Information line
-- Stage / unstage hunks
-- Stage / unstage lines
+- Stage / unstage hunks and lines
+- Async tasks so we don’t block rendering
 - Discard change
 - Transient command system
 - Amend commit
