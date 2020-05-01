@@ -1,6 +1,6 @@
 import Foundation
 import GitLib
-import Tea
+import tea
 import os.log
 
 enum Message {
@@ -27,13 +27,13 @@ func initialize() -> (Model, Cmd<Message>) {
 }
 
 
-func render(model: Model) -> [Line<Message>] {
+func render(model: Model) -> Window<Message> {
     let view = model.views.last!
     switch view {
     case .status:
-        return renderStatus(model: model.status)
+        return Window(content: renderStatus(model: model.status))
     case .log:
-        return renderLog(log: model.log)
+        return Window(content: renderLog(log: model.log))
     }
 }
 

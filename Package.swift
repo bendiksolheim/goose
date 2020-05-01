@@ -7,21 +7,17 @@ let package = Package(
     name: "goose",
     platforms: [ .macOS(.v10_14) ],
     dependencies: [
-        .package(path: "../../github-external/Termbox"),
         .package(url: "https://github.com/bow-swift/bow.git", from: "0.7.0"),
-        .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.1.0"),
-        .package(url: "https://github.com/davedufresne/SwiftParsec", .branch("master"))
+        .package(url: "https://github.com/davedufresne/SwiftParsec", .branch("master")),
+        .package(path: "../tea")
     ],
     targets: [
         .target(
             name: "goose",
-            dependencies: ["BowEffects", "GitLib", "Tea"]),
+            dependencies: ["BowEffects", "GitLib", "tea"]),
         .target(
             name: "GitLib",
             dependencies: ["BowEffects", "SwiftParsec"]),
-        .target(
-            name: "Tea",
-            dependencies: ["ReactiveSwift", "Termbox"]),
         .testTarget(
             name: "GitLibTests",
             dependencies: ["GitLib", "BowEffects"]),
