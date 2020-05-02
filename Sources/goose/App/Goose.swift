@@ -23,18 +23,23 @@ enum Type {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status], status: statusModel, log: .loading, cursor: CursorModel(0, 0)), task(getStatus))
+    return (Model(views: [.status], status: statusModel, log: .loading, cursor: CursorModel(0, 0), info: ""), task(getStatus))
 }
 
 
 func render(model: Model) -> Window<Message> {
     let view = model.views.last!
+    let content: [Renderable<Message>]
     switch view {
     case .status:
-        return Window(content: renderStatus(model: model.status))
+        content = renderStatus(model: model.status)
     case .log:
-        return Window(content: renderLog(log: model.log))
+        content = renderLog(log: model.log)
     }
+    
+    return Window(content:
+        [Container(content, layoutPolicy: LayoutPolicy(width: .fill, height: .fill)), TextLine(model.info)]
+    )
 }
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
@@ -64,8 +69,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model, task(getStatus))
         
     case .info(let error):
-        os_log("Info: %{public}@", error)
-        return (model, .none)
+        return (model.copy(withInfo: error), .none)
     }
 }
 
