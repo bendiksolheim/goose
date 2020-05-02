@@ -20,15 +20,18 @@ struct Model: Equatable {
     let status: StatusModel
     let log: AsyncData<LogInfo>
     let cursor: CursorModel
+    let info: String
     
     func copy(withViews views: [View]? = nil,
               withStatus status: StatusModel? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
-              withCursor cursor: CursorModel? = nil) -> Model {
+              withCursor cursor: CursorModel? = nil,
+              withInfo info: String? = nil) -> Model {
         Model(views: views ?? self.views,
               status: status ?? self.status,
               log: log ?? self.log,
-              cursor: cursor ?? self.cursor
+              cursor: cursor ?? self.cursor,
+              info: info ?? self.info              
         )
     }
     
