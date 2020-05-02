@@ -20,7 +20,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
                 (.s, { .stage(.untracked(status.untracked)) }),
                 (.tab, { .updateVisibility(visibility.merging(["untracked": !open]) { $1 }) })
             ]
-            let title = TextLine<Message>(Text("Untracked files (\(status.untracked.count))", [.foreground(.blue)]), events)
+            let title = TextLine<Message>(Text("Untracked files (\(status.untracked.count))", [.foreground(.blue)]), events: events)
             sections.append(contentsOf: Section(title: title, items: status.untracked.map(untrackedMapper), open: open))
         }
 
@@ -30,7 +30,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
                 (.s, { .stage(.unstaged(status.unstaged)) }),
                 (.tab, { .updateVisibility(visibility.merging(["unstaged": !open]) { $1 })})
             ]
-            let title = TextLine<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), events)
+            let title = TextLine<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), events: events)
             let mapper = unstagedMapper(visibility)
             sections.append(contentsOf: Section(title: title, items: status.unstaged.flatMap(mapper), open: open))
         }
@@ -41,7 +41,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
                 (.u, { .unstage(.staged(status.staged)) }),
                 (.tab, { .updateVisibility(visibility.merging(["staged": !open]) { $1 })})
             ]
-            let title = TextLine<Message>(Text("Staged changes (\(status.staged.count))", [.foreground(.blue)]), events)
+            let title = TextLine<Message>(Text("Staged changes (\(status.staged.count))", [.foreground(.blue)]), events: events)
             sections.append(contentsOf: Section(title: title, items: status.staged.map(stagedMapper), open: open))
         }
 
@@ -49,7 +49,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
         let events: [LineEventHandler<Message>] = [
             (.tab, { .updateVisibility(visibility.merging(["recent": !open]) { $1 })})
         ]
-        sections.append(contentsOf: Section(title: TextLine("Recent commits", events), items: status.log.map(commitMapper), open: open))
+        sections.append(contentsOf: Section(title: TextLine("Recent commits", events: events), items: status.log.map(commitMapper), open: open))
 
         return sections
     }
@@ -72,7 +72,7 @@ func untrackedMapper(_ untracked: Untracked) -> TextLine<Message> {
         (.u, { .unstage(.untracked([untracked])) })
     ]
     
-    return TextLine(untracked.file, events)
+    return TextLine(untracked.file, events: events)
 }
 
 func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextLine<Message>] {
@@ -88,15 +88,15 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextLine<Me
     
         switch unstaged.status {
         case .Modified:
-            return [TextLine("modified  \(unstaged.file)", events)] + hunks
+            return [TextLine("modified  \(unstaged.file)", events: events)] + hunks
         case .Deleted:
-            return [TextLine("deleted  \(unstaged.file)", events)] + hunks
+            return [TextLine("deleted  \(unstaged.file)", events: events)] + hunks
         case .Added:
-            return [TextLine("new file  \(unstaged.file)", events)] + hunks
+            return [TextLine("new file  \(unstaged.file)", events: events)] + hunks
         case .Renamed(let target):
-            return [TextLine("renamed   \(unstaged.file) -> \(target)", events)] + hunks
+            return [TextLine("renamed   \(unstaged.file) -> \(target)", events: events)] + hunks
         case .Copied:
-            return [TextLine("copied    \(unstaged.file)", events)] + hunks
+            return [TextLine("copied    \(unstaged.file)", events: events)] + hunks
         default:
             return [TextLine("Unknown status \(unstaged.status) \(unstaged.file)")]
         }
@@ -131,16 +131,16 @@ func stagedMapper(_ staged: Staged) -> TextLine<Message> {
     ]
     switch staged.status {
     case .Added:
-        return TextLine("new file  \(staged.file)", events)
+        return TextLine("new file  \(staged.file)", events: events)
     case .Untracked:
-        return TextLine(staged.file, events)
+        return TextLine(staged.file, events: events)
     case .Modified:
-        return TextLine("modified  \(staged.file)", events)
+        return TextLine("modified  \(staged.file)", events: events)
     case .Deleted:
-        return TextLine("deleted  \(staged.file)", events)
+        return TextLine("deleted  \(staged.file)", events: events)
     case .Renamed(let target):
-        return TextLine("renamed   \(staged.file) -> \(target)", events)
+        return TextLine("renamed   \(staged.file) -> \(target)", events: events)
     case .Copied:
-        return TextLine("copied    \(staged.file)", events)
+        return TextLine("copied    \(staged.file)", events: events)
     }
 }
