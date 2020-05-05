@@ -38,7 +38,7 @@ func render(model: Model) -> Window<Message> {
     }
     
     return Window(content:
-        [Container(content, layoutPolicy: LayoutPolicy(width: .fill, height: .fill)), TextLine(model.info)]
+        [Container(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible)), TextLine(model.info)]
     )
 }
 
