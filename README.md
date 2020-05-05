@@ -21,16 +21,17 @@ Working
 - Diffing file
 - Commiting
 - Listing log
+- UI: Information line
 
 Next up
-- More advanced rendering system: attach do edges, scrolling
-- Information line
+- UI: scrolling
 - Stage / unstage hunks and lines
 - Async tasks so we don’t block rendering
 - Discard change
 - Transient command system
 - Amend commit
 - Search in active buffer to quickly move around
+- Optimization
 - ... soooo much more
 
 ## Instructions
