@@ -1,4 +1,5 @@
 import Foundation
+import tea
 
 enum View {
     case status
@@ -19,19 +20,19 @@ struct Model: Equatable {
     let views: [View]
     let status: StatusModel
     let log: AsyncData<LogInfo>
-    let cursor: CursorModel
     let info: String
+    let container: ContainerState
     
     func copy(withViews views: [View]? = nil,
               withStatus status: StatusModel? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
-              withCursor cursor: CursorModel? = nil,
-              withInfo info: String? = nil) -> Model {
+              withInfo info: String? = nil,
+              withContainer container: ContainerState? = nil) -> Model {
         Model(views: views ?? self.views,
               status: status ?? self.status,
               log: log ?? self.log,
-              cursor: cursor ?? self.cursor,
-              info: info ?? self.info              
+              info: info ?? self.info,
+              container: container ?? self.container
         )
     }
     

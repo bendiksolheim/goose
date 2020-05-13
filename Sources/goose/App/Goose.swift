@@ -6,13 +6,13 @@ import os.log
 enum Message {
     case gotStatus(AsyncData<StatusInfo>)
     case gotLog(AsyncData<LogInfo>)
-    case cursorUpdate(UInt, UInt)
     case keyboard(KeyEvent)
     case stage(Type)
     case unstage(Type)
     case updateVisibility([String : Bool])
     case commandSuccess
     case info(String)
+    case container(ContainerMessage)
 }
 
 enum Type {
@@ -23,7 +23,7 @@ enum Type {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status], status: statusModel, log: .loading, cursor: CursorModel(0, 0), info: ""), task(getStatus))
+    return (Model(views: [.status], status: statusModel, log: .loading, info: "", container: Container<Message>.initialState()), task(getStatus))
 }
 
 
@@ -38,7 +38,7 @@ func render(model: Model) -> Window<Message> {
     }
     
     return Window(content:
-        [Container(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible)), TextLine(model.info)]
+        [Container(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), TextLine(model.info)]
     )
 }
 
@@ -49,9 +49,6 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         
     case .gotLog(let log):
         return (model.copy(withLog: log), .none)
-        
-    case .cursorUpdate(let x, let y):
-        return (model.copy(withCursor: CursorModel(x, y)), .none)
         
     case .keyboard(let event):
         return parseKey(event, model: model)
@@ -70,6 +67,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         
     case .info(let error):
         return (model.copy(withInfo: error), .none)
+
+    case .container(let containerMsg):
+        return (model.copy(withContainer: Container<Message>.update(containerMsg, model.container)), .none)
     }
 }
 
@@ -114,7 +114,7 @@ func parseKey(_ event: KeyEvent, model: Model) -> (Model, Cmd<Message>) {
     }
 }
 
-let subscriptions = [
-    cursor({ (x, y) in Message.cursorUpdate(x, y) }),
+let subscriptions: [Sub<Message>] = [
+    cursor { .container($0) },
     keyboard({ event in .keyboard(event) })
 ]
