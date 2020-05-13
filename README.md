@@ -26,6 +26,7 @@ Working
 Next up
 - UI: scrolling
 - Stage / unstage hunks and lines
+- Window resizing
 - Async tasks so we don’t block rendering
 - Discard change
 - Transient command system
