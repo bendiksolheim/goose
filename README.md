@@ -22,9 +22,9 @@ Working
 - Commiting
 - Listing log
 - UI: Information line
+- UI: scrolling
 
 Next up
-- UI: scrolling
 - Stage / unstage hunks and lines
 - Window resizing
 - Async tasks so we don’t block rendering
