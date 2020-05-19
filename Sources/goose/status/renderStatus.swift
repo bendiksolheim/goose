@@ -20,7 +20,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
                 (.s, { .stage(.untracked(status.untracked)) }),
                 (.tab, { .updateVisibility(visibility.merging(["untracked": !open]) { $1 }) })
             ]
-            let title = TextLine<Message>(Text("Untracked files (\(status.untracked.count))", [.foreground(.blue)]), events: events)
+            let title = TextLine<Message>(Text("Untracked files (\(status.untracked.count))", .blue), events: events)
             sections.append(contentsOf: Section(title: title, items: status.untracked.map(untrackedMapper), open: open))
         }
 
@@ -30,7 +30,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
                 (.s, { .stage(.unstaged(status.unstaged)) }),
                 (.tab, { .updateVisibility(visibility.merging(["unstaged": !open]) { $1 })})
             ]
-            let title = TextLine<Message>(Text("Unstaged changes (\(status.unstaged.count))", [.foreground(.blue)]), events: events)
+            let title = TextLine<Message>(Text("Unstaged changes (\(status.unstaged.count))", .blue), events: events)
             let mapper = unstagedMapper(visibility)
             sections.append(contentsOf: Section(title: title, items: status.unstaged.flatMap(mapper), open: open))
         }
@@ -41,7 +41,7 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
                 (.u, { .unstage(.staged(status.staged)) }),
                 (.tab, { .updateVisibility(visibility.merging(["staged": !open]) { $1 })})
             ]
-            let title = TextLine<Message>(Text("Staged changes (\(status.staged.count))", [.foreground(.blue)]), events: events)
+            let title = TextLine<Message>(Text("Staged changes (\(status.staged.count))", .blue), events: events)
             sections.append(contentsOf: Section(title: title, items: status.staged.map(stagedMapper), open: open))
         }
 
@@ -57,13 +57,13 @@ func renderStatus(model: StatusModel) -> [Renderable<Message>] {
 
 func headMapper(_ commit: GitCommit) -> TextLine<Message> {
     let ref = commit.refName.getOrElse("")
-    return TextLine("Head:     " + Text(ref, [.foreground(.cyan)]) + " " + commit.message)
+    return TextLine("Head:     " + Text(ref, .cyan) + " " + commit.message)
 }
 
 func commitMapper(_ commit: GitCommit) -> TextLine<Message> {
     let message = commit.refName
-        .fold(constant(Text(" ")), { name in Text(" \(name) ", [.foreground(.cyan)]) }) + commit.message
-    return TextLine(Text(commit.hash.short, [.foreground(.any(241))]) + message)
+        .fold(constant(Text(" ")), { name in Text(" \(name) ", .cyan) }) + commit.message
+    return TextLine(Text(commit.hash.short, .any(241)) + message)
 }
 
 func untrackedMapper(_ untracked: Untracked) -> TextLine<Message> {
@@ -121,7 +121,7 @@ func mapDiffLine(_ line: GitHunkLine) -> TextLine<Message> {
         break;
     }
     
-    return TextLine(Text(line.content, [.foreground(foreground), .background(background)]))
+    return TextLine(Text(line.content, foreground, background))
 }
 
 func stagedMapper(_ staged: Staged) -> TextLine<Message> {
