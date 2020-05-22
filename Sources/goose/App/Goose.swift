@@ -12,7 +12,7 @@ enum Message {
     case updateVisibility([String : Bool])
     case commandSuccess
     case info(String)
-    case container(ContainerMessage)
+    case container(ScrollMessage)
 }
 
 enum Type {
@@ -23,13 +23,13 @@ enum Type {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status], status: statusModel, log: .loading, info: "", container: Container<Message>.initialState()), task(getStatus))
+    return (Model(views: [.status], status: statusModel, log: .loading, info: "", container: ScrollView<Message>.initialState()), task(getStatus))
 }
 
 
 func render(model: Model) -> Window<Message> {
     let view = model.views.last!
-    let content: [Renderable<Message>]
+    let content: [View<Message>]
     switch view {
     case .status:
         content = renderStatus(model: model.status)
@@ -38,7 +38,7 @@ func render(model: Model) -> Window<Message> {
     }
     
     return Window(content:
-        [Container(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), TextLine(model.info)]
+        [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), TextView(model.info)]
     )
 }
 
@@ -69,7 +69,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.copy(withInfo: error), .none)
 
     case .container(let containerMsg):
-        return (model.copy(withContainer: Container<Message>.update(containerMsg, model.container)), .none)
+        return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), .none)
     }
 }
 

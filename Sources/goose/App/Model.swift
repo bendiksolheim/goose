@@ -1,7 +1,7 @@
 import Foundation
 import tea
 
-enum View {
+enum Views {
     case status
     case log
 }
@@ -17,17 +17,17 @@ struct CursorModel: Equatable {
 }
 
 struct Model: Equatable {
-    let views: [View]
+    let views: [Views]
     let status: StatusModel
     let log: AsyncData<LogInfo>
     let info: String
-    let container: ContainerState
+    let container: ScrollState
     
-    func copy(withViews views: [View]? = nil,
+    func copy(withViews views: [Views]? = nil,
               withStatus status: StatusModel? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
               withInfo info: String? = nil,
-              withContainer container: ContainerState? = nil) -> Model {
+              withContainer container: ScrollState? = nil) -> Model {
         Model(views: views ?? self.views,
               status: status ?? self.status,
               log: log ?? self.log,
@@ -36,7 +36,7 @@ struct Model: Equatable {
         )
     }
     
-    func pushView(view: View) -> Model {
+    func pushView(view: Views) -> Model {
         copy(withViews: self.views + [view])
     }
     
