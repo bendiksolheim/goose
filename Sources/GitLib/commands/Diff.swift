@@ -11,11 +11,9 @@ public struct Diff {
     
     public static func parse(_ input: String) -> GitDiff {
         let diff = internalParse(input)
-        os_log("%{public}@", "\(diff)")
         return GitDiff(diff.files.map { filename, file in
-            os_log("File: %{public}@", filename)
             return GitFile(filename, file.hunks.map { hunkname, hunk in
-                GitHunk(hunk.lines, hunk.patch.joined(separator: "\n"))
+                GitHunk(hunk.lines, hunk.patch.joined(separator: "\n") + "\n")
             })
         })
     }
@@ -48,7 +46,6 @@ private func internalParse(_ input: String) -> GDiff {
         } else if line.starts(with: "@@ ") {
             currentHunk = line
             diff[currentFile].add(hunk: currentHunk)
-            diff[currentFile][currentHunk].append(line: line)
         } else if line.starts(with: " ") {
             diff[currentFile][currentHunk].append(line: line)
         } else if line.starts(with: "+") {
@@ -69,6 +66,7 @@ public class GHunk: CustomStringConvertible {
         self.header = header
         patch.append(contentsOf: file.header)
         patch.append(header)
+        lines.append(header)
     }
     
     func append(line: String) {
