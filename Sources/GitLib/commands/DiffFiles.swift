@@ -53,11 +53,12 @@ public struct GitHunkLine: Equatable {
 }
 
 public struct GitHunk: Equatable {
-    public let patch: String = ""
+    public let patch: String
     public let lines: [GitHunkLine]
     
     init(_ lines: [String], _ patch: String) {
         self.lines = lines.map(GitHunkLine.init)
+        self.patch = patch
     }
 }
 
