@@ -36,7 +36,7 @@ public struct ProcessResult {
     let exitCode: Int32
 }
 
-func execute(process: ProcessDescription) -> Task<ProcessResult> {
+func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessResult> {
     return Task.invoke {
         logCommand(process: process)
         let task = Process()
@@ -48,6 +48,19 @@ func execute(process: ProcessDescription) -> Task<ProcessResult> {
         let stderrPipe = Pipe()
         task.standardOutput = stdoutPipe
         task.standardError = stderrPipe
+        
+        if let _input = input {
+            os_log("Input: %{public}@", _input)
+            let stdinPipe = Pipe()
+            task.standardInput = stdinPipe
+            if let data = _input.data(using: .utf8) {
+                stdinPipe.fileHandleForWriting.write(data)
+                stdinPipe.fileHandleForWriting.closeFile()
+            } else {
+                os_log("Could not convert string to data: %{public}@", _input)
+            }
+        }
+        
         task.launch()
     
         let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
@@ -56,10 +69,13 @@ func execute(process: ProcessDescription) -> Task<ProcessResult> {
         
         let exitCode = task.terminationStatus
         if exitCode == 0 {
-            let stdOutput = String(data: stdoutData, encoding: String.Encoding.utf8)
+            let stdOutput = String(data: stdoutData, encoding: .utf8)
             return ProcessResult(output: stdOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
         } else {
-            let errOutput = String(data: stderrData, encoding: String.Encoding.utf8)
+            let errOutput = String(data: stderrData, encoding: .utf8)
+            let stdOutput = String(data: stdoutData, encoding: .utf8)
+            os_log("Command failed stdErr: %{public}@", errOutput ?? "")
+            os_log("Command failed stdOut: %{public}@", stdOutput ?? "")
             throw StringError(errOutput ?? "Command exited without error message")
         }
     }
