@@ -113,10 +113,10 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
 }
 
 func mapHunks(_ hunk: GitHunk) -> [TextView<Message>] {
-    hunk.lines.map { mapDiffLine($0) }
+    hunk.lines.map { mapDiffLine($0, hunk.patch) }
 }
 
-func mapDiffLine(_ line: GitHunkLine) -> TextView<Message> {
+func mapDiffLine(_ line: GitHunkLine, _ patch: String) -> TextView<Message> {
     var foreground = Color.normal
     var background = Color.normal
     switch line.annotation {
@@ -130,7 +130,7 @@ func mapDiffLine(_ line: GitHunkLine) -> TextView<Message> {
         break;
     }
     
-    return TextView(Text(line.content, foreground, background))
+    return TextView(Text(line.content, foreground, background), events: [(.s, { .stagePatch(patch) })])
 }
 
 func stagedMapper(_ staged: Staged) -> TextView<Message> {

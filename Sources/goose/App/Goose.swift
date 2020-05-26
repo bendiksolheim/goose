@@ -8,6 +8,7 @@ enum Message {
     case gotLog(AsyncData<LogInfo>)
     case keyboard(KeyEvent)
     case stage(Type)
+    case stagePatch(String)
     case unstage(Type)
     case updateVisibility([String : Bool])
     case commandSuccess
@@ -55,6 +56,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         
     case .stage(let changes):
         return stage(model, changes)
+        
+    case .stagePatch(let patch):
+        return (model, task({ apply(patch: patch) }))
         
     case .unstage(let changes):
         return unstage(model, changes)
@@ -105,10 +109,13 @@ func parseKey(_ event: KeyEvent, model: Model) -> (Model, Cmd<Message>) {
         }
     case .l:
         return (model.pushView(view: .log), task(getLog))
+        
     case .g:
         return (model, task(getStatus))
+        
     case .c:
         return (model, process(commit))
+        
     default:
         return (model, .none)
     }

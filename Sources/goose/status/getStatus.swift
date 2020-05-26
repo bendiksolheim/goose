@@ -60,6 +60,12 @@ func resetFile(files: [String]) -> Message {
     return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess})
 }
 
+func apply(patch: String) -> Message {
+    let task = execute(process: ProcessDescription.git(Git.apply()), input: patch)
+    let result = task.unsafeRunSyncEither()
+    return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess })
+}
+
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {
     parseStatus(status.output)
         .fold(IO.raiseError, IO.pure)^

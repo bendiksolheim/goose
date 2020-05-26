@@ -46,6 +46,12 @@ public struct Git {
             arguments: ["diff-files", "-z", "--patch", "--no-color"]
         )
     }
+    
+    public static func apply() -> GitCommand {
+        GitCommand(
+            arguments: ["apply", "--ignore-space-change", "--cached"]
+        )
+    }
 }
 
 private let NEWLINE = "%n"
