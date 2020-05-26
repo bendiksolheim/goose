@@ -3,7 +3,7 @@ import SwiftParsec
 import Bow
 import os.log
 
-public struct DiffFiles {
+/*public struct DiffFiles {
     public static func command() -> GitCommand {
         GitCommand(
             arguments: ["diff-files", "--patch", "--no-color"]
@@ -23,7 +23,7 @@ public struct DiffFiles {
             return Bow.Either.right(diff)
         }
     }
-}
+}*/
 
 public enum GitAnnotation: Equatable {
     case Summary
@@ -53,9 +53,10 @@ public struct GitHunkLine: Equatable {
 }
 
 public struct GitHunk: Equatable {
+    public let patch: String = ""
     public let lines: [GitHunkLine]
     
-    init(_ lines: [String]) {
+    init(_ lines: [String], _ patch: String) {
         self.lines = lines.map(GitHunkLine.init)
     }
 }
@@ -79,7 +80,7 @@ public struct GitDiff: Equatable {
 }
 
 
-func makeLine(_ a: String) -> (String) -> String {
+/*func makeLine(_ a: String) -> (String) -> String {
     { rest in a + rest }
 }
 func makeHunk(_ start: String) -> ([String]) -> GitHunk {
@@ -120,3 +121,4 @@ let bLine = string("+++") <* takeLine
 let fileHeader = diff <* statusAndindex <* aLine <* bLine
 let file = makeFile <^> fileHeader <*> hunks
 let parseDiff = file.many.map(GitDiff.init)
+*/

@@ -26,7 +26,7 @@ public enum AsyncData<T: Equatable>: Equatable {
 func getStatus() -> Message {
     let tasks = IO.parZip (execute(process: ProcessDescription.git(Git.status())).flatMap(mapStatus),
                            execute(process: ProcessDescription.git(Git.log(num: 10))),
-                           execute(process: ProcessDescription.git(DiffFiles.command()))
+                           execute(process: ProcessDescription.git(Diff.command()))
         )^
     let result = tasks.unsafeRunSyncEither()
     let status = result.fold(error, statusSuccess)
@@ -38,8 +38,7 @@ func error<T>(error: Error) -> AsyncData<T> {
 }
 
 func statusSuccess(status: GitStatus, log: ProcessResult, diff: ProcessResult) -> AsyncData<StatusInfo> {
-    let gitDiff = DiffFiles.parse(diff.output)
-    let files = gitDiff.fold({ _ in []}, { diff in diff.files })
+    let files = Diff.parse(diff.output).files
     let fileMap = files.reduce(into: [:]) { $0[$1.source] = $1.hunks }
     return .success(StatusInfo(
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
@@ -63,10 +62,5 @@ func resetFile(files: [String]) -> Message {
 
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {
     parseStatus(status.output)
-        .fold(IO.raiseError, IO.pure)^
-}
-
-private func mapDiff(diff: ProcessResult) -> IO<Error, GitDiff> {
-    return DiffFiles.parse(diff.output)
         .fold(IO.raiseError, IO.pure)^
 }
