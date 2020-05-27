@@ -99,7 +99,7 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
         case .Modified:
             return [TextView("modified  \(unstaged.file)", events: events)] + hunks
         case .Deleted:
-            return [TextView("deleted  \(unstaged.file)", events: events)] + hunks
+            return [TextView("deleted   \(unstaged.file)", events: events)] + hunks
         case .Added:
             return [TextView("new file  \(unstaged.file)", events: events)] + hunks
         case .Renamed(let target):
@@ -146,7 +146,7 @@ func stagedMapper(_ staged: Staged) -> TextView<Message> {
     case .Modified:
         return TextView("modified  \(staged.file)", events: events)
     case .Deleted:
-        return TextView("deleted  \(staged.file)", events: events)
+        return TextView("deleted   \(staged.file)", events: events)
     case .Renamed(let target):
         return TextView("renamed   \(staged.file) -> \(target)", events: events)
     case .Copied:
