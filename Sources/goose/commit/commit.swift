@@ -1,9 +1,3 @@
-//
-//  commit.swift
-//  goose
-//
-//  Created by Bendik Solheim on 21/04/2020.
-//
 import Foundation
 import BowEffects
 import GitLib
