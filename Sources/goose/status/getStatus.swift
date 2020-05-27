@@ -51,19 +51,19 @@ func statusSuccess(status: GitStatus, log: ProcessResult, diff: ProcessResult) -
 func addFile(files: [String]) -> Message {
     let task = execute(process: ProcessDescription.git(Git.add(files)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
 
 func resetFile(files: [String]) -> Message {
     let task = execute(process: ProcessDescription.git(Git.reset(files)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess})
+    return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess})
 }
 
 func apply(patch: String) -> Message {
     let task = execute(process: ProcessDescription.git(Git.apply()), input: patch)
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info($0.localizedDescription) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
 
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {

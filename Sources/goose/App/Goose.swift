@@ -3,7 +3,7 @@ import GitLib
 import tea
 import os.log
 
-enum Message {
+indirect enum Message {
     case gotStatus(AsyncData<StatusInfo>)
     case gotLog(AsyncData<LogInfo>)
     case keyboard(KeyEvent)
@@ -12,7 +12,8 @@ enum Message {
     case unstage(Type)
     case updateVisibility([String : Bool])
     case commandSuccess
-    case info(String)
+    case info(InfoMessage)
+    case clearInfo
     case container(ScrollMessage)
 }
 
@@ -24,7 +25,7 @@ enum Type {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status], status: statusModel, log: .loading, info: "", container: ScrollView<Message>.initialState()), task(getStatus))
+    return (Model(views: [.status], status: statusModel, log: .loading, info: .None, container: ScrollView<Message>.initialState()), task(getStatus))
 }
 
 
@@ -39,7 +40,7 @@ func render(model: Model) -> Window<Message> {
     }
     
     return Window(content:
-        [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), TextView(model.info)]
+        [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), renderInfoLine(info: model.info)]
     )
 }
 
@@ -70,7 +71,10 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model, task(getStatus))
         
     case .info(let error):
-        return (model.copy(withInfo: error), .none)
+        return (model.copy(withInfo: error), .delayedTask(5.0, { .clearInfo }))
+        
+    case .clearInfo:
+        return (model.copy(withInfo: .None), .none)
 
     case .container(let containerMsg):
         return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), .none)
@@ -84,16 +88,16 @@ func stage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
     case .unstaged(let unstaged):
         return (model, task({ addFile(files: unstaged.map { $0.file }) }))
     case .staged(_):
-        return (model, .cmd(.info("Already staged")))
+        return (model, .cmd(.info(.Info("Already staged"))))
     }
 }
 
 func unstage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
     switch type {
     case .untracked(_):
-        return (model, .cmd(.info("Already unstaged")))
+        return (model, .cmd(.info(.Info("Already unstaged"))))
     case .unstaged(_):
-        return (model, .cmd(.info("Already unstaged")))
+        return (model, .cmd(.info(.Info("Already unstaged"))))
     case .staged(let staged):
         return (model, task({ resetFile(files: staged.map { $0.file }) }))
     }
