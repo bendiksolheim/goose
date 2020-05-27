@@ -19,6 +19,62 @@ public struct Diff {
     }
 }
 
+public enum GitAnnotation: Equatable {
+    case Summary
+    case Added
+    case Removed
+    case Context
+}
+
+public struct GitHunkLine: Equatable {
+    public let annotation: GitAnnotation
+    public let content: String
+    
+    init(_ line: String) {
+        let first = line[0]
+        switch first {
+        case "@":
+            self.annotation = .Summary
+        case "+":
+            self.annotation = .Added
+        case "-":
+            self.annotation = .Removed
+        default:
+            self.annotation = .Context
+        }
+        self.content = line
+    }
+}
+
+public struct GitHunk: Equatable {
+    public let patch: String
+    public let lines: [GitHunkLine]
+    
+    init(_ lines: [String], _ patch: String) {
+        self.lines = lines.map(GitHunkLine.init)
+        self.patch = patch
+    }
+}
+
+public struct GitFile: Equatable {
+    public let source: String
+    public let hunks: [GitHunk]
+    
+    init(_ source: String, _ hunks: [GitHunk]) {
+        self.source = source
+        self.hunks = hunks
+    }
+}
+
+public struct GitDiff: Equatable {
+    public let files: [GitFile]
+    
+    init(_ files: [GitFile]) {
+        self.files = files
+    }
+}
+
+
 private func internalParse(_ input: String) -> GDiff {
     let lines = input.split(regex: "\n")
     
@@ -47,17 +103,17 @@ private func internalParse(_ input: String) -> GDiff {
             currentHunk = line
             diff[currentFile].add(hunk: currentHunk)
         } else if line.starts(with: " ") {
-            diff[currentFile][currentHunk].append(line: line)
+            diff[currentFile][currentHunk]?.append(line: line)
         } else if line.starts(with: "+") {
-            diff[currentFile][currentHunk].append(line: line)
+            diff[currentFile][currentHunk]?.append(line: line)
         } else if line.starts(with: "-") {
-            diff[currentFile][currentHunk].append(line: line)
+            diff[currentFile][currentHunk]?.append(line: line)
         }
     }
     return diff
 }
 
-public class GHunk: CustomStringConvertible {
+private class GHunk: CustomStringConvertible {
     var patch: [String] = []
     var header: String
     var lines: [String] = []
@@ -79,13 +135,13 @@ public class GHunk: CustomStringConvertible {
     }
 }
 
-public class GFile: CustomStringConvertible {
+private class GFile: CustomStringConvertible {
     var header: [String] = []
     var hunks: [String: GHunk] = [:]
     
-    subscript(key: String) -> GHunk {
+    subscript(key: String) -> GHunk? {
         get {
-            hunks[key]!
+            hunks[key]
         }
     }
     
@@ -98,7 +154,7 @@ public class GFile: CustomStringConvertible {
     }
 }
 
-public class GDiff: CustomStringConvertible {
+private class GDiff: CustomStringConvertible {
     var files: [String: GFile] = [:]
     
     subscript(key: String) -> GFile {
