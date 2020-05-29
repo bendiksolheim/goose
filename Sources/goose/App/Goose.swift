@@ -7,9 +7,7 @@ indirect enum Message {
     case gotStatus(AsyncData<StatusInfo>)
     case gotLog(AsyncData<LogInfo>)
     case keyboard(KeyEvent)
-    case stage(Type)
-    case stagePatch(String)
-    case unstage(Type)
+    case gitCommand(GitCmd)
     case updateVisibility([String : Bool])
     case commandSuccess
     case info(InfoMessage)
@@ -18,9 +16,17 @@ indirect enum Message {
     case container(ScrollMessage)
 }
 
+enum GitCmd {
+    case Stage(Type)
+    case StagePatch(String)
+    case Unstage(Type)
+    case Remove(String)
+    case Checkout(String)
+}
+
 enum QueryResult {
     case Abort
-    case Perform(Cmd<Message>)
+    case Perform(Message)
 }
 
 enum Type {
@@ -61,14 +67,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case .keyboard(let event):
         return model.keyMap[event, model]
         
-    case .stage(let changes):
-        return stage(model, changes)
-        
-    case .stagePatch(let patch):
-        return (model, task({ apply(patch: patch) }))
-        
-    case .unstage(let changes):
-        return unstage(model, changes)
+    case .gitCommand(let command):
+        return performCommand(model, command)
         
     case .updateVisibility(let visibility):
         return (model.copy(withStatus: model.status.copy(withVisibility: visibility)), .none)
@@ -93,12 +93,31 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         switch queryResult {
         case .Abort:
             return (model.copy(withInfo: .None, withKeyMap: normalMap), .none)
-        case .Perform(let cmd):
-            return (model.copy(withInfo: .None, withKeyMap: normalMap), cmd)
+        case .Perform(let msg):
+            return (model.copy(withInfo: .None, withKeyMap: normalMap), .cmd(msg))
         }
 
     case .container(let containerMsg):
         return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), .none)
+    }
+}
+
+func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message>) {
+    switch gitCommand {
+    case .Stage(let type):
+        return stage(model, type)
+        
+    case .Unstage(let type):
+        return unstage(model, type)
+        
+    case .StagePatch(let patch):
+        return (model, task({ apply(patch: patch) }))
+        
+    case .Checkout(let file):
+        return (model, task({ checkout(file: file) }))
+        
+    case .Remove(let file):
+        return (model, task({ remove(file: file) }))
     }
 }
 
@@ -153,9 +172,9 @@ let normalMap = KeyMap([
     .c : { ($0, process(commit)) },
 ])
 
-func queryMap(_ cmd: Cmd<Message>) -> KeyMap {
+func queryMap(_ msg: Message) -> KeyMap {
     return KeyMap([
-        .y : { ($0, .cmd(.queryResult(.Perform(cmd)))) },
+        .y : { ($0, .cmd(.queryResult(.Perform(msg)))) },
         .n : { ($0, .cmd(.queryResult(.Abort))) },
         .q : { ($0, .cmd(.queryResult(.Abort))) },
         .esc : { ($0, .cmd(.queryResult(.Abort))) }

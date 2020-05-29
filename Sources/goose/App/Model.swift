@@ -19,7 +19,7 @@ struct CursorModel: Equatable {
 enum InfoMessage: Equatable {
     case None
     case Info(String)
-    case Query(String, Cmd<Message>)
+    case Query(String, Message)
     
     
     static func == (lhs: InfoMessage, rhs: InfoMessage) -> Bool {
