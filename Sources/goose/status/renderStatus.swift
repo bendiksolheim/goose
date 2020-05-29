@@ -90,6 +90,7 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
         let events: [ViewEvent<Message>] = [
             (.s, { .stage(.unstaged([unstaged])) }),
             (.u, { .unstage(.unstaged([unstaged])) }),
+            (.x, { .info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", task({ checkout(file: unstaged.file) }) )) }),
             (.tab, { .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }) })
         ]
         
@@ -152,4 +153,10 @@ func stagedMapper(_ staged: Staged) -> TextView<Message> {
     case .Copied:
         return TextView("copied    \(staged.file)", events: events)
     }
+}
+
+func checkout(file: String) -> Message {
+    let task = execute(process: ProcessDescription.git(Checkout.head(file: file)))
+    let result = task.unsafeRunSyncEither()
+    return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
