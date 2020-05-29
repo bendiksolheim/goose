@@ -78,7 +78,8 @@ func commitMapper(_ commit: GitCommit) -> TextView<Message> {
 func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
     let events: [ViewEvent<Message>] = [
         (.s, { .stage(.untracked([untracked])) }),
-        (.u, { .unstage(.untracked([untracked])) })
+        (.u, { .unstage(.untracked([untracked])) }),
+        (.x, { .info(.Query("Trash \(untracked.file)? (y or n)", task({ remove(file: untracked.file) }))) })
     ]
     
     return TextView(untracked.file, events: events)
