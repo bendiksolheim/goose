@@ -160,3 +160,18 @@ func checkout(file: String) -> Message {
     let result = task.unsafeRunSyncEither()
     return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
+
+func remove(file: String) -> Message {
+    let fileManager = FileManager.default
+    
+    if fileManager.fileExists(atPath: file) {
+        do {
+            try fileManager.removeItem(atPath: file)
+            return .info(.None)
+        } catch {
+            return .info(.Info("File not found: \(file)"))
+        }
+    } else {
+        return .info(.Info("File not found: \(file)"))
+    }
+}
