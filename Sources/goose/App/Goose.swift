@@ -156,7 +156,9 @@ let normalMap = KeyMap([
 func queryMap(_ cmd: Cmd<Message>) -> KeyMap {
     return KeyMap([
         .y : { ($0, .cmd(.queryResult(.Perform(cmd)))) },
-        .n : { ($0, .cmd(.queryResult(.Abort))) }
+        .n : { ($0, .cmd(.queryResult(.Abort))) },
+        .q : { ($0, .cmd(.queryResult(.Abort))) },
+        .esc : { ($0, .cmd(.queryResult(.Abort))) }
     ])
 }
 
