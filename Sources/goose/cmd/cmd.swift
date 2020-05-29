@@ -1,10 +1,3 @@
-//
-//  git.swift
-//  Ashen
-//
-//  Created by Bendik Solheim on 28/03/2020.
-//
-
 import Foundation
 import os.log
 import BowEffects
