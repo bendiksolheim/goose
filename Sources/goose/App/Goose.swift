@@ -14,7 +14,13 @@ indirect enum Message {
     case commandSuccess
     case info(InfoMessage)
     case clearInfo
+    case queryResult(QueryResult)
     case container(ScrollMessage)
+}
+
+enum QueryResult {
+    case Abort
+    case Perform(Cmd<Message>)
 }
 
 enum Type {
@@ -25,7 +31,7 @@ enum Type {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status], status: statusModel, log: .loading, info: .None, container: ScrollView<Message>.initialState()), task(getStatus))
+    return (Model(views: [.status], status: statusModel, log: .loading, info: .None, container: ScrollView<Message>.initialState(), keyMap: normalMap), task(getStatus))
 }
 
 
@@ -53,7 +59,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.copy(withLog: log), .none)
         
     case .keyboard(let event):
-        return parseKey(event, model: model)
+        return model.keyMap[event, model]
         
     case .stage(let changes):
         return stage(model, changes)
@@ -70,11 +76,26 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case .commandSuccess:
         return (model, task(getStatus))
         
-    case .info(let error):
-        return (model.copy(withInfo: error), .delayedTask(5.0, { .clearInfo }))
+    case .info(let info):
+        switch info {
+        case .Info(_):
+            return (model.copy(withInfo: info), .delayedTask(5.0, { .clearInfo }))
+        case .Query(_, let cmd):
+            return (model.copy(withInfo: info, withKeyMap: queryMap(cmd)), .none)
+        default:
+            return (model.copy(withInfo: info), .none)
+        }
         
     case .clearInfo:
         return (model.copy(withInfo: .None), .none)
+        
+    case .queryResult(let queryResult):
+        switch queryResult {
+        case .Abort:
+            return (model.copy(withInfo: .None, withKeyMap: normalMap), .none)
+        case .Perform(let cmd):
+            return (model.copy(withInfo: .None, withKeyMap: normalMap), cmd)
+        }
 
     case .container(let containerMsg):
         return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), .none)
@@ -123,6 +144,20 @@ func parseKey(_ event: KeyEvent, model: Model) -> (Model, Cmd<Message>) {
     default:
         return (model, .none)
     }
+}
+
+let normalMap = KeyMap([
+    .q : { $0.views.count > 1 ? ($0.popView(), .none) : ($0, .exit) },
+    .l : { ($0.pushView(view: .log), task(getLog)) },
+    .g : { ($0, task(getStatus)) },
+    .c : { ($0, process(commit)) },
+])
+
+func queryMap(_ cmd: Cmd<Message>) -> KeyMap {
+    return KeyMap([
+        .y : { ($0, .cmd(.queryResult(.Perform(cmd)))) },
+        .n : { ($0, .cmd(.queryResult(.Abort))) }
+    ])
 }
 
 let subscriptions: [Sub<Message>] = [

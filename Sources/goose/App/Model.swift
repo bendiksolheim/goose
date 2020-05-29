@@ -42,17 +42,20 @@ struct Model: Equatable {
     let log: AsyncData<LogInfo>
     let info: InfoMessage
     let container: ScrollState
+    let keyMap: KeyMap
     
     func copy(withViews views: [Views]? = nil,
               withStatus status: StatusModel? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
               withInfo info: InfoMessage? = nil,
-              withContainer container: ScrollState? = nil) -> Model {
+              withContainer container: ScrollState? = nil,
+              withKeyMap keyMap: KeyMap? = nil) -> Model {
         Model(views: views ?? self.views,
               status: status ?? self.status,
               log: log ?? self.log,
               info: info ?? self.info,
-              container: container ?? self.container
+              container: container ?? self.container,
+              keyMap: keyMap ?? self.keyMap
         )
     }
     
@@ -62,5 +65,23 @@ struct Model: Equatable {
     
     func popView() -> Model {
         copy(withViews: self.views.dropLast())
+    }
+}
+
+struct KeyMap: Equatable {
+    let map: [KeyEvent : (Model) -> (Model, Cmd<Message>)]
+    
+    init(_ map: [KeyEvent : (Model) -> (Model, Cmd<Message>)]) {
+        self.map = map
+    }
+    
+    subscript(key: KeyEvent, model: Model) -> (Model, Cmd<Message>) {
+        get {
+            map[key, default: { ($0, .none) }](model)
+        }
+    }
+    
+    static func == (lhs: KeyMap, rhs: KeyMap) -> Bool {
+        lhs.map.keys == rhs.map.keys
     }
 }
