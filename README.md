@@ -16,23 +16,24 @@ What could possibly go wrong.
 ## Status
 
 Working
-- Staging
-- Unstaging
-- Diffing file
+- Staging / unstaging files and hunks
+- Diffing files
 - Commiting
 - Listing log
 - UI: Information line
 - UI: scrolling
 
 Next up
-- Stage / unstage hunks and lines
 - Window resizing
 - Async tasks so we don’t block rendering
 - Discard change
-- Transient command system
+- Transient command system (aka the Magit menu system)
 - Amend commit
 - Search in active buffer to quickly move around
+- Open file under cursor
+- See commit content
 - Optimization
+- Stage / unstage lines
 - ... soooo much more
 
 ## Instructions
