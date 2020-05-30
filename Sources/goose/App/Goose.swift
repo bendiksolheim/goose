@@ -65,7 +65,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.copy(withLog: log), .none)
         
     case .keyboard(let event):
-        return model.keyMap[event, model]
+        return model.keyMap[event, model](model)
         
     case .gitCommand(let command):
         return performCommand(model, command)
