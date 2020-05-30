@@ -17,9 +17,10 @@ indirect enum Message {
 }
 
 enum GitCmd {
-    case Stage(Type)
-    case StagePatch(String)
-    case Unstage(Type)
+    case Stage(Selection)
+    //case StagePatch(String)
+    case Unstage(Selection)
+    case Discard(Selection)
     case Remove(String)
     case Checkout(String)
 }
@@ -29,10 +30,16 @@ enum QueryResult {
     case Perform(Message)
 }
 
-enum Type {
-    case untracked([Untracked])
-    case unstaged([Unstaged])
-    case staged([Staged])
+enum Selection {
+    case Section([String], Status)
+    case File(String, Status)
+    case Hunk(String, Status)
+}
+
+enum Status {
+    case Untracked
+    case Unstaged
+    case Staged
 }
 
 func initialize() -> (Model, Cmd<Message>) {
@@ -104,14 +111,52 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 
 func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message>) {
     switch gitCommand {
-    case .Stage(let type):
-        return stage(model, type)
+    case .Stage(let selection):
+        switch selection {
+        case .Section(let files, let status):
+            return (model, stage(files, status))
+        case .File(let file, let status):
+            return (model, stage([file], status))
+        case .Hunk(let hunk, let status):
+            switch status {
+            case .Untracked, .Unstaged:
+                return (model, task({ apply(patch: hunk) }))
+            case .Staged:
+                return (model, .cmd(.info(.Info("Already staged"))))
+            }
+        }
         
-    case .Unstage(let type):
-        return unstage(model, type)
+    case .Unstage(let selection):
+        switch selection {
+        case .Section(let files, let status):
+            return (model, unstage(files, status))
+        case .File(let file, let status):
+            return (model, unstage([file], status))
+        case .Hunk(let patch, let status):
+            switch status {
+            case .Untracked, .Unstaged:
+                return (model, .cmd(.info(.Info("Already unstaged"))))
+            case .Staged:
+                return (model, .none) //TODO: implement unstaging of hunks
+            }
+        }
         
-    case .StagePatch(let patch):
-        return (model, task({ apply(patch: patch) }))
+    case .Discard(let selection):
+        switch selection {
+        case .Section(let files, let status):
+            return (model, .none) //TODO: implement discarding of sections
+        case .File(let file, let status):
+            switch status {
+            case .Untracked:
+                return (model, task({ remove(file: file) }))
+            case .Unstaged:
+                return (model, .none) //TODO: implement discarding of unstaged file
+            case .Staged:
+                return (model, .none) //TODO: implement discarding of staged file
+            }
+        case .Hunk(let patch, let status):
+            return (model, .none) //TODO: implement discarding of hunks
+        }
         
     case .Checkout(let file):
         return (model, task({ checkout(file: file) }))
@@ -121,25 +166,25 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
     }
 }
 
-func stage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
+func stage(_ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
-    case .untracked(let untracked):
-        return (model, task({ addFile(files: untracked.map { $0.file }) }))
-    case .unstaged(let unstaged):
-        return (model, task({ addFile(files: unstaged.map { $0.file }) }))
-    case .staged(_):
-        return (model, .cmd(.info(.Info("Already staged"))))
+    case .Untracked:
+        return task({ addFile(files: files) })
+    case .Unstaged:
+        return task({ addFile(files: files) })
+    case .Staged:
+        return .cmd(.info(.Info("Already staged")))
     }
 }
 
-func unstage(_ model: Model, _ type: Type) -> (Model, Cmd<Message>) {
+func unstage(_ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
-    case .untracked(_):
-        return (model, .cmd(.info(.Info("Already unstaged"))))
-    case .unstaged(_):
-        return (model, .cmd(.info(.Info("Already unstaged"))))
-    case .staged(let staged):
-        return (model, task({ resetFile(files: staged.map { $0.file }) }))
+    case .Untracked:
+        return .cmd(.info(.Info("Already unstaged")))
+    case .Unstaged:
+        return .cmd(.info(.Info("Already unstaged")))
+    case .Staged:
+        return task({ resetFile(files: files) })
     }
 }
 

@@ -18,7 +18,7 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         if status.untracked.count > 0 {
             let open = model.visibility["untracked", default: true]
             let events: [ViewEvent<Message>] = [
-                (.s, .gitCommand(.Stage(.untracked(status.untracked)))),
+                (.s, .gitCommand(.Stage(.Section(status.untracked.map { $0.file }, .Untracked)))),
                 (.tab, .updateVisibility(visibility.merging(["untracked": !open]) { $1 }))
             ]
             let title = TextView<Message>(Text("Untracked files (\(status.untracked.count))", .blue), events: events)
@@ -30,7 +30,7 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         if status.unstaged.count > 0 {
             let open = model.visibility["unstaged", default: true]
             let events: [ViewEvent<Message>] = [
-                (.s, .gitCommand(.Stage(.unstaged(status.unstaged)))),
+                (.s, .gitCommand(.Stage(.Section(status.unstaged.map { $0.file }, .Unstaged)))),
                 (.tab, .updateVisibility(visibility.merging(["unstaged": !open]) { $1 }))
             ]
             let title = TextView<Message>(Text("Unstaged changes (\(status.unstaged.count))", .blue), events: events)
@@ -43,7 +43,7 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         if status.staged.count > 0 {
             let open = model.visibility["staged", default: true]
             let events: [ViewEvent<Message>] = [
-                (.u, .gitCommand(.Unstage(.staged(status.staged)))),
+                (.u, .gitCommand(.Unstage(.Section(status.staged.map { $0.file }, .Staged)))),
                 (.tab, .updateVisibility(visibility.merging(["staged": !open]) { $1 }))
             ]
             let title = TextView<Message>(Text("Staged changes (\(status.staged.count))", .blue), events: events)
@@ -77,8 +77,8 @@ func commitMapper(_ commit: GitCommit) -> TextView<Message> {
 
 func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
     let events: [ViewEvent<Message>] = [
-        (.s, .gitCommand(.Stage(.untracked([untracked])))),
-        (.u, .gitCommand(.Unstage(.untracked([untracked])))),
+        (.s, .gitCommand(.Stage(.File(untracked.file, .Untracked)))),
+        (.u, .gitCommand(.Unstage(.File(untracked.file, .Untracked)))),
         (.x, .info(.Query("Trash \(untracked.file)? (y or n)", .gitCommand(.Remove(untracked.file)))))
     ]
     
@@ -89,8 +89,8 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
     return { unstaged in
         let open = visibility["unstaged-\(unstaged.file)", default: false]
         let events: [ViewEvent<Message>] = [
-            (.s, .gitCommand(.Stage(.unstaged([unstaged])))),
-            (.u, .gitCommand(.Unstage(.unstaged([unstaged])))),
+            (.s, .gitCommand(.Stage(.File(unstaged.file, .Unstaged)))),
+            (.u, .gitCommand(.Unstage(.File(unstaged.file, .Unstaged)))),
             (.x, .info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", .gitCommand(.Checkout(unstaged.file))))),
             (.tab, .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }))
         ]
@@ -132,13 +132,13 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String) -> TextView<Message> {
         break;
     }
     
-    return TextView(Text(line.content, foreground, background), events: [(.s, .gitCommand(.StagePatch(patch)))])
+    return TextView(Text(line.content, foreground, background), events: [(.s, .gitCommand(.Stage(.Hunk(patch, .Unstaged))))])
 }
 
 func stagedMapper(_ staged: Staged) -> TextView<Message> {
     let events: [ViewEvent<Message>] = [
-        (.s, .gitCommand(.Stage(.staged([staged])))),
-        (.u, .gitCommand(.Unstage(.staged([staged]))))
+        (.s, .gitCommand(.Stage(.File(staged.file, .Staged)))),
+        (.u, .gitCommand(.Unstage(.File(staged.file, .Staged))))
     ]
     switch staged.status {
     case .Added:
