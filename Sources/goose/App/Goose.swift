@@ -155,6 +155,14 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
                 return (model, .none) //TODO: implement discarding of staged file
             }
         case .Hunk(let patch, let status):
+            switch status {
+            case .Untracked:
+                return (model, .none) // Impossible state, untracked files does not have hunks
+            case .Unstaged:
+                return (model, task({ apply(patch: patch, reverse: true) }))
+            case .Staged:
+                return (model, .none) //TODO: return (model, task({ apply(patch: patch, )}))
+            }
             return (model, .none) //TODO: implement discarding of hunks
         }
         

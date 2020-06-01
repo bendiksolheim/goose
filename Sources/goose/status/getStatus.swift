@@ -60,8 +60,8 @@ func resetFile(files: [String]) -> Message {
     return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess})
 }
 
-func apply(patch: String) -> Message {
-    let task = execute(process: ProcessDescription.git(Git.apply()), input: patch)
+func apply(patch: String, reverse: Bool = false) -> Message {
+    let task = execute(process: ProcessDescription.git(Git.apply(reverse: reverse)), input: patch)
     let result = task.unsafeRunSyncEither()
     return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
