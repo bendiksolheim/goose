@@ -3,9 +3,15 @@ import Foundation
 import os.log
 
 public struct Diff {
-    public static func command() -> GitCommand {
+    public static func files() -> GitCommand {
         GitCommand(
             arguments: ["diff-files", "--patch", "--no-color"]
+        )
+    }
+    
+    public static func index() -> GitCommand {
+        GitCommand(
+            arguments: ["diff-index", "--cached", "--patch", "--no-color", "HEAD"]
         )
     }
     
