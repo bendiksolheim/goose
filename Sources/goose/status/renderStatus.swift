@@ -24,7 +24,6 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
             let title = TextView<Message>(Text("Untracked files (\(status.untracked.count))", .blue), events: events)
             views.append(CollapseView(content: [title] + status.untracked.map(untrackedMapper), open: open))
             views.append(EmptyLine())
-            //sections.append(contentsOf: Section(title: title, items: status.untracked.map(untrackedMapper), open: open))
         }
 
         if status.unstaged.count > 0 {
@@ -37,7 +36,6 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
             let mapper = unstagedMapper(visibility)
             views.append(CollapseView(content: [title] + status.unstaged.flatMap(mapper), open: open))
             views.append(EmptyLine())
-            //sections.append(contentsOf: Section(title: title, items: status.unstaged.flatMap(mapper), open: open))
         }
 
         if status.staged.count > 0 {
@@ -47,9 +45,9 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
                 (.tab, .updateVisibility(visibility.merging(["staged": !open]) { $1 }))
             ]
             let title = TextView<Message>(Text("Staged changes (\(status.staged.count))", .blue), events: events)
-            views.append(CollapseView(content: [title] + status.staged.map(stagedMapper), open: open))
+            let mapper = stagedMapper(visibility)
+            views.append(CollapseView(content: [title] + status.staged.flatMap(mapper), open: open))
             views.append(EmptyLine())
-            //sections.append(contentsOf: Section(title: title, items: status.staged.map(stagedMapper), open: open))
         }
 
         let open = model.visibility["recent", default: true]
@@ -135,24 +133,30 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String) -> TextView<Message> {
     return TextView(Text(line.content, foreground, background), events: [(.s, .gitCommand(.Stage(.Hunk(patch, .Unstaged))))])
 }
 
-func stagedMapper(_ staged: Staged) -> TextView<Message> {
-    let events: [ViewEvent<Message>] = [
-        (.s, .gitCommand(.Stage(.File(staged.file, .Staged)))),
-        (.u, .gitCommand(.Unstage(.File(staged.file, .Staged))))
-    ]
-    switch staged.status {
-    case .Added:
-        return TextView("new file  \(staged.file)", events: events)
-    case .Untracked:
-        return TextView(staged.file, events: events)
-    case .Modified:
-        return TextView("modified  \(staged.file)", events: events)
-    case .Deleted:
-        return TextView("deleted   \(staged.file)", events: events)
-    case .Renamed(let target):
-        return TextView("renamed   \(staged.file) -> \(target)", events: events)
-    case .Copied:
-        return TextView("copied    \(staged.file)", events: events)
+func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Message>] {
+    return { staged in
+        os_log("%{public}@", "\(staged.file)")
+    let open = visibility["staged-\(staged.file)", default: false]
+        let events: [ViewEvent<Message>] = [
+            (.s, .gitCommand(.Stage(.File(staged.file, .Staged)))),
+            (.u, .gitCommand(.Unstage(.File(staged.file, .Staged)))),
+            (.tab, .updateVisibility(visibility.merging(["staged-\(staged.file)": !open]) { $1 }))
+        ]
+        let hunks = open ? staged.diff.flatMap(mapHunks) : []
+        switch staged.status {
+        case .Added:
+            return [TextView("new file  \(staged.file)", events: events)] + hunks
+        case .Untracked:
+            return [TextView(staged.file, events: events)] + hunks
+        case .Modified:
+            return [TextView("modified  \(staged.file)", events: events)] + hunks
+        case .Deleted:
+            return [TextView("deleted   \(staged.file)", events: events)] + hunks
+        case .Renamed(let target):
+            return [TextView("renamed   \(staged.file) -> \(target)", events: events)] + hunks
+        case .Copied:
+            return [TextView("copied    \(staged.file)", events: events)] + hunks
+        }
     }
 }
 

@@ -26,7 +26,8 @@ public enum AsyncData<T: Equatable>: Equatable {
 func getStatus() -> Message {
     let tasks = IO.parZip (execute(process: ProcessDescription.git(Git.status())).flatMap(mapStatus),
                            execute(process: ProcessDescription.git(Git.log(num: 10))),
-                           execute(process: ProcessDescription.git(Diff.files()))
+                           execute(process: ProcessDescription.git(Diff.files())),
+                           execute(process: ProcessDescription.git(Diff.index()))
         )^
     let result = tasks.unsafeRunSyncEither()
     let status = result.fold(error, statusSuccess)
@@ -37,13 +38,16 @@ func error<T>(error: Error) -> AsyncData<T> {
     return .error(error)
 }
 
-func statusSuccess(status: GitStatus, log: ProcessResult, diff: ProcessResult) -> AsyncData<StatusInfo> {
-    let files = Diff.parse(diff.output).files
-    let fileMap = files.reduce(into: [:]) { $0[$1.source] = $1.hunks }
+func statusSuccess(status: GitStatus, log: ProcessResult, worktree: ProcessResult, index: ProcessResult) -> AsyncData<StatusInfo> {
+    let worktreeFiles = Diff.parse(worktree.output).files
+    let worktreeFilesMap = worktreeFiles.reduce(into: [:]) { $0[$1.source] = $1.hunks }
+    let indexFiles = Diff.parse(index.output).files
+    let indexFilesMap = indexFiles.reduce(into: [:]) { $0[$1.source] = $1.hunks }
+    os_log("%{public}@", "\(indexFilesMap)")
     return .success(StatusInfo(
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
-        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, fileMap[$0.file] ?? []) },
-        staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status) },
+        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, worktreeFilesMap[$0.file] ?? []) },
+        staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, indexFilesMap[$0.file] ?? []) },
         log: parseCommits(log.output)
     ))
 }

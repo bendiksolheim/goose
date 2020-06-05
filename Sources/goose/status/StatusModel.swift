@@ -36,10 +36,12 @@ public struct Unstaged: Equatable {
 public struct Staged: Equatable {
     let file: String
     let status: FileStatus
+    let diff: [GitHunk]
     
-    init(_ file: String, _ status: FileStatus) {
+    init(_ file: String, _ status: FileStatus, _ diff: [GitHunk]) {
         self.file = file
         self.status = status
+        self.diff = diff
     }
 }
 
