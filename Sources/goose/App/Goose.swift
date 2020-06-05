@@ -44,7 +44,13 @@ enum Status {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status], status: statusModel, log: .loading, info: .None, container: ScrollView<Message>.initialState(), keyMap: normalMap), task(getStatus))
+    return (Model(views: [.status],
+                  status: statusModel,
+                  log: .loading,
+                  info: .None,
+                  container: ScrollView<Message>.initialState(),
+                  keyMap: normalMap),
+            Task { getStatus() }.perform())
 }
 
 
@@ -66,10 +72,10 @@ func render(model: Model) -> Window<Message> {
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
     case .gotStatus(let newStatus):
-        return (model.copy(withStatus: StatusModel(info: newStatus, visibility: model.status.visibility)), .none)
+        return (model.copy(withStatus: StatusModel(info: newStatus, visibility: model.status.visibility)), Cmd.none())
         
     case .gotLog(let log):
-        return (model.copy(withLog: log), .none)
+        return (model.copy(withLog: log), Cmd.none())
         
     case .keyboard(let event):
         return model.keyMap[event, model](model)
@@ -78,34 +84,34 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return performCommand(model, command)
         
     case .updateVisibility(let visibility):
-        return (model.copy(withStatus: model.status.copy(withVisibility: visibility)), .none)
+        return (model.copy(withStatus: model.status.copy(withVisibility: visibility)), Cmd.none())
         
     case .commandSuccess:
-        return (model, task(getStatus))
+        return (model, Task { getStatus() }.perform())
         
     case .info(let info):
         switch info {
         case .Info(_):
-            return (model.copy(withInfo: info), .delayedTask(5.0, { .clearInfo }))
+            return (model.copy(withInfo: info), TProcess.sleep(5.0).perform { Message.clearInfo })
         case .Query(_, let cmd):
-            return (model.copy(withInfo: info, withKeyMap: queryMap(cmd)), .none)
+            return (model.copy(withInfo: info, withKeyMap: queryMap(cmd)), Cmd.none())
         default:
-            return (model.copy(withInfo: info), .none)
+            return (model.copy(withInfo: info), Cmd.none())
         }
         
     case .clearInfo:
-        return (model.copy(withInfo: .None), .none)
+        return (model.copy(withInfo: .None), Cmd.none())
         
     case .queryResult(let queryResult):
         switch queryResult {
         case .Abort:
-            return (model.copy(withInfo: .None, withKeyMap: normalMap), .none)
+            return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.none())
         case .Perform(let msg):
-            return (model.copy(withInfo: .None, withKeyMap: normalMap), .cmd(msg))
+            return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.message(msg))
         }
 
     case .container(let containerMsg):
-        return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), .none)
+        return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), Cmd.none())
     }
 }
 
@@ -120,9 +126,9 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         case .Hunk(let hunk, let status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, task({ apply(patch: hunk) }))
+                return (model, Task { apply(patch: hunk) }.perform())
             case .Staged:
-                return (model, .cmd(.info(.Info("Already staged"))))
+                return (model, Cmd.message(.info(.Info("Already staged"))))
             }
         }
         
@@ -135,64 +141,63 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         case .Hunk(let patch, let status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, .cmd(.info(.Info("Already unstaged"))))
+                return (model, Cmd.message(.info(.Info("Already unstaged"))))
             case .Staged:
-                return (model, .none) //TODO: implement unstaging of hunks
+                return (model, Cmd.none()) //TODO: implement unstaging of hunks
             }
         }
         
     case .Discard(let selection):
         switch selection {
         case .Section(let files, let status):
-            return (model, .none) //TODO: implement discarding of sections
+            return (model, Cmd.none()) //TODO: implement discarding of sections
         case .File(let file, let status):
             switch status {
             case .Untracked:
-                return (model, task({ remove(file: file) }))
+                return (model, Task { remove(file: file) }.perform())
             case .Unstaged:
-                return (model, .none) //TODO: implement discarding of unstaged file
+                return (model, Cmd.none()) //TODO: implement discarding of unstaged file
             case .Staged:
-                return (model, .none) //TODO: implement discarding of staged file
+                return (model, Cmd.none()) //TODO: implement discarding of staged file
             }
         case .Hunk(let patch, let status):
             switch status {
             case .Untracked:
-                return (model, .none) // Impossible state, untracked files does not have hunks
+                return (model, Cmd.none()) // Impossible state, untracked files does not have hunks
             case .Unstaged:
-                return (model, task({ apply(patch: patch, reverse: true) }))
+                return (model, Task { apply(patch: patch, reverse: true) }.perform())
             case .Staged:
-                return (model, .none) //TODO: return (model, task({ apply(patch: patch, )}))
+                return (model, Cmd.none()) //TODO: return (model, task({ apply(patch: patch, )}))
             }
-            return (model, .none) //TODO: implement discarding of hunks
         }
         
     case .Checkout(let file):
-        return (model, task({ checkout(file: file) }))
+        return (model, Task { checkout(file: file) }.perform())
         
     case .Remove(let file):
-        return (model, task({ remove(file: file) }))
+        return (model, Task { remove(file: file) }.perform())
     }
 }
 
 func stage(_ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
-        return task({ addFile(files: files) })
+        return Task { addFile(files: files) }.perform()
     case .Unstaged:
-        return task({ addFile(files: files) })
+        return Task { addFile(files: files) }.perform()
     case .Staged:
-        return .cmd(.info(.Info("Already staged")))
+        return Cmd.message(.info(.Info("Already staged")))
     }
 }
 
 func unstage(_ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
-        return .cmd(.info(.Info("Already unstaged")))
+        return Cmd.message(.info(.Info("Already unstaged")))
     case .Unstaged:
-        return .cmd(.info(.Info("Already unstaged")))
+        return Cmd.message(.info(.Info("Already unstaged")))
     case .Staged:
-        return task({ resetFile(files: files) })
+        return Task { resetFile(files: files) }.perform()
     }
 }
 
@@ -200,37 +205,37 @@ func parseKey(_ event: KeyEvent, model: Model) -> (Model, Cmd<Message>) {
     switch event {
     case .q:
         if model.views.count > 1 {
-            return (model.popView(), .none)
+            return (model.popView(), Cmd.none())
         } else {
-            return (model, .exit)
+            return (model, TProcess.quit())
         }
     case .l:
-        return (model.pushView(view: .log), task(getLog))
+        return (model.pushView(view: .log), Task { getLog() }.perform())
         
     case .g:
-        return (model, task(getStatus))
+        return (model, Task { getStatus() }.perform())
         
     case .c:
-        return (model, process(commit))
+        return (model, TProcess.spawn { commit() }.perform { $0 })
         
     default:
-        return (model, .none)
+        return (model, Cmd.none())
     }
 }
 
 let normalMap = KeyMap([
-    .q : { $0.views.count > 1 ? ($0.popView(), .none) : ($0, .exit) },
-    .l : { ($0.pushView(view: .log), task(getLog)) },
-    .g : { ($0, task(getStatus)) },
-    .c : { ($0, process(commit)) },
+    .q : { $0.views.count > 1 ? ($0.popView(), Cmd.none()) : ($0, TProcess.quit()) },
+    .l : { ($0.pushView(view: .log), Task { getLog() }.perform()) },
+    .g : { ($0, Task { getStatus() }.perform()) },
+    .c : { ($0, TProcess.spawn { commit() }.perform()) },
 ])
 
 func queryMap(_ msg: Message) -> KeyMap {
     return KeyMap([
-        .y : { ($0, .cmd(.queryResult(.Perform(msg)))) },
-        .n : { ($0, .cmd(.queryResult(.Abort))) },
-        .q : { ($0, .cmd(.queryResult(.Abort))) },
-        .esc : { ($0, .cmd(.queryResult(.Abort))) }
+        .y : { ($0, Cmd.message(.queryResult(.Perform(msg)))) },
+        .n : { ($0, Cmd.message(.queryResult(.Abort))) },
+        .q : { ($0, Cmd.message(.queryResult(.Abort))) },
+        .esc : { ($0, Cmd.message(.queryResult(.Abort))) }
     ])
 }
 

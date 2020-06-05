@@ -77,7 +77,7 @@ struct KeyMap: Equatable {
     
     subscript(key: KeyEvent, model: Model) -> (Model) -> (Model, Cmd<Message>) {
         get {
-            map[key, default: { ($0, .none) }]
+            map[key, default: { ($0, Cmd.none()) }]
         }
     }
     
