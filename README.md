@@ -25,6 +25,7 @@ Working
 
 Next up
 - Window resizing
+- Git input/output log for debugging
 - Async tasks so we don’t block rendering
 - Discard change
 - Transient command system (aka the Magit menu system)
