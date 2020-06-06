@@ -177,7 +177,7 @@ func remove(file: String) -> Message {
     if fileManager.fileExists(atPath: file) {
         do {
             try fileManager.removeItem(atPath: file)
-            return .info(.None)
+            return .commandSuccess
         } catch {
             return .info(.Info("File not found: \(file)"))
         }
