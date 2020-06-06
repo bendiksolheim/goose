@@ -92,29 +92,32 @@ private func internalParse(_ input: String) -> GDiff {
             let matches = line.match(regex: "diff --git a\\/(?<a>[\\w.\\/]+)\\sb\\/(?<b>[\\w.\\/]+)")
             currentFile = matches["a", default: ""]
             diff.add(file: currentFile)
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "deleted file mode") {
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "new file mode") {
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "rename to") {
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "index ") {
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "--- a/") {
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "+++ b/") {
-            diff[currentFile].header.append(line)
+            diff[currentFile]?.header.append(line)
         } else if line.starts(with: "@@ ") {
             currentHunk = line
-            diff[currentFile].add(hunk: currentHunk)
-        } else if line.starts(with: " ") {
+            diff[currentFile]?.add(hunk: currentHunk)
+        } else {
+            diff[currentFile]?[currentHunk]?.append(line: line)
+        }
+        /*} else if line.starts(with: " ") {
             diff[currentFile][currentHunk]?.append(line: line)
         } else if line.starts(with: "+") {
             diff[currentFile][currentHunk]?.append(line: line)
         } else if line.starts(with: "-") {
             diff[currentFile][currentHunk]?.append(line: line)
-        }
+        }*/
     }
     return diff
 }
@@ -163,9 +166,9 @@ private class GFile: CustomStringConvertible {
 private class GDiff: CustomStringConvertible {
     var files: [String: GFile] = [:]
     
-    subscript(key: String) -> GFile {
+    subscript(key: String) -> GFile? {
         get {
-            files[key]!
+            files[key]
         }
     }
     
