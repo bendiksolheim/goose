@@ -70,7 +70,6 @@ public struct GitChange: Equatable {
         self.area = area
         self.status = status
         self.file = file
-        
     }
 }
 
@@ -95,10 +94,13 @@ public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [GitChan
     switch type {
     case "1":
         return .right(parseOrdinaryChange(input))
+        
     case "2":
         return .right(parseRenamedChange(input))
+        
     case "?":
         return .right(parseUntrackedChange(input))
+        
     default:
         return .left(StringError("Unknown change type: \(input)"))
     }

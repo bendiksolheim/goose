@@ -8,58 +8,76 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
     switch model.info {
     case .loading:
         return [TextView("Loading...")]
+        
     case .error(let error):
         return [TextView(error.localizedDescription)]
+        
     case .success(let status):
-        let visibility = model.visibility
         var views: [View<Message>] = [headMapper(status.log[0]), EmptyLine()]
-        //var sections: [TextView] = Section(title: headMapper(status.log[0]), items: [], open: true)
         
         if status.untracked.count > 0 {
-            let open = model.visibility["untracked", default: true]
-            let events: [ViewEvent<Message>] = [
-                (.s, .gitCommand(.Stage(.Section(status.untracked.map { $0.file }, .Untracked)))),
-                (.tab, .updateVisibility(visibility.merging(["untracked": !open]) { $1 }))
-            ]
-            let title = TextView<Message>(Text("Untracked files (\(status.untracked.count))", .blue), events: events)
-            views.append(CollapseView(content: [title] + status.untracked.map(untrackedMapper), open: open))
+            views.append(renderUntracked(model, status.untracked))
             views.append(EmptyLine())
         }
 
         if status.unstaged.count > 0 {
-            let open = model.visibility["unstaged", default: true]
-            let events: [ViewEvent<Message>] = [
-                (.s, .gitCommand(.Stage(.Section(status.unstaged.map { $0.file }, .Unstaged)))),
-                (.tab, .updateVisibility(visibility.merging(["unstaged": !open]) { $1 }))
-            ]
-            let title = TextView<Message>(Text("Unstaged changes (\(status.unstaged.count))", .blue), events: events)
-            let mapper = unstagedMapper(visibility)
-            views.append(CollapseView(content: [title] + status.unstaged.flatMap(mapper), open: open))
+            views.append(renderUnstaged(model, status.unstaged))
             views.append(EmptyLine())
         }
 
         if status.staged.count > 0 {
-            let open = model.visibility["staged", default: true]
-            let events: [ViewEvent<Message>] = [
-                (.u, .gitCommand(.Unstage(.Section(status.staged.map { $0.file }, .Staged)))),
-                (.tab, .updateVisibility(visibility.merging(["staged": !open]) { $1 }))
-            ]
-            let title = TextView<Message>(Text("Staged changes (\(status.staged.count))", .blue), events: events)
-            let mapper = stagedMapper(visibility)
-            views.append(CollapseView(content: [title] + status.staged.flatMap(mapper), open: open))
+            views.append(renderStaged(model, status.staged))
             views.append(EmptyLine())
         }
 
-        let open = model.visibility["recent", default: true]
-        let events: [ViewEvent<Message>] = [
-            (.tab, .updateVisibility(visibility.merging(["recent": !open]) { $1 }))
-        ]
-        let logTitle = TextView("Recent commits", events: events)
-        views.append(CollapseView(content: [logTitle] + status.log.map(commitMapper), open: open))
-        //sections.append(contentsOf: Section(title: TextView("Recent commits", events: events), items: status.log.map(commitMapper), open: open))
+        views.append(renderLog(model, status.log))
 
         return views
     }
+}
+
+func renderUntracked(_ model: StatusModel, _ untracked: [Untracked]) -> View<Message> {
+    let visibility = model.visibility
+    let open = model.visibility["untracked", default: true]
+    let events: [ViewEvent<Message>] = [
+        (.s, .gitCommand(.Stage(.Section(untracked.map { $0.file }, .Untracked)))),
+        (.tab, .updateVisibility(visibility.merging(["untracked": !open]) { $1 }))
+    ]
+    let title = TextView<Message>(Text("Untracked files (\(untracked.count))", .blue), events: events)
+    return CollapseView(content: [title] + untracked.map(untrackedMapper), open: open)
+}
+
+func renderUnstaged(_ model: StatusModel, _ unstaged: [Unstaged]) -> View<Message> {
+    let visibility = model.visibility
+    let open = model.visibility["unstaged", default: true]
+    let events: [ViewEvent<Message>] = [
+        (.s, .gitCommand(.Stage(.Section(unstaged.map { $0.file }, .Unstaged)))),
+        (.tab, .updateVisibility(visibility.merging(["unstaged": !open]) { $1 }))
+    ]
+    let title = TextView<Message>(Text("Unstaged changes (\(unstaged.count))", .blue), events: events)
+    let mapper = unstagedMapper(visibility)
+    return CollapseView(content: [title] + unstaged.flatMap(mapper), open: open)
+}
+
+func renderStaged(_ model: StatusModel, _ staged: [Staged]) -> View<Message> {
+    let visibility = model.visibility
+    let open = model.visibility["staged", default: true]
+    let events: [ViewEvent<Message>] = [
+        (.u, .gitCommand(.Unstage(.Section(staged.map { $0.file }, .Staged)))),
+        (.tab, .updateVisibility(visibility.merging(["staged": !open]) { $1 }))
+    ]
+    let title = TextView<Message>(Text("Staged changes (\(staged.count))", .blue), events: events)
+    let mapper = stagedMapper(visibility)
+    return CollapseView(content: [title] + staged.flatMap(mapper), open: open)
+}
+
+func renderLog(_ model: StatusModel,_ log: [GitCommit]) -> View<Message> {
+    let open = model.visibility["recent", default: true]
+    let events: [ViewEvent<Message>] = [
+        (.tab, .updateVisibility(model.visibility.merging(["recent": !open]) { $1 }))
+    ]
+    let logTitle = TextView("Recent commits", events: events)
+    return CollapseView(content: [logTitle] + log.map(commitMapper), open: open)
 }
 
 func headMapper(_ commit: GitCommit) -> TextView<Message> {
@@ -98,14 +116,19 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
         switch unstaged.status {
         case .Modified:
             return [TextView("modified  \(unstaged.file)", events: events)] + hunks
+            
         case .Deleted:
             return [TextView("deleted   \(unstaged.file)", events: events)] + hunks
+            
         case .Added:
             return [TextView("new file  \(unstaged.file)", events: events)] + hunks
+            
         case .Renamed(let target):
             return [TextView("renamed   \(unstaged.file) -> \(target)", events: events)] + hunks
+            
         case .Copied:
             return [TextView("copied    \(unstaged.file)", events: events)] + hunks
+            
         default:
             return [TextView("Unknown status \(unstaged.status) \(unstaged.file)")]
         }
@@ -122,10 +145,13 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String, _ status: Status) -> Text
     switch line.annotation {
     case .Summary:
         background = Color.magenta
+        
     case .Added:
         foreground = Color.green
+        
     case .Removed:
         foreground = Color.red
+        
     case .Context:
         break;
     }
@@ -151,14 +177,19 @@ func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Messag
         switch staged.status {
         case .Added:
             return [TextView("new file  \(staged.file)", events: events)] + hunks
+            
         case .Untracked:
             return [TextView(staged.file, events: events)] + hunks
+            
         case .Modified:
             return [TextView("modified  \(staged.file)", events: events)] + hunks
+            
         case .Deleted:
             return [TextView("deleted   \(staged.file)", events: events)] + hunks
+            
         case .Renamed(let target):
             return [TextView("renamed   \(staged.file) -> \(target)", events: events)] + hunks
+            
         case .Copied:
             return [TextView("copied    \(staged.file)", events: events)] + hunks
         }
@@ -168,7 +199,7 @@ func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Messag
 func checkout(file: String) -> Message {
     let task = execute(process: ProcessDescription.git(Checkout.head(file: file)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info(.Info($0.localizedDescription)) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
 
 func remove(file: String) -> Message {
@@ -179,9 +210,9 @@ func remove(file: String) -> Message {
             try fileManager.removeItem(atPath: file)
             return .commandSuccess
         } catch {
-            return .info(.Info("File not found: \(file)"))
+            return .info(.Message("File not found: \(file)"))
         }
     } else {
-        return .info(.Info("File not found: \(file)"))
+        return .info(.Message("File not found: \(file)"))
     }
 }

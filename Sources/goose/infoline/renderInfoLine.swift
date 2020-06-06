@@ -6,7 +6,7 @@ func renderInfoLine(info: InfoMessage) -> TextView<Message> {
     case .None:
         return TextView("")
         
-    case .Info(let message):
+    case .Message(let message):
         return TextView(message)
         
     case .Query(let message, _):

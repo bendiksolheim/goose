@@ -9,7 +9,7 @@ func commit() -> Message {
     if result == 0 {
         return Message.commandSuccess
     } else {
-        return Message.info(.Info("Error executing vim: \(result)"))
+        return Message.info(.Message("Error executing vim: \(result)"))
     }
 }
 

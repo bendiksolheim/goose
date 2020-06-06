@@ -84,14 +84,14 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return performCommand(model, command)
         
     case .updateVisibility(let visibility):
-        return (model.copy(withStatus: model.status.copy(withVisibility: visibility)), Cmd.none())
+        return (model.copy(withStatus: model.status.with(visibility: visibility)), Cmd.none())
         
     case .commandSuccess:
         return (model, Task { getStatus() }.perform())
         
     case .info(let info):
         switch info {
-        case .Info(_):
+        case .Message(_):
             return (model.copy(withInfo: info), TProcess.sleep(5.0).perform { Message.clearInfo })
         case .Query(_, let cmd):
             return (model.copy(withInfo: info, withKeyMap: queryMap(cmd)), Cmd.none())
@@ -128,7 +128,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked, .Unstaged:
                 return (model, Task { apply(patch: hunk) }.perform())
             case .Staged:
-                return (model, Cmd.message(.info(.Info("Already staged"))))
+                return (model, Cmd.message(.info(.Message("Already staged"))))
             }
         }
         
@@ -141,7 +141,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         case .Hunk(let patch, let status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, Cmd.message(.info(.Info("Already unstaged"))))
+                return (model, Cmd.message(.info(.Message("Already unstaged"))))
             case .Staged:
                 return (model, Task { apply(patch: patch, reverse: true) }.perform())
             }
@@ -186,16 +186,16 @@ func stage(_ files: [String], _ type: Status) -> Cmd<Message> {
     case .Unstaged:
         return Task { addFile(files: files) }.perform()
     case .Staged:
-        return Cmd.message(.info(.Info("Already staged")))
+        return Cmd.message(.info(.Message("Already staged")))
     }
 }
 
 func unstage(_ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
-        return Cmd.message(.info(.Info("Already unstaged")))
+        return Cmd.message(.info(.Message("Already unstaged")))
     case .Unstaged:
-        return Cmd.message(.info(.Info("Already unstaged")))
+        return Cmd.message(.info(.Message("Already unstaged")))
     case .Staged:
         return Task { resetFile(files: files) }.perform()
     }
@@ -241,5 +241,5 @@ func queryMap(_ msg: Message) -> KeyMap {
 
 let subscriptions: [Sub<Message>] = [
     cursor { .container($0) },
-    keyboard({ event in .keyboard(event) })
+    keyboard { event in .keyboard(event) }
 ]

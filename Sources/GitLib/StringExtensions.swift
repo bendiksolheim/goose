@@ -1,10 +1,3 @@
-//
-//  StringExtensions.swift
-//  gitLib
-//
-//  Created by Bendik Solheim on 09/04/2020.
-//
-
 import Foundation
 
 public extension String {

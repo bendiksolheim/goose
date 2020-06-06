@@ -111,13 +111,6 @@ private func internalParse(_ input: String) -> GDiff {
         } else {
             diff[currentFile]?[currentHunk]?.append(line: line)
         }
-        /*} else if line.starts(with: " ") {
-            diff[currentFile][currentHunk]?.append(line: line)
-        } else if line.starts(with: "+") {
-            diff[currentFile][currentHunk]?.append(line: line)
-        } else if line.starts(with: "-") {
-            diff[currentFile][currentHunk]?.append(line: line)
-        }*/
     }
     return diff
 }

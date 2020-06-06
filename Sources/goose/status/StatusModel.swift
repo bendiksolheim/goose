@@ -5,8 +5,8 @@ public struct StatusModel: Equatable {
     let info: AsyncData<StatusInfo>
     let visibility: [String : Bool]
     
-    func copy(withInfo info: AsyncData<StatusInfo>? = nil,
-              withVisibility visibility: [String : Bool]? = nil) -> StatusModel {
+    func with(info: AsyncData<StatusInfo>? = nil,
+              visibility: [String : Bool]? = nil) -> StatusModel {
         StatusModel(info: info ?? self.info,
               visibility: visibility ?? self.visibility
         )

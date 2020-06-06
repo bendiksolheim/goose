@@ -18,7 +18,7 @@ struct CursorModel: Equatable {
 
 enum InfoMessage: Equatable {
     case None
-    case Info(String)
+    case Message(String)
     case Query(String, Message)
     
     
@@ -26,7 +26,7 @@ enum InfoMessage: Equatable {
         switch (lhs, rhs) {
         case (.None, .None):
             return true
-        case (.Info(let lhsInfo), .Info(let rhsInfo)):
+        case (.Message(let lhsInfo), .Message(let rhsInfo)):
             return lhsInfo == rhsInfo
         case (.Query(let lhsQuery, _), .Query(let rhsQuery, _)):
             return lhsQuery == rhsQuery
