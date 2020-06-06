@@ -93,7 +93,7 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
             (.tab, .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }))
         ]
         
-        let hunks = open ? unstaged.diff.flatMap(mapHunks) : []
+        let hunks = open ? unstaged.diff.flatMap { mapHunks($0, .Unstaged) } : []
     
         switch unstaged.status {
         case .Modified:
@@ -112,11 +112,11 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
     }
 }
 
-func mapHunks(_ hunk: GitHunk) -> [TextView<Message>] {
-    hunk.lines.map { mapDiffLine($0, hunk.patch) }
+func mapHunks(_ hunk: GitHunk, _ status: Status) -> [TextView<Message>] {
+    hunk.lines.map { mapDiffLine($0, hunk.patch, status) }
 }
 
-func mapDiffLine(_ line: GitHunkLine, _ patch: String) -> TextView<Message> {
+func mapDiffLine(_ line: GitHunkLine, _ patch: String, _ status: Status) -> TextView<Message> {
     var foreground = Color.normal
     var background = Color.normal
     switch line.annotation {
@@ -130,7 +130,12 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String) -> TextView<Message> {
         break;
     }
     
-    return TextView(Text(line.content, foreground, background), events: [(.s, .gitCommand(.Stage(.Hunk(patch, .Unstaged))))])
+    let events: [ViewEvent<Message>] = [
+        (.s, .gitCommand(.Stage(.Hunk(patch, status)))),
+        (.u, .gitCommand(.Unstage(.Hunk(patch, status))))
+    ]
+    
+    return TextView(Text(line.content, foreground, background), events: events)
 }
 
 func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Message>] {
@@ -142,7 +147,7 @@ func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Messag
             (.u, .gitCommand(.Unstage(.File(staged.file, .Staged)))),
             (.tab, .updateVisibility(visibility.merging(["staged-\(staged.file)": !open]) { $1 }))
         ]
-        let hunks = open ? staged.diff.flatMap(mapHunks) : []
+        let hunks = open ? staged.diff.flatMap { mapHunks($0, .Staged) } : []
         switch staged.status {
         case .Added:
             return [TextView("new file  \(staged.file)", events: events)] + hunks

@@ -143,7 +143,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked, .Unstaged:
                 return (model, Cmd.message(.info(.Info("Already unstaged"))))
             case .Staged:
-                return (model, Cmd.none()) //TODO: implement unstaging of hunks
+                return (model, Task { apply(patch: patch, reverse: true) }.perform())
             }
         }
         
