@@ -72,8 +72,8 @@ func apply(patch: String, reverse: Bool = false, cached: Bool = false) -> Messag
     return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
 
-func restore(_ file: String, _ staged: Bool) -> Message {
-    let task = execute(process: ProcessDescription.git(Restore.file(file, staged: staged)))
+func restore(_ files: [String], _ staged: Bool) -> Message {
+    let task = execute(process: ProcessDescription.git(Restore.file(files, staged: staged)))
     let result = task.unsafeRunSyncEither()
     return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }

@@ -20,7 +20,6 @@ enum GitCmd {
     case Stage(Selection)
     case Unstage(Selection)
     case Discard(Selection)
-    case Remove(String)
 }
 
 enum QueryResult {
@@ -149,15 +148,10 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         switch selection {
         case .Section(let files, let status):
             return (model, Cmd.none()) //TODO: implement discarding of sections
+            
         case .File(let file, let status):
-            switch status {
-            case .Untracked:
-                return (model, Task { remove(file: file) }.perform())
-            case .Unstaged:
-                return (model, Task { checkout(file: file) }.perform())
-            case .Staged:
-                return (model, Task { restore(file, true) }.andThen { _ in checkout(file: file) }.perform())
-            }
+            return (model, discard([file], status))
+            
         case .Hunk(let patch, let status):
             switch status {
             case .Untracked:
@@ -168,9 +162,6 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
                 return (model, Task { apply(patch: patch, reverse: true, cached: true) }.andThen { _ in apply(patch: patch, reverse: true) }.perform())
             }
         }
-        
-    case .Remove(let file):
-        return (model, Task { remove(file: file) }.perform())
     }
 }
 
@@ -193,6 +184,17 @@ func unstage(_ files: [String], _ type: Status) -> Cmd<Message> {
         return Cmd.message(.info(.Message("Already unstaged")))
     case .Staged:
         return Task { resetFile(files: files) }.perform()
+    }
+}
+
+func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
+    switch type {
+    case .Untracked:
+        return Task { remove(files: files) }.perform()
+    case .Unstaged:
+        return Task { checkout(files: files) }.perform()
+    case .Staged:
+        return Task { restore(files, true) }.andThen { _ in checkout(files: files) }.perform()
     }
 }
 

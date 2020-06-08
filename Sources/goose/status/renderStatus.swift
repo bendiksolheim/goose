@@ -95,7 +95,7 @@ func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
     let events: [ViewEvent<Message>] = [
         (.s, .gitCommand(.Stage(.File(untracked.file, .Untracked)))),
         (.u, .gitCommand(.Unstage(.File(untracked.file, .Untracked)))),
-        (.x, .info(.Query("Trash \(untracked.file)? (y or n)", .gitCommand(.Remove(untracked.file)))))
+        (.x, .info(.Query("Trash \(untracked.file)? (y or n)", .gitCommand(.Discard(.File(untracked.file, .Untracked))))))
     ]
     
     return TextView(untracked.file, events: events)
@@ -198,23 +198,25 @@ func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Messag
     }
 }
 
-func checkout(file: String) -> Message {
-    let task = execute(process: ProcessDescription.git(Checkout.head(file: file)))
+func checkout(files: [String]) -> Message {
+    let task = execute(process: ProcessDescription.git(Checkout.head(files: files)))
     let result = task.unsafeRunSyncEither()
     return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
 
-func remove(file: String) -> Message {
+func remove(files: [String]) -> Message {
     let fileManager = FileManager.default
     
-    if fileManager.fileExists(atPath: file) {
+    let allExists = files.map { fileManager.fileExists(atPath: $0) }.allSatisfy { $0 }
+    
+    if allExists {
         do {
-            try fileManager.removeItem(atPath: file)
+            try files.forEach { file in try fileManager.removeItem(atPath: file) }
             return .commandSuccess
         } catch {
-            return .info(.Message("File not found: \(file)"))
+            return .info(.Message("File not found"))
         }
     } else {
-        return .info(.Message("File not found: \(file)"))
+        return .info(.Message("File not found"))
     }
 }
