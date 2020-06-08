@@ -158,7 +158,8 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String, _ status: Status) -> Text
     
     let events: [ViewEvent<Message>] = [
         (.s, .gitCommand(.Stage(.Hunk(patch, status)))),
-        (.u, .gitCommand(.Unstage(.Hunk(patch, status))))
+        (.u, .gitCommand(.Unstage(.Hunk(patch, status)))),
+        (.x, .info(.Query("Discard hunk? (y or n)", .gitCommand(.Discard(.Hunk(patch, status))))))
     ]
     
     return TextView(Text(line.content, foreground, background), events: events)
