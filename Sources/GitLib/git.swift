@@ -47,9 +47,9 @@ public struct Git {
         )
     }
     
-    public static func apply(reverse: Bool = false) -> GitCommand {
+    public static func apply(reverse: Bool = false, cached: Bool = false) -> GitCommand {
         GitCommand(
-            arguments: ["apply", "--ignore-space-change", "--cached"] + (reverse ? ["--reverse"] : [])
+            arguments: ["apply", "--ignore-space-change"] + (reverse ? ["--reverse"] : []) + (cached ? ["--cached"] : [])
         )
     }
 }

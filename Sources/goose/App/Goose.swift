@@ -124,7 +124,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         case .Hunk(let hunk, let status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, Task { apply(patch: hunk) }.perform())
+                return (model, Task { apply(patch: hunk, cached: true) }.perform())
             case .Staged:
                 return (model, Cmd.message(.info(.Message("Already staged"))))
             }
@@ -141,7 +141,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked, .Unstaged:
                 return (model, Cmd.message(.info(.Message("Already unstaged"))))
             case .Staged:
-                return (model, Task { apply(patch: patch, reverse: true) }.perform())
+                return (model, Task { apply(patch: patch, reverse: true, cached: true) }.perform())
             }
         }
         
@@ -165,7 +165,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Unstaged:
                 return (model, Task { apply(patch: patch, reverse: true) }.perform())
             case .Staged:
-                return (model, Cmd.none()) //TODO: return (model, task({ apply(patch: patch, )}))
+                return (model, Task { apply(patch: patch, reverse: true, cached: true) }.andThen { _ in apply(patch: patch, reverse: true) }.perform())
             }
         }
         
