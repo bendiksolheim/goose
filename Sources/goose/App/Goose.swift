@@ -198,28 +198,6 @@ func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
     }
 }
 
-func parseKey(_ event: KeyEvent, model: Model) -> (Model, Cmd<Message>) {
-    switch event {
-    case .q:
-        if model.views.count > 1 {
-            return (model.popView(), Cmd.none())
-        } else {
-            return (model, TProcess.quit())
-        }
-    case .l:
-        return (model.pushView(view: .log), Task { getLog() }.perform())
-        
-    case .g:
-        return (model, Task { getStatus() }.perform())
-        
-    case .c:
-        return (model, TProcess.spawn { commit() }.perform { $0 })
-        
-    default:
-        return (model, Cmd.none())
-    }
-}
-
 let normalMap = KeyMap([
     .q : { $0.views.count > 1 ? ($0.popView(), Cmd.none()) : ($0, TProcess.quit()) },
     .l : { ($0.pushView(view: .log), Task { getLog() }.perform()) },
