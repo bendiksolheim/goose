@@ -156,7 +156,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Unstaged:
                 return (model, Task { checkout(file: file) }.perform())
             case .Staged:
-                return (model, Task { restore(file, true) }.perform())
+                return (model, Task { restore(file, true) }.andThen { _ in checkout(file: file) }.perform())
             }
         case .Hunk(let patch, let status):
             switch status {
