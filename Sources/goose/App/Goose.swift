@@ -18,11 +18,9 @@ indirect enum Message {
 
 enum GitCmd {
     case Stage(Selection)
-    //case StagePatch(String)
     case Unstage(Selection)
     case Discard(Selection)
     case Remove(String)
-    case Checkout(String)
 }
 
 enum QueryResult {
@@ -156,9 +154,9 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked:
                 return (model, Task { remove(file: file) }.perform())
             case .Unstaged:
-                return (model, Cmd.none()) //TODO: implement discarding of unstaged file
+                return (model, Task { checkout(file: file) }.perform())
             case .Staged:
-                return (model, Cmd.none()) //TODO: implement discarding of staged file
+                return (model, Task { restore(file, true) }.perform())
             }
         case .Hunk(let patch, let status):
             switch status {
@@ -170,9 +168,6 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
                 return (model, Cmd.none()) //TODO: return (model, task({ apply(patch: patch, )}))
             }
         }
-        
-    case .Checkout(let file):
-        return (model, Task { checkout(file: file) }.perform())
         
     case .Remove(let file):
         return (model, Task { remove(file: file) }.perform())

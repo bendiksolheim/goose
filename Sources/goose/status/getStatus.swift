@@ -72,6 +72,12 @@ func apply(patch: String, reverse: Bool = false) -> Message {
     return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
 
+func restore(_ file: String, _ staged: Bool) -> Message {
+    let task = execute(process: ProcessDescription.git(Restore.file(file, staged: staged)))
+    let result = task.unsafeRunSyncEither()
+    return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
+}
+
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {
     parseStatus(status.output)
         .fold(IO.raiseError, IO.pure)^

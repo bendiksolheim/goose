@@ -107,7 +107,7 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
         let events: [ViewEvent<Message>] = [
             (.s, .gitCommand(.Stage(.File(unstaged.file, .Unstaged)))),
             (.u, .gitCommand(.Unstage(.File(unstaged.file, .Unstaged)))),
-            (.x, .info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", .gitCommand(.Checkout(unstaged.file))))),
+            (.x, .info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", .gitCommand(.Discard(.File(unstaged.file, .Unstaged)))))),
             (.tab, .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }))
         ]
         
@@ -171,6 +171,7 @@ func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Messag
         let events: [ViewEvent<Message>] = [
             (.s, .gitCommand(.Stage(.File(staged.file, .Staged)))),
             (.u, .gitCommand(.Unstage(.File(staged.file, .Staged)))),
+            (.x, .info(.Query("Discard staged changes in \(staged.file)? (y or n)", .gitCommand(.Discard(.File(staged.file, .Staged)))))),
             (.tab, .updateVisibility(visibility.merging(["staged-\(staged.file)": !open]) { $1 }))
         ]
         let hunks = open ? staged.diff.flatMap { mapHunks($0, .Staged) } : []
