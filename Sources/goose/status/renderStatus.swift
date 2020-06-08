@@ -41,6 +41,7 @@ func renderUntracked(_ model: StatusModel, _ untracked: [Untracked]) -> View<Mes
     let open = model.visibility["untracked", default: true]
     let events: [ViewEvent<Message>] = [
         (.s, .gitCommand(.Stage(.Section(untracked.map { $0.file }, .Untracked)))),
+        (.x, .info(.Query("Trash \(untracked.count) files? (y or n)", .gitCommand(.Discard(.Section(untracked.map { $0.file }, .Untracked)))))),
         (.tab, .updateVisibility(visibility.merging(["untracked": !open]) { $1 }))
     ]
     let title = TextView<Message>(Text("Untracked files (\(untracked.count))", .blue), events: events)
@@ -52,6 +53,7 @@ func renderUnstaged(_ model: StatusModel, _ unstaged: [Unstaged]) -> View<Messag
     let open = model.visibility["unstaged", default: true]
     let events: [ViewEvent<Message>] = [
         (.s, .gitCommand(.Stage(.Section(unstaged.map { $0.file }, .Unstaged)))),
+        (.x, .info(.Query("Discard unstaged changes in \(unstaged.count) files? (y or n)", .gitCommand(.Discard(.Section(unstaged.map { $0.file }, .Unstaged)))))),
         (.tab, .updateVisibility(visibility.merging(["unstaged": !open]) { $1 }))
     ]
     let title = TextView<Message>(Text("Unstaged changes (\(unstaged.count))", .blue), events: events)
@@ -64,6 +66,7 @@ func renderStaged(_ model: StatusModel, _ staged: [Staged]) -> View<Message> {
     let open = model.visibility["staged", default: true]
     let events: [ViewEvent<Message>] = [
         (.u, .gitCommand(.Unstage(.Section(staged.map { $0.file }, .Staged)))),
+        (.x, .info(.Query("Discard staged changes in \(staged.count) files? (y or n)", .gitCommand(.Discard(.Section(staged.map { $0.file }, .Staged)))))),
         (.tab, .updateVisibility(visibility.merging(["staged": !open]) { $1 }))
     ]
     let title = TextView<Message>(Text("Staged changes (\(staged.count))", .blue), events: events)

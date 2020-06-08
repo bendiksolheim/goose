@@ -147,7 +147,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
     case .Discard(let selection):
         switch selection {
         case .Section(let files, let status):
-            return (model, Cmd.none()) //TODO: implement discarding of sections
+            return (model, discard(files, status))
             
         case .File(let file, let status):
             return (model, discard([file], status))
