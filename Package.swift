@@ -9,7 +9,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/bow-swift/bow.git", from: "0.7.0"),
         .package(url: "https://github.com/davedufresne/SwiftParsec", .branch("master")),
-        .package(path: "../tea")
+        .package(path: "libraries/tea")
     ],
     targets: [
         .target(
