@@ -39,6 +39,9 @@ Next up (far from exhaustive, just a short list of possible next tasks..)
 - Stage / unstage /discard lines
 - ... soooo much more
 
+Bugs
+- Diffs with tab characters (and possibly others) breaks rendering
+
 ## Instructions
 
 - Run: `swift run`
