@@ -3,16 +3,6 @@ import BowEffects
 import GitLib
 import os.log
 
-
-func commit() -> Message {
-    let result = runCommand("git commit -v")
-    if result == 0 {
-        return Message.commandSuccess
-    } else {
-        return Message.info(.Message("Error executing vim: \(result)"))
-    }
-}
-
 // https://gist.github.com/dduan/d4e967f3fc2801d3736b726cd34446bc
 
 func runCommand(_ command: String) -> Int {
