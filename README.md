@@ -24,15 +24,16 @@ Working
 - Listing log
 - UI: Information line
 - UI: scrolling
+- Open file under cursor
 
-Next up
+Next up (not exhaustive by far, just a short list of possible next tasks..)
 - Window resizing
+- Better git error handling
 - Git input/output log for debugging
 - Async tasks so we don’t block rendering
 - Transient command system (aka the Magit menu system)
 - Amend commit
 - Search in active buffer to quickly move around
-- Open file under cursor
 - See commit content
 - Optimizations
 - Stage / unstage /discard lines
