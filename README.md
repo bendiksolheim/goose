@@ -26,7 +26,7 @@ Working
 - UI: scrolling
 - Open file under cursor
 
-Next up (not exhaustive by far, just a short list of possible next tasks..)
+Next up (far from exhaustive, just a short list of possible next tasks..)
 - Window resizing
 - Better git error handling
 - Git input/output log for debugging
