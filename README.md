@@ -44,3 +44,7 @@ Next up (not exhaustive by far, just a short list of possible next tasks..)
 - Run: `swift run`
 - Build debug: `swift build`
 - Build production: `swift build -c release`
+
+## Attribution
+
+The [tea library](libraries/tea) is inspired (and some stuff copied) from [Ashen](https://github.com/colinta/Ashen).
