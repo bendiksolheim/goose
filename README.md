@@ -16,8 +16,10 @@ What could possibly go wrong.
 ## Status
 
 Working
-- Staging / unstaging files and hunks
-- Diffing files
+- Untracked files, worktree changes and index changes as diff
+- Stage section / file / hunk
+- Unstage section / file / hunk
+- Discard section / file / hunk
 - Commiting
 - Listing log
 - UI: Information line
@@ -27,14 +29,13 @@ Next up
 - Window resizing
 - Git input/output log for debugging
 - Async tasks so we don’t block rendering
-- Discard change
 - Transient command system (aka the Magit menu system)
 - Amend commit
 - Search in active buffer to quickly move around
 - Open file under cursor
 - See commit content
-- Optimization
-- Stage / unstage lines
+- Optimizations
+- Stage / unstage /discard lines
 - ... soooo much more
 
 ## Instructions
