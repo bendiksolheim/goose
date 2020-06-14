@@ -4,6 +4,9 @@ bindir = $(prefix)/bin
 build:
 	swift build -c release --disable-sandbox
 
+debug:
+	swift build
+
 install: build
 	install ".build/release/goose" "$(bindir)"
 
