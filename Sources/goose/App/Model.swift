@@ -4,6 +4,7 @@ import tea
 enum Views {
     case StatusView
     case LogView
+    case CommitView
 }
 
 struct CursorModel: Equatable {
@@ -40,6 +41,7 @@ struct Model: Equatable {
     let views: [Views]
     let status: StatusModel
     let log: AsyncData<LogInfo>
+    let commit: CommitModel
     let info: InfoMessage
     let container: ScrollState
     let keyMap: KeyMap
@@ -47,12 +49,14 @@ struct Model: Equatable {
     func copy(withViews views: [Views]? = nil,
               withStatus status: StatusModel? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
+              withCommit commit: CommitModel? = nil,
               withInfo info: InfoMessage? = nil,
               withContainer container: ScrollState? = nil,
               withKeyMap keyMap: KeyMap? = nil) -> Model {
         Model(views: views ?? self.views,
               status: status ?? self.status,
               log: log ?? self.log,
+              commit: commit ?? self.commit,
               info: info ?? self.info,
               container: container ?? self.container,
               keyMap: keyMap ?? self.keyMap

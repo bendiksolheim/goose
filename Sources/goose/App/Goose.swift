@@ -6,6 +6,8 @@ import os.log
 indirect enum Message {
     case gotStatus(AsyncData<StatusInfo>)
     case gotLog(AsyncData<LogInfo>)
+    case getCommit(String)
+    case gotCommit(AsyncData<GitCommit>)
     case keyboard(KeyEvent)
     case gitCommand(GitCmd)
     case updateVisibility([String : Bool])
@@ -41,9 +43,11 @@ enum Status {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
+    let commitModel = CommitModel(hash: "", commit: .loading)
     return (Model(views: [.StatusView],
                   status: statusModel,
                   log: .loading,
+                  commit: commitModel,
                   info: .None,
                   container: ScrollView<Message>.initialState(),
                   keyMap: normalMap),
@@ -59,6 +63,8 @@ func render(model: Model) -> Window<Message> {
         content = renderStatus(model: model.status)
     case .LogView:
         content = renderLog(log: model.log)
+    case .CommitView:
+        content = renderCommit(commit: model.commit)
     }
     
     return Window(content:
@@ -73,6 +79,12 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         
     case .gotLog(let log):
         return (model.copy(withLog: log), Cmd.none())
+        
+    case .getCommit(let ref):
+        return (model.copy(withCommit: model.commit.with(hash: ref, commit: .loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .gotCommit($0) })
+        
+    case .gotCommit(let commit):
+        return (model.copy(withCommit: model.commit.with(commit: commit)), Cmd.none())
         
     case .keyboard(let event):
         return model.keyMap[event, model](model)
