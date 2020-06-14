@@ -42,8 +42,11 @@ Next up (far from exhaustive, just a short list of possible next tasks..)
 ## Instructions
 
 - Run: `swift run`
-- Build debug: `swift build`
-- Build production: `swift build -c release`
+- Build debug: `make debug`
+- Build production: `make build`
+- Install: `make install`
+- Uninstall: `make uninstall`
+- Clean: `make clean`
 
 ## Attribution
 
