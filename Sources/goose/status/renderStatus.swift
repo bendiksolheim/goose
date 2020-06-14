@@ -91,7 +91,7 @@ func headMapper(_ commit: GitCommit) -> TextView<Message> {
 func commitMapper(_ commit: GitCommit) -> TextView<Message> {
     let message = commit.refName
         .fold(constant(Text(" ")), { name in Text(" \(name) ", .cyan) }) + commit.message
-    return TextView(Text(commit.hash.short, .any(241)) + message)
+    return TextView(Text(commit.hash.short, .any(241)) + message, events: [(.enter, .getCommit(commit.hash.full))])
 }
 
 func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
