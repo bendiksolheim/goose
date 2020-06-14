@@ -15,7 +15,9 @@ What could possibly go wrong.
 
 ## Status
 
-Working
+![Image of goose status view](screenshot.png)
+
+Working (more or less)
 - Untracked files, worktree changes and index changes as diff
 - Stage section / file / hunk
 - Unstage section / file / hunk
@@ -37,6 +39,7 @@ Next up (far from exhaustive, just a short list of possible next tasks..)
 - See commit content
 - Optimizations
 - Stage / unstage /discard lines
+- Binary files?
 - ... soooo much more
 
 Bugs
