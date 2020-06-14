@@ -15,6 +15,7 @@ indirect enum Message {
     case info(InfoMessage)
     case clearInfo
     case queryResult(QueryResult)
+    case ViewFile(String)
     case container(ScrollMessage)
 }
 
@@ -118,6 +119,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         case .Perform(let msg):
             return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.message(msg))
         }
+        
+    case .ViewFile(let file):
+         return (model, TProcess.spawn { view(file: file) }.perform { $0 })
 
     case .container(let containerMsg):
         return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), Cmd.none())

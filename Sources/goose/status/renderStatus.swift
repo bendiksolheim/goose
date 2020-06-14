@@ -98,7 +98,8 @@ func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
     let events: [ViewEvent<Message>] = [
         (.s, .gitCommand(.Stage(.File(untracked.file, .Untracked)))),
         (.u, .gitCommand(.Unstage(.File(untracked.file, .Untracked)))),
-        (.x, .info(.Query("Trash \(untracked.file)? (y or n)", .gitCommand(.Discard(.File(untracked.file, .Untracked))))))
+        (.x, .info(.Query("Trash \(untracked.file)? (y or n)", .gitCommand(.Discard(.File(untracked.file, .Untracked)))))),
+        (.enter, .ViewFile(untracked.file))
     ]
     
     return TextView(untracked.file, events: events)
@@ -111,7 +112,8 @@ func unstagedMapper(_ visibility: [String : Bool]) -> (Unstaged) -> [TextView<Me
             (.s, .gitCommand(.Stage(.File(unstaged.file, .Unstaged)))),
             (.u, .gitCommand(.Unstage(.File(unstaged.file, .Unstaged)))),
             (.x, .info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", .gitCommand(.Discard(.File(unstaged.file, .Unstaged)))))),
-            (.tab, .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }))
+            (.tab, .updateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 })),
+            (.enter, .ViewFile(unstaged.file))
         ]
         
         let hunks = open ? unstaged.diff.flatMap { mapHunks($0, .Unstaged) } : []
@@ -176,7 +178,8 @@ func stagedMapper(_ visibility: [String : Bool]) -> (Staged) -> [TextView<Messag
             (.s, .gitCommand(.Stage(.File(staged.file, .Staged)))),
             (.u, .gitCommand(.Unstage(.File(staged.file, .Staged)))),
             (.x, .info(.Query("Discard staged changes in \(staged.file)? (y or n)", .gitCommand(.Discard(.File(staged.file, .Staged)))))),
-            (.tab, .updateVisibility(visibility.merging(["staged-\(staged.file)": !open]) { $1 }))
+            (.tab, .updateVisibility(visibility.merging(["staged-\(staged.file)": !open]) { $1 })),
+            (.enter, .ViewFile(staged.file))
         ]
         let hunks = open ? staged.diff.flatMap { mapHunks($0, .Staged) } : []
         switch staged.status {
