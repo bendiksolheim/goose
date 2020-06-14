@@ -2,8 +2,8 @@ import Foundation
 import tea
 
 enum Views {
-    case status
-    case log
+    case StatusView
+    case LogView
 }
 
 struct CursorModel: Equatable {

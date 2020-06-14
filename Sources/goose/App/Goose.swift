@@ -41,7 +41,7 @@ enum Status {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .loading, visibility: [:])
-    return (Model(views: [.status],
+    return (Model(views: [.StatusView],
                   status: statusModel,
                   log: .loading,
                   info: .None,
@@ -55,9 +55,9 @@ func render(model: Model) -> Window<Message> {
     let view = model.views.last!
     let content: [View<Message>]
     switch view {
-    case .status:
+    case .StatusView:
         content = renderStatus(model: model.status)
-    case .log:
+    case .LogView:
         content = renderLog(log: model.log)
     }
     
@@ -200,7 +200,7 @@ func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
 
 let normalMap = KeyMap([
     .q : { $0.views.count > 1 ? ($0.popView(), Cmd.none()) : ($0, TProcess.quit()) },
-    .l : { ($0.pushView(view: .log), Task { getLog() }.perform()) },
+    .l : { ($0.pushView(view: .LogView), Task { getLog() }.perform()) },
     .g : { ($0, Task { getStatus() }.perform()) },
     .c : { ($0, TProcess.spawn { commit() }.perform()) },
 ])
