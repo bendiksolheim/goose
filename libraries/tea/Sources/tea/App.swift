@@ -121,7 +121,10 @@ public func run<Model: Equatable, Message>(
                         }
                     
                     case .window(let width, let height):
-                        os_log("New width %{public}d height %{public}d",    width, height)
+                        let newSize = Size(width: width, height: height)
+                        buffer.resize(to: newSize)
+                        let window = render(model)
+                        renderToScreen(buffer, app, window)
                     }
                 }
             }

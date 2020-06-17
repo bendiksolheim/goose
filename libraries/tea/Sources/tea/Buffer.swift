@@ -37,7 +37,12 @@ public class Buffer<Message> {
     public func clear() {
         chars = Matrix(rows: size.height, columns: size.width, defaultValue: nil)
         cursors = []
-        
+    }
+    
+    public func resize(to size: Size) {
+        self.size = size
+        self.chars = Matrix(rows: size.height, columns: size.width, defaultValue: nil)
+        self.cursors = []
     }
 
     public func write(_ char: Char, _ events: [ViewEvent<Message>], x localX: Int, y localY: Int) {

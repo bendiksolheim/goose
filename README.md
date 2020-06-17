@@ -27,9 +27,9 @@ Working (more or less)
 - UI: Information line
 - UI: scrolling
 - Open file under cursor
+- Window resizing
 
 Next up (far from exhaustive, just a short list of possible next tasks..)
-- Window resizing
 - Better git error handling
 - Git input/output log for debugging
 - Async tasks so we don’t block rendering
