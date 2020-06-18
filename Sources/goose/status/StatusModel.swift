@@ -3,19 +3,18 @@ import GitLib
 
 public struct StatusModel: Equatable {
     let info: AsyncData<StatusInfo>
-    let visibility: [String : Bool]
-    
+    let visibility: [String: Bool]
+
     func with(info: AsyncData<StatusInfo>? = nil,
-              visibility: [String : Bool]? = nil) -> StatusModel {
+              visibility: [String: Bool]? = nil) -> StatusModel {
         StatusModel(info: info ?? self.info,
-              visibility: visibility ?? self.visibility
-        )
+                    visibility: visibility ?? self.visibility)
     }
 }
 
 public struct Untracked: Equatable {
     let file: String
-    
+
     init(_ file: String) {
         self.file = file
     }
@@ -25,7 +24,7 @@ public struct Unstaged: Equatable {
     let file: String
     let status: FileStatus
     let diff: [GitHunk]
-    
+
     init(_ file: String, _ status: FileStatus, _ diff: [GitHunk]) {
         self.file = file
         self.status = status
@@ -37,7 +36,7 @@ public struct Staged: Equatable {
     let file: String
     let status: FileStatus
     let diff: [GitHunk]
-    
+
     init(_ file: String, _ status: FileStatus, _ diff: [GitHunk]) {
         self.file = file
         self.status = status
@@ -60,13 +59,13 @@ public func isUntracked(_ change: GitChange) -> Bool {
 public func isUnstaged(_ change: GitChange) -> Bool {
     change.area == .Worktree
         && (change.status == .Modified
-        || isRenamed(change.status)
-        || change.status == .Copied
-        || change.status == .Deleted)
+            || isRenamed(change.status)
+            || change.status == .Copied
+            || change.status == .Deleted)
 }
 
 func isRenamed(_ change: FileStatus) -> Bool {
-    if case .Renamed(_) = change {
+    if case .Renamed = change {
         return true
     } else {
         return false

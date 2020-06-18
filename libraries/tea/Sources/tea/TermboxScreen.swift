@@ -18,14 +18,14 @@ class TermboxScreen {
 
     public func render(buffer: Matrix<Char>) {
         Termbox.clear()
-        
-        for y in (0..<buffer.rows) {
-            for x in (0..<buffer.columns) {
+
+        for y in 0 ..< buffer.rows {
+            for x in 0 ..< buffer.columns {
                 guard
-                    y >= 0 && y < size.height,
-                    x >= 0 && x < size.width
+                    y >= 0, y < size.height,
+                    x >= 0, x < size.width
                 else { continue }
-                
+
                 let char = buffer[y, x]
                 Termbox.putc(
                     x: Int32(x),
@@ -39,11 +39,10 @@ class TermboxScreen {
 
         Termbox.render()
     }
-    
+
     func pollEvent() -> Event? {
         let termboxEvent = Termbox.pollEvent()
         return convertTermboxEvent(termboxEvent)
-        
     }
 
     func nextEvent() -> Event? {
@@ -69,33 +68,33 @@ class TermboxScreen {
     }
 }
 
-/*private func foregroundAttrs(_ attrs: [Attr]) -> Attributes {
-    let retval = attrs.reduce(Attributes.zero) { memo, attr -> Attributes in
-        switch attr {
-        case .foreground(.normal):
-            return memo.union(Attributes.default)
-        case .background:
-            return memo
-        default:
-            return memo.union(attr.toTermbox)
-        }
-    }
-    return retval
-}
+/* private func foregroundAttrs(_ attrs: [Attr]) -> Attributes {
+     let retval = attrs.reduce(Attributes.zero) { memo, attr -> Attributes in
+         switch attr {
+         case .foreground(.normal):
+             return memo.union(Attributes.default)
+         case .background:
+             return memo
+         default:
+             return memo.union(attr.toTermbox)
+         }
+     }
+     return retval
+ }
 
-private func backgroundAttrs(_ attrs: [Attr]) -> Attributes {
-    let retval = attrs.reduce(Attributes.zero) { memo, attr -> Attributes in
-        switch attr {
-        case .background(.normal):
-            return memo.union(Attributes.default)
-        case .foreground:
-            return memo
-        default:
-            return memo.union(attr.toTermbox)
-        }
-    }
-    return retval
-}*/
+ private func backgroundAttrs(_ attrs: [Attr]) -> Attributes {
+     let retval = attrs.reduce(Attributes.zero) { memo, attr -> Attributes in
+         switch attr {
+         case .background(.normal):
+             return memo.union(Attributes.default)
+         case .foreground:
+             return memo
+         default:
+             return memo.union(attr.toTermbox)
+         }
+     }
+     return retval
+ } */
 
 private func termboxKey(_ mod: TermboxModifier, _ key: TermboxKey) -> KeyEvent? {
     switch (mod, key) {

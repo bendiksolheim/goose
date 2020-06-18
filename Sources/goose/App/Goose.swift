@@ -1,7 +1,7 @@
 import Foundation
 import GitLib
-import tea
 import os.log
+import tea
 
 indirect enum Message {
     case gotStatus(AsyncData<StatusInfo>)
@@ -10,7 +10,7 @@ indirect enum Message {
     case gotCommit(AsyncData<GitCommit>)
     case keyboard(KeyEvent)
     case gitCommand(GitCmd)
-    case updateVisibility([String : Bool])
+    case updateVisibility([String: Bool])
     case commandSuccess
     case info(InfoMessage)
     case clearInfo
@@ -55,7 +55,6 @@ func initialize() -> (Model, Cmd<Message>) {
             Task { getStatus() }.perform())
 }
 
-
 func render(model: Model) -> Window<Message> {
     let view = model.views.last!
     let content: [View<Message>]
@@ -67,7 +66,7 @@ func render(model: Model) -> Window<Message> {
     case .CommitView:
         content = renderCommit(commit: model.commit)
     }
-    
+
     return Window(content:
         [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), renderInfoLine(info: model.info)]
     )
@@ -75,68 +74,68 @@ func render(model: Model) -> Window<Message> {
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
-    case .gotStatus(let newStatus):
+    case let .gotStatus(newStatus):
         return (model.copy(withStatus: StatusModel(info: newStatus, visibility: model.status.visibility)), Cmd.none())
-        
-    case .gotLog(let log):
+
+    case let .gotLog(log):
         return (model.copy(withLog: log), Cmd.none())
-        
-    case .getCommit(let ref):
+
+    case let .getCommit(ref):
         return (model.copy(withCommit: model.commit.with(hash: ref, commit: .loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .gotCommit($0) })
-        
-    case .gotCommit(let commit):
+
+    case let .gotCommit(commit):
         return (model.copy(withCommit: model.commit.with(commit: commit)), Cmd.none())
-        
-    case .keyboard(let event):
+
+    case let .keyboard(event):
         return model.keyMap[event, model](model)
-        
-    case .gitCommand(let command):
+
+    case let .gitCommand(command):
         return performCommand(model, command)
-        
-    case .updateVisibility(let visibility):
+
+    case let .updateVisibility(visibility):
         return (model.copy(withStatus: model.status.with(visibility: visibility)), Cmd.none())
-        
+
     case .commandSuccess:
         return (model, Task { getStatus() }.perform())
-        
-    case .info(let info):
+
+    case let .info(info):
         switch info {
-        case .Message(_):
+        case .Message:
             return (model.copy(withInfo: info), TProcess.sleep(5.0).perform { Message.clearInfo })
-        case .Query(_, let cmd):
+        case let .Query(_, cmd):
             return (model.copy(withInfo: info, withKeyMap: queryMap(cmd)), Cmd.none())
         default:
             return (model.copy(withInfo: info), Cmd.none())
         }
-        
+
     case .clearInfo:
         return (model.copy(withInfo: .None), Cmd.none())
-        
-    case .queryResult(let queryResult):
+
+    case let .queryResult(queryResult):
         switch queryResult {
         case .Abort:
             return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.none())
-        case .Perform(let msg):
+        case let .Perform(msg):
             return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.message(msg))
         }
-        
-    case .ViewFile(let file):
-         return (model, TProcess.spawn { view(file: file) }.perform { $0 })
 
-    case .container(let containerMsg):
+    case let .ViewFile(file):
+        return (model, TProcess.spawn { view(file: file) }.perform { $0 })
+
+    case let .container(containerMsg):
         return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), Cmd.none())
     }
 }
 
 func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message>) {
     switch gitCommand {
-    case .Stage(let selection):
+    case let .Stage(selection):
         switch selection {
-        case .Section(let files, let status):
+        case let .Section(files, status):
             return (model, stage(files, status))
-        case .File(let file, let status):
+        case let .File(file, status):
             return (model, stage([file], status))
-        case .Hunk(let hunk, let status):
+        case let .Hunk(hunk, status):
             switch status {
             case .Untracked, .Unstaged:
                 return (model, Task { apply(patch: hunk, cached: true) }.perform())
@@ -144,14 +143,14 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
                 return (model, Cmd.message(.info(.Message("Already staged"))))
             }
         }
-        
-    case .Unstage(let selection):
+
+    case let .Unstage(selection):
         switch selection {
-        case .Section(let files, let status):
+        case let .Section(files, status):
             return (model, unstage(files, status))
-        case .File(let file, let status):
+        case let .File(file, status):
             return (model, unstage([file], status))
-        case .Hunk(let patch, let status):
+        case let .Hunk(patch, status):
             switch status {
             case .Untracked, .Unstaged:
                 return (model, Cmd.message(.info(.Message("Already unstaged"))))
@@ -159,16 +158,16 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
                 return (model, Task { apply(patch: patch, reverse: true, cached: true) }.perform())
             }
         }
-        
-    case .Discard(let selection):
+
+    case let .Discard(selection):
         switch selection {
-        case .Section(let files, let status):
+        case let .Section(files, status):
             return (model, discard(files, status))
-            
-        case .File(let file, let status):
+
+        case let .File(file, status):
             return (model, discard([file], status))
-            
-        case .Hunk(let patch, let status):
+
+        case let .Hunk(patch, status):
             switch status {
             case .Untracked:
                 return (model, Cmd.none()) // Impossible state, untracked files does not have hunks
@@ -215,22 +214,22 @@ func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
 }
 
 let normalMap = KeyMap([
-    .q : { $0.views.count > 1 ? ($0.popView(), Cmd.none()) : ($0, TProcess.quit()) },
-    .l : { ($0.pushView(view: .LogView), Task { getLog() }.perform()) },
-    .g : { ($0, Task { getStatus() }.perform()) },
-    .c : { ($0, TProcess.spawn { commit() }.perform()) },
+    .q: { $0.views.count > 1 ? ($0.popView(), Cmd.none()) : ($0, TProcess.quit()) },
+    .l: { ($0.pushView(view: .LogView), Task { getLog() }.perform()) },
+    .g: { ($0, Task { getStatus() }.perform()) },
+    .c: { ($0, TProcess.spawn { commit() }.perform()) },
 ])
 
 func queryMap(_ msg: Message) -> KeyMap {
-    return KeyMap([
-        .y : { ($0, Cmd.message(.queryResult(.Perform(msg)))) },
-        .n : { ($0, Cmd.message(.queryResult(.Abort))) },
-        .q : { ($0, Cmd.message(.queryResult(.Abort))) },
-        .esc : { ($0, Cmd.message(.queryResult(.Abort))) }
+    KeyMap([
+        .y: { ($0, Cmd.message(.queryResult(.Perform(msg)))) },
+        .n: { ($0, Cmd.message(.queryResult(.Abort))) },
+        .q: { ($0, Cmd.message(.queryResult(.Abort))) },
+        .esc: { ($0, Cmd.message(.queryResult(.Abort))) },
     ])
 }
 
 let subscriptions: [Sub<Message>] = [
     cursor { .container($0) },
-    keyboard { event in .keyboard(event) }
+    keyboard { event in .keyboard(event) },
 ]

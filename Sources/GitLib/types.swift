@@ -1,5 +1,5 @@
-import Foundation
 import Bow
+import Foundation
 import os.log
 
 public struct GitCommit: Equatable {
@@ -24,23 +24,22 @@ public func parseCommits(_ input: String) -> [GitCommit] {
 }
 
 public func parseCommit(_ commit: String) -> GitCommit {
-    let lines = commit.split(separator: "\n", omittingEmptySubsequences: false);
+    let lines = commit.split(separator: "\n", omittingEmptySubsequences: false)
     return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
-                  message: String(lines[7]),
-                  parents: lines[6].split(separator: " ").map { parent in String(parent) },
-                  commitDate: Date(timeIntervalSince1970: Double(lines[4])!),
-                  authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
-                  author: String(lines[2]),
-                  email: String(lines[3]),
-                  refName: parseRefName(lines[8])
-    )
+                     message: String(lines[7]),
+                     parents: lines[6].split(separator: " ").map { parent in String(parent) },
+                     commitDate: Date(timeIntervalSince1970: Double(lines[4])!),
+                     authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
+                     author: String(lines[2]),
+                     email: String(lines[3]),
+                     refName: parseRefName(lines[8]))
 }
 
 public func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
-    if (input == "") {
+    if input == "" {
         return .none()
     }
-    
+
     let parts = String(input).split(regex: " -> ")
     return .some(parts.last!)
 }
@@ -67,7 +66,7 @@ public struct GitChange: Equatable {
     public let area: Area
     public let status: FileStatus
     public let file: String
-    
+
     public init(area: Area, status: FileStatus, file: String) {
         self.area = area
         self.status = status
@@ -77,7 +76,7 @@ public struct GitChange: Equatable {
 
 public struct GitStatus {
     public let changes: [GitChange]
-    
+
     public init(changes: [GitChange]) {
         self.changes = changes
     }
@@ -96,13 +95,13 @@ public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [GitChan
     switch type {
     case "1":
         return .right(parseOrdinaryChange(input))
-        
+
     case "2":
         return .right(parseRenamedChange(input))
-        
+
     case "?":
         return .right(parseUntrackedChange(input))
-        
+
     default:
         return .left(StringError("Unknown change type: \(input)"))
     }
@@ -121,13 +120,13 @@ func parseOrdinaryChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     } else if index == "D" {
         changes.append(GitChange(area: .Index, status: .Deleted, file: file))
     }
-    
+
     if worktree == "M" {
         changes.append(GitChange(area: .Worktree, status: .Modified, file: file))
     } else if worktree == "D" {
         changes.append(GitChange(area: .Worktree, status: .Deleted, file: file))
     }
-    
+
     return changes
 }
 
@@ -139,13 +138,13 @@ func parseRenamedChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     let files = output[9].split(separator: "\t")
     let target = String(files[0])
     let source = String(files[1])
-    
+
     if index == "R" {
         changes.append(GitChange(area: .Index, status: .Renamed(target), file: source))
     } else if worktree == "R" {
         changes.append(GitChange(area: .Worktree, status: .Renamed(target), file: source))
     }
-    
+
     return changes
 }
 

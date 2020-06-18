@@ -1,5 +1,5 @@
-import Foundation
 import BowEffects
+import Foundation
 import GitLib
 import os.log
 
@@ -11,11 +11,11 @@ func runCommand(_ command: String) -> Int {
     let envs = ProcessInfo().environment.map { k, v in "\(k)=\(v)" }
     let cArgs = args.map { strdup($0) } + [nil]
     let cEnvs = envs.map { strdup($0) } + [nil]
-        
+
     var status = posix_spawn(&pid, "/bin/sh", nil, nil, cArgs, cEnvs)
     cEnvs.forEach { free($0) }
     cArgs.forEach { free($0) }
-    
+
     os_log("posix_spawn return for pid %{public}d: %{public}d", Int(pid), Int(status))
     var returnStatus = -1
     let rc = waitpid(pid, &status, 0)
@@ -45,25 +45,25 @@ func runCommand(_ command: String) -> Int {
             os_log("Process stopped, can be restarted: %{public}d", Int(WSTOPSIG(status)))
         }
     }
-        
+
     return returnStatus
 }
 
-func _WSTATUS (_ x: CInt) -> CInt  { return x & 0x7F         }
-func WSTOPSIG (_ x: CInt) -> CInt  { return x >> 8           }
-func WIFEXITED(_ x: CInt) -> Bool  { return _WSTATUS(x) == 0 }
+func _WSTATUS(_ x: CInt) -> CInt { x & 0x7F }
+func WSTOPSIG(_ x: CInt) -> CInt { x >> 8 }
+func WIFEXITED(_ x: CInt) -> Bool { _WSTATUS(x) == 0 }
 
-func WIFSTOPPED (_ x: CInt) -> Bool {
-  return _WSTATUS(x) == 0x7F && WSTOPSIG(x) != 0x13
+func WIFSTOPPED(_ x: CInt) -> Bool {
+    _WSTATUS(x) == 0x7F && WSTOPSIG(x) != 0x13
 }
 
-func WIFSIGNALED (_ x: CInt) -> Bool {
-  return _WSTATUS(x) != 0x7F && _WSTATUS(x) != 0
+func WIFSIGNALED(_ x: CInt) -> Bool {
+    _WSTATUS(x) != 0x7F && _WSTATUS(x) != 0
 }
 
-func WEXITSTATUS(_ x: CInt) -> CInt { return (x >> 8) & 0xFF }
-func WTERMSIG   (_ x: CInt) -> CInt { return _WSTATUS(x) }
+func WEXITSTATUS(_ x: CInt) -> CInt { (x >> 8) & 0xFF }
+func WTERMSIG(_ x: CInt) -> CInt { _WSTATUS(x) }
 
 private func currentDirectory() -> String {
-    return FileManager.default.currentDirectoryPath
+    FileManager.default.currentDirectoryPath
 }

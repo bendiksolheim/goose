@@ -1,20 +1,19 @@
-import Foundation
-import os.log
 import BowEffects
+import Foundation
 import GitLib
-
+import os.log
 
 public struct ProcessDescription {
     let workingDirectory: String
     let executable: String
     let arguments: [String]
-    
+
     private init(workingDirectory: String, executable: String, arguments: [String]) {
         self.workingDirectory = workingDirectory
         self.executable = executable
         self.arguments = arguments
     }
-    
+
     public static func git(_ cmd: GitCommand) -> ProcessDescription {
         ProcessDescription(
             workingDirectory: currentDirectory(),
@@ -30,18 +29,18 @@ public struct ProcessResult {
 }
 
 func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessResult> {
-    return Task.invoke {
+    Task.invoke {
         logCommand(process: process)
         let task = Process()
         task.launchPath = process.executable
         task.arguments = process.arguments
         task.currentDirectoryPath = process.workingDirectory
-    
+
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
         task.standardOutput = stdoutPipe
         task.standardError = stderrPipe
-        
+
         if let _input = input {
             os_log("Input: %{public}@", _input)
             let stdinPipe = Pipe()
@@ -53,13 +52,13 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
                 os_log("Could not convert string to data: %{public}@", _input)
             }
         }
-        
+
         task.launch()
-    
+
         let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
         task.waitUntilExit()
-        
+
         let exitCode = task.terminationStatus
         if exitCode == 0 {
             let stdOutput = String(data: stdoutData, encoding: .utf8)
@@ -74,7 +73,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
     }
 }
 
-private func logCommand(process: ProcessDescription) -> Void {
+private func logCommand(process: ProcessDescription) {
     let executedCommand = ([process.executable] + process.arguments).joined(separator: " ")
     let command = "Process(executable=\(process.executable), arguments=\(process.arguments), workingDirectory=\(process.workingDirectory), cmd=\(executedCommand)"
     os_log("%{public}@", command)
@@ -83,5 +82,5 @@ private func logCommand(process: ProcessDescription) -> Void {
 private let gitExecutable = "/usr/local/bin/git"
 
 private func currentDirectory() -> String {
-    return FileManager.default.currentDirectoryPath
+    FileManager.default.currentDirectoryPath
 }

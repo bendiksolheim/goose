@@ -8,17 +8,17 @@ enum TaskType {
 public struct Task<R> {
     let task: () -> R
     let type: TaskType
-    
+
     public init(_ task: @escaping () -> R) {
         self.task = task
-        self.type = .Internal
+        type = .Internal
     }
-    
+
     init(_ task: @escaping () -> R, _ taskType: TaskType) {
         self.task = task
-        self.type = taskType
+        type = taskType
     }
-    
+
     public func perform<Msg>(_ toMessage: @escaping (R) -> Msg) -> Cmd<Msg> {
         switch type {
         case .External:
@@ -33,11 +33,11 @@ public struct Task<R> {
             })
         }
     }
-    
+
     public func perform() -> Cmd<R> {
-        self.perform { $0 }
+        perform { $0 }
     }
-    
+
     public func andThen<R2>(_ task: @escaping (R) -> R2) -> Task<R2> {
         Task<R2> {
             let r = self.task()

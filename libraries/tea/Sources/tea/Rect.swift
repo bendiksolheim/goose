@@ -5,7 +5,7 @@ public struct Rect {
     let y: Int
     let width: Int
     let height: Int
-    
+
     init(_ x: Int, _ y: Int, _ width: Int, _ height: Int) {
         self.x = x
         self.y = y

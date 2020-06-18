@@ -1,5 +1,5 @@
-import Foundation
 import BowEffects
+import Foundation
 import GitLib
 import os.log
 

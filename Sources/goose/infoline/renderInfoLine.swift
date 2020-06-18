@@ -5,11 +5,11 @@ func renderInfoLine(info: InfoMessage) -> TextView<Message> {
     switch info {
     case .None:
         return TextView("")
-        
-    case .Message(let message):
+
+    case let .Message(message):
         return TextView(message)
-        
-    case .Query(let message, _):
+
+    case let .Query(message, _):
         return TextView(Text(message, .blue, .normal))
     }
 }

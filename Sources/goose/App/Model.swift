@@ -10,7 +10,7 @@ enum Views {
 struct CursorModel: Equatable {
     let x: UInt
     let y: UInt
-    
+
     init(_ x: UInt, _ y: UInt) {
         self.x = x
         self.y = y
@@ -21,15 +21,14 @@ enum InfoMessage: Equatable {
     case None
     case Message(String)
     case Query(String, Message)
-    
-    
+
     static func == (lhs: InfoMessage, rhs: InfoMessage) -> Bool {
         switch (lhs, rhs) {
         case (.None, .None):
             return true
-        case (.Message(let lhsInfo), .Message(let rhsInfo)):
+        case let (.Message(lhsInfo), .Message(rhsInfo)):
             return lhsInfo == rhsInfo
-        case (.Query(let lhsQuery, _), .Query(let rhsQuery, _)):
+        case let (.Query(lhsQuery, _), .Query(rhsQuery, _)):
             return lhsQuery == rhsQuery
         default:
             return false
@@ -45,7 +44,7 @@ struct Model: Equatable {
     let info: InfoMessage
     let container: ScrollState
     let keyMap: KeyMap
-    
+
     func copy(withViews views: [Views]? = nil,
               withStatus status: StatusModel? = nil,
               withLog log: AsyncData<LogInfo>? = nil,
@@ -59,32 +58,29 @@ struct Model: Equatable {
               commit: commit ?? self.commit,
               info: info ?? self.info,
               container: container ?? self.container,
-              keyMap: keyMap ?? self.keyMap
-        )
+              keyMap: keyMap ?? self.keyMap)
     }
-    
+
     func pushView(view: Views) -> Model {
-        copy(withViews: self.views + [view])
+        copy(withViews: views + [view])
     }
-    
+
     func popView() -> Model {
-        copy(withViews: self.views.dropLast())
+        copy(withViews: views.dropLast())
     }
 }
 
 struct KeyMap: Equatable {
-    let map: [KeyEvent : (Model) -> (Model, Cmd<Message>)]
-    
-    init(_ map: [KeyEvent : (Model) -> (Model, Cmd<Message>)]) {
+    let map: [KeyEvent: (Model) -> (Model, Cmd<Message>)]
+
+    init(_ map: [KeyEvent: (Model) -> (Model, Cmd<Message>)]) {
         self.map = map
     }
-    
-    subscript(key: KeyEvent, model: Model) -> (Model) -> (Model, Cmd<Message>) {
-        get {
-            map[key, default: { ($0, Cmd.none()) }]
-        }
+
+    subscript(key: KeyEvent, _: Model) -> (Model) -> (Model, Cmd<Message>) {
+        map[key, default: { ($0, Cmd.none()) }]
     }
-    
+
     static func == (lhs: KeyMap, rhs: KeyMap) -> Bool {
         lhs.map.keys == rhs.map.keys
     }

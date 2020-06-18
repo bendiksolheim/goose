@@ -66,62 +66,62 @@ public enum Key: Equatable {
 
     var rawValue: UInt16 {
         switch self {
-        case .ctrl2:           return 0x00
-        case .ctrlA:           return 0x01
-        case .ctrlB:           return 0x02
-        case .ctrlC:           return 0x03
-        case .ctrlD:          return 0x04
-        case .ctrlE:           return 0x05
-        case .ctrlF:           return 0x06
-        case .ctrlG:           return 0x07
-        case .backspace:       return 0x08
-        case .tab:             return 0x09
-        case .ctrlJ:           return 0x0a
-        case .ctrlK:           return 0x0b
-        case .ctrlL:           return 0x0c
-        case .enter:           return 0x0d
-        case .ctrlN:           return 0x0e
-        case .ctrlO:           return 0x0f
-        case .ctrlP:           return 0x10
-        case .ctrlQ:           return 0x11
-        case .ctrlR:           return 0x12
-        case .ctrlS:           return 0x13
-        case .ctrlT:           return 0x14
-        case .ctrlU:           return 0x15
-        case .ctrlV:           return 0x16
-        case .ctrlW:           return 0x17
-        case .ctrlX:           return 0x18
-        case .ctrlY:           return 0x19
-        case .ctrlZ:           return 0x1a
-        case .esc:             return 0x1b
-        case .ctrlBackslash:   return 0x1c
-        case .ctrlRightBracket:return 0x1d
-        case .ctrl6:           return 0x1e
-        case .ctrlSlash:       return 0x1f
-        case .space:           return 0x20
+        case .ctrl2: return 0x00
+        case .ctrlA: return 0x01
+        case .ctrlB: return 0x02
+        case .ctrlC: return 0x03
+        case .ctrlD: return 0x04
+        case .ctrlE: return 0x05
+        case .ctrlF: return 0x06
+        case .ctrlG: return 0x07
+        case .backspace: return 0x08
+        case .tab: return 0x09
+        case .ctrlJ: return 0x0A
+        case .ctrlK: return 0x0B
+        case .ctrlL: return 0x0C
+        case .enter: return 0x0D
+        case .ctrlN: return 0x0E
+        case .ctrlO: return 0x0F
+        case .ctrlP: return 0x10
+        case .ctrlQ: return 0x11
+        case .ctrlR: return 0x12
+        case .ctrlS: return 0x13
+        case .ctrlT: return 0x14
+        case .ctrlU: return 0x15
+        case .ctrlV: return 0x16
+        case .ctrlW: return 0x17
+        case .ctrlX: return 0x18
+        case .ctrlY: return 0x19
+        case .ctrlZ: return 0x1A
+        case .esc: return 0x1B
+        case .ctrlBackslash: return 0x1C
+        case .ctrlRightBracket: return 0x1D
+        case .ctrl6: return 0x1E
+        case .ctrlSlash: return 0x1F
+        case .space: return 0x20
 
-        case .f1:              return 0xffff-0
-        case .f2:              return 0xffff-1
-        case .f3:              return 0xffff-2
-        case .f4:              return 0xffff-3
-        case .f5:              return 0xffff-4
-        case .f6:              return 0xffff-5
-        case .f7:              return 0xffff-6
-        case .f8:              return 0xffff-7
-        case .f9:              return 0xffff-8
-        case .f10:             return 0xffff-9
-        case .f11:             return 0xffff-10
-        case .f12:             return 0xffff-11
-        case .insert:          return 0xffff-12
-        case .delete:          return 0xffff-13
-        case .home:            return 0xffff-14
-        case .end:             return 0xffff-15
-        case .pageUp:          return 0xffff-16
-        case .pageDown:        return 0xffff-17
-        case .arrowLeft:       return 0xffff-18
-        case .arrowRight:      return 0xffff-19
-        case .arrowDown:       return 0xffff-20
-        case .arrowUp:         return 0xffff-21
+        case .f1: return 0xFFFF - 0
+        case .f2: return 0xFFFF - 1
+        case .f3: return 0xFFFF - 2
+        case .f4: return 0xFFFF - 3
+        case .f5: return 0xFFFF - 4
+        case .f6: return 0xFFFF - 5
+        case .f7: return 0xFFFF - 6
+        case .f8: return 0xFFFF - 7
+        case .f9: return 0xFFFF - 8
+        case .f10: return 0xFFFF - 9
+        case .f11: return 0xFFFF - 10
+        case .f12: return 0xFFFF - 11
+        case .insert: return 0xFFFF - 12
+        case .delete: return 0xFFFF - 13
+        case .home: return 0xFFFF - 14
+        case .end: return 0xFFFF - 15
+        case .pageUp: return 0xFFFF - 16
+        case .pageDown: return 0xFFFF - 17
+        case .arrowLeft: return 0xFFFF - 18
+        case .arrowRight: return 0xFFFF - 19
+        case .arrowDown: return 0xFFFF - 20
+        case .arrowUp: return 0xFFFF - 21
 
         case let .rawValue(rawValue):
             return rawValue
@@ -130,13 +130,13 @@ public enum Key: Equatable {
 
     // These are all ASCII code points below SPACE character and a BACKSPACE
     // key.
-    public static let ctrlTilde: Key        = .ctrl2
-    public static let ctrlH: Key            = .backspace
-    public static let ctrlI: Key            = .tab
-    public static let ctrlM: Key            = .enter
-    public static let ctrl3: Key            = .esc
-    public static let ctrlLeftBracket: Key  = .esc
-    public static let ctrlDash: Key         = .ctrlSlash
+    public static let ctrlTilde: Key = .ctrl2
+    public static let ctrlH: Key = .backspace
+    public static let ctrlI: Key = .tab
+    public static let ctrlM: Key = .enter
+    public static let ctrl3: Key = .esc
+    public static let ctrlLeftBracket: Key = .esc
+    public static let ctrlDash: Key = .ctrlSlash
 
     public init(rawValue: UInt16) {
         switch rawValue {
@@ -149,12 +149,12 @@ public enum Key: Equatable {
         case 0x06: self = .ctrlF
         case 0x07: self = .ctrlG
         case 0x09: self = .tab
-        case 0x0a: self = .ctrlJ
-        case 0x0b: self = .ctrlK
-        case 0x0c: self = .ctrlL
-        case 0x0d: self = .enter
-        case 0x0e: self = .ctrlN
-        case 0x0f: self = .ctrlO
+        case 0x0A: self = .ctrlJ
+        case 0x0B: self = .ctrlK
+        case 0x0C: self = .ctrlL
+        case 0x0D: self = .enter
+        case 0x0E: self = .ctrlN
+        case 0x0F: self = .ctrlO
         case 0x10: self = .ctrlP
         case 0x11: self = .ctrlQ
         case 0x12: self = .ctrlR
@@ -165,37 +165,37 @@ public enum Key: Equatable {
         case 0x17: self = .ctrlW
         case 0x18: self = .ctrlX
         case 0x19: self = .ctrlY
-        case 0x1a: self = .ctrlZ
-        case 0x1b: self = .esc
-        case 0x1c: self = .ctrlBackslash
-        case 0x1d: self = .ctrlRightBracket
-        case 0x1e: self = .ctrl6
-        case 0x1f: self = .ctrlSlash
+        case 0x1A: self = .ctrlZ
+        case 0x1B: self = .esc
+        case 0x1C: self = .ctrlBackslash
+        case 0x1D: self = .ctrlRightBracket
+        case 0x1E: self = .ctrl6
+        case 0x1F: self = .ctrlSlash
         case 0x20: self = .space
         case 0x08: self = .backspace
-        case 0x7f: self = .backspace
-        case 0xffff-0: self = .f1
-        case 0xffff-1: self = .f2
-        case 0xffff-2: self = .f3
-        case 0xffff-3: self = .f4
-        case 0xffff-4: self = .f5
-        case 0xffff-5: self = .f6
-        case 0xffff-6: self = .f7
-        case 0xffff-7: self = .f8
-        case 0xffff-8: self = .f9
-        case 0xffff-9: self = .f10
-        case 0xffff-10: self = .f11
-        case 0xffff-11: self = .f12
-        case 0xffff-12: self = .insert
-        case 0xffff-13: self = .delete
-        case 0xffff-14: self = .home
-        case 0xffff-15: self = .end
-        case 0xffff-16: self = .pageUp
-        case 0xffff-17: self = .pageDown
-        case 0xffff-18: self = .arrowLeft
-        case 0xffff-19: self = .arrowRight
-        case 0xffff-20: self = .arrowDown
-        case 0xffff-21: self = .arrowUp
+        case 0x7F: self = .backspace
+        case 0xFFFF - 0: self = .f1
+        case 0xFFFF - 1: self = .f2
+        case 0xFFFF - 2: self = .f3
+        case 0xFFFF - 3: self = .f4
+        case 0xFFFF - 4: self = .f5
+        case 0xFFFF - 5: self = .f6
+        case 0xFFFF - 6: self = .f7
+        case 0xFFFF - 7: self = .f8
+        case 0xFFFF - 8: self = .f9
+        case 0xFFFF - 9: self = .f10
+        case 0xFFFF - 10: self = .f11
+        case 0xFFFF - 11: self = .f12
+        case 0xFFFF - 12: self = .insert
+        case 0xFFFF - 13: self = .delete
+        case 0xFFFF - 14: self = .home
+        case 0xFFFF - 15: self = .end
+        case 0xFFFF - 16: self = .pageUp
+        case 0xFFFF - 17: self = .pageDown
+        case 0xFFFF - 18: self = .arrowLeft
+        case 0xFFFF - 19: self = .arrowRight
+        case 0xFFFF - 20: self = .arrowDown
+        case 0xFFFF - 21: self = .arrowUp
         default:
             self = .rawValue(rawValue)
         }
@@ -205,7 +205,6 @@ public enum Key: Equatable {
         return lhs.rawValue == rhs.rawValue
     }
 }
-
 
 public typealias AttrSize = UInt16
 /// Attributes, it is possible to use multiple attributes by combining them
@@ -223,54 +222,54 @@ public struct Attributes: OptionSet {
     public static let zero: Attributes = []
 
     // colors
-    public static let red           = Attributes(rawValue: AttrSize(TB_RED))
-    public static let green         = Attributes(rawValue: AttrSize(TB_GREEN))
-    public static let yellow        = Attributes(rawValue: AttrSize(TB_YELLOW))
-    public static let blue          = Attributes(rawValue: AttrSize(TB_BLUE))
-    public static let magenta       = Attributes(rawValue: AttrSize(TB_MAGENTA))
-    public static let cyan          = Attributes(rawValue: AttrSize(TB_CYAN))
-    public static let lighterGray   = Attributes(rawValue: AttrSize(TB_LIGHTER_GRAY))
-    public static let mediumGray    = Attributes(rawValue: AttrSize(TB_MEDIUM_GRAY))
-    public static let lightRed      = Attributes(rawValue: AttrSize(TB_LIGHT_RED))
-    public static let lightGreen    = Attributes(rawValue: AttrSize(TB_LIGHT_GREEN))
-    public static let lightYellow   = Attributes(rawValue: AttrSize(TB_LIGHT_YELLOW))
-    public static let lightBlue     = Attributes(rawValue: AttrSize(TB_LIGHT_BLUE))
-    public static let lightMagenta  = Attributes(rawValue: AttrSize(TB_LIGHT_MAGENTA))
-    public static let lightCyan     = Attributes(rawValue: AttrSize(TB_LIGHT_CYAN))
-    public static let white         = Attributes(rawValue: AttrSize(TB_WHITE))
-    public static let black         = Attributes(rawValue: AttrSize(TB_BLACK))
-    public static let darkestGray   = Attributes(rawValue: AttrSize(TB_DARKEST_GRAY))
-    public static let darkerGray    = Attributes(rawValue: AttrSize(TB_DARKER_GRAY))
-    public static let darkGray      = Attributes(rawValue: AttrSize(TB_DARK_GRAY))
-    public static let lightGray     = Attributes(rawValue: AttrSize(TB_LIGHT_GRAY))
-    public static let lightestGray  = Attributes(rawValue: AttrSize(TB_LIGHTEST_GRAY))
+    public static let red = Attributes(rawValue: AttrSize(TB_RED))
+    public static let green = Attributes(rawValue: AttrSize(TB_GREEN))
+    public static let yellow = Attributes(rawValue: AttrSize(TB_YELLOW))
+    public static let blue = Attributes(rawValue: AttrSize(TB_BLUE))
+    public static let magenta = Attributes(rawValue: AttrSize(TB_MAGENTA))
+    public static let cyan = Attributes(rawValue: AttrSize(TB_CYAN))
+    public static let lighterGray = Attributes(rawValue: AttrSize(TB_LIGHTER_GRAY))
+    public static let mediumGray = Attributes(rawValue: AttrSize(TB_MEDIUM_GRAY))
+    public static let lightRed = Attributes(rawValue: AttrSize(TB_LIGHT_RED))
+    public static let lightGreen = Attributes(rawValue: AttrSize(TB_LIGHT_GREEN))
+    public static let lightYellow = Attributes(rawValue: AttrSize(TB_LIGHT_YELLOW))
+    public static let lightBlue = Attributes(rawValue: AttrSize(TB_LIGHT_BLUE))
+    public static let lightMagenta = Attributes(rawValue: AttrSize(TB_LIGHT_MAGENTA))
+    public static let lightCyan = Attributes(rawValue: AttrSize(TB_LIGHT_CYAN))
+    public static let white = Attributes(rawValue: AttrSize(TB_WHITE))
+    public static let black = Attributes(rawValue: AttrSize(TB_BLACK))
+    public static let darkestGray = Attributes(rawValue: AttrSize(TB_DARKEST_GRAY))
+    public static let darkerGray = Attributes(rawValue: AttrSize(TB_DARKER_GRAY))
+    public static let darkGray = Attributes(rawValue: AttrSize(TB_DARK_GRAY))
+    public static let lightGray = Attributes(rawValue: AttrSize(TB_LIGHT_GRAY))
+    public static let lightestGray = Attributes(rawValue: AttrSize(TB_LIGHTEST_GRAY))
 
     // other
-    public static let bold      = Attributes(rawValue: AttrSize(TB_BOLD))
+    public static let bold = Attributes(rawValue: AttrSize(TB_BOLD))
     public static let underline = Attributes(rawValue: AttrSize(TB_UNDERLINE))
-    public static let reverse   = Attributes(rawValue: AttrSize(TB_REVERSE))
+    public static let reverse = Attributes(rawValue: AttrSize(TB_REVERSE))
 }
 
 public enum Modifier: UInt8 {
     case none = 0
-    case shiftAlt     // 1
-    case shift        // 2
-    case alt          // 3
-    case altShift     // 4
-    case ctrl         // 5
-    case ctrlShift    // 6
-    case altCtrl      // 7
+    case shiftAlt // 1
+    case shift // 2
+    case alt // 3
+    case altShift // 4
+    case ctrl // 5
+    case ctrlShift // 6
+    case altCtrl // 7
     case altCtrlShift // 8
-    case altAlt       // 9
+    case altAlt // 9
 }
 
 public enum Mouse: UInt16 {
-    case left = 0xffe9      // 0xffff-22
-    case right = 0xffe8     // 0xffff-23
-    case middle = 0xffe7    // 0xffff-24
-    case release = 0xffe6   // 0xffff-25
-    case wheelUp = 0xffe5   // 0xffff-26
-    case wheelDown = 0xffe4 // 0xffff-27
+    case left = 0xFFE9 // 0xffff-22
+    case right = 0xFFE8 // 0xffff-23
+    case middle = 0xFFE7 // 0xffff-24
+    case release = 0xFFE6 // 0xffff-25
+    case wheelUp = 0xFFE5 // 0xffff-26
+    case wheelDown = 0xFFE4 // 0xffff-27
 }
 
 /// User interaction event.
@@ -426,17 +425,15 @@ public struct Termbox {
     /// Changes cell's parameters in the internal back buffer at the specified
     /// position.
     public static func putc(x: Int32, y: Int32, char: UnicodeScalar,
-        foreground: Attributes = .default, background: Attributes = .default)
-    {
+                            foreground: Attributes = .default, background: Attributes = .default) {
         tb_char(x, y, foreground.rawValue, background.rawValue, char.value)
     }
 
     /// Changes cell's parameters in the internal back buffer at the specified
     /// position.
     public static func puts(x: Int32, y: Int32, string: String,
-        foreground: Attributes = .default, background: Attributes = .default)
-    {
-        string.withCString() { str in
+                            foreground: Attributes = .default, background: Attributes = .default) {
+        string.withCString { str in
             let buffer = UnsafeMutablePointer(mutating: str)
             tb_string(x, y, foreground.rawValue, background.rawValue, buffer)
         }
@@ -454,8 +451,7 @@ public struct Termbox {
 
     /// Wait for an event up to 'timeout' milliseconds and fill the 'event'
     /// structure with it, when the event is available.
-    public static func peekEvent(timeoutInMilliseconds timeout: Int32) -> Event
-    {
+    public static func peekEvent(timeoutInMilliseconds timeout: Int32) -> Event {
         var tbEvent = tb_event()
         switch tb_peek_event(&tbEvent, timeout) {
         case 0:
@@ -475,4 +471,3 @@ public struct Termbox {
 
     public static var debug: (String) -> Void = { _ in }
 }
-
