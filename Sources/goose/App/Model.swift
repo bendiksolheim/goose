@@ -71,14 +71,14 @@ struct Model: Equatable {
 }
 
 struct KeyMap: Equatable {
-    let map: [KeyEvent: (Model) -> (Model, Cmd<Message>)]
+    let map: [KeyEvent: Message]
 
-    init(_ map: [KeyEvent: (Model) -> (Model, Cmd<Message>)]) {
+    init(_ map: [KeyEvent: Message]) {
         self.map = map
     }
 
-    subscript(key: KeyEvent, _: Model) -> (Model) -> (Model, Cmd<Message>) {
-        map[key, default: { ($0, Cmd.none()) }]
+    subscript(key: KeyEvent) -> Message? {
+        map[key]
     }
 
     static func == (lhs: KeyMap, rhs: KeyMap) -> Bool {

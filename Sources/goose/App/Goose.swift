@@ -9,6 +9,7 @@ indirect enum Message {
     case getCommit(String)
     case gotCommit(AsyncData<GitCommit>)
     case keyboard(KeyEvent)
+    case Action(Action)
     case gitCommand(GitCmd)
     case updateVisibility([String: Bool])
     case commandSuccess
@@ -40,6 +41,13 @@ enum Status {
     case Untracked
     case Unstaged
     case Staged
+}
+
+enum Action {
+    case PopView
+    case Log
+    case Refresh
+    case Commit
 }
 
 func initialize() -> (Model, Cmd<Message>) {
@@ -87,7 +95,14 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.copy(withCommit: model.commit.with(commit: commit)), Cmd.none())
 
     case let .keyboard(event):
-        return model.keyMap[event, model](model)
+        if let message = model.keyMap[event] {
+            return (model, Cmd.message(message))
+        } else {
+            return (model, Cmd.none())
+        }
+        
+    case let .Action(action):
+        return performAction(action, model)
 
     case let .gitCommand(command):
         return performCommand(model, command)
@@ -213,19 +228,35 @@ func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
     }
 }
 
+func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
+    switch action {
+    case .Commit:
+        return (model, TProcess.spawn { commit() }.perform())
+    
+    case .Log:
+        return (model, Task { getLog() }.perform())
+        
+    case .PopView:
+        return model.views.count > 1 ? (model.popView(), Cmd.none()) : (model, TProcess.quit())
+        
+    case .Refresh:
+        return (model, Task { getStatus() }.perform())
+    }
+}
+
 let normalMap = KeyMap([
-    .q: { $0.views.count > 1 ? ($0.popView(), Cmd.none()) : ($0, TProcess.quit()) },
-    .l: { ($0.pushView(view: .LogView), Task { getLog() }.perform()) },
-    .g: { ($0, Task { getStatus() }.perform()) },
-    .c: { ($0, TProcess.spawn { commit() }.perform()) },
+    .q: .Action(.PopView),
+    .l: .Action(.Log),
+    .g: .Action(.Refresh),
+    .c: .Action(.Commit),
 ])
 
 func queryMap(_ msg: Message) -> KeyMap {
     KeyMap([
-        .y: { ($0, Cmd.message(.queryResult(.Perform(msg)))) },
-        .n: { ($0, Cmd.message(.queryResult(.Abort))) },
-        .q: { ($0, Cmd.message(.queryResult(.Abort))) },
-        .esc: { ($0, Cmd.message(.queryResult(.Abort))) },
+        .y: .queryResult(.Perform(msg)),
+        .n: .queryResult(.Abort),
+        .q: .queryResult(.Abort),
+        .esc: .queryResult(.Abort),
     ])
 }
 
