@@ -104,6 +104,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         }
         
     case let .Action(action):
+        os_log("%{public}@", "\(action)")
         return performAction(action, model)
 
     case let .gitCommand(command):
@@ -113,7 +114,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.with(status: model.status.with(visibility: visibility)), Cmd.none())
 
     case .commandSuccess:
-        return (model, Task { getStatus() }.perform())
+        return (model.with(keyMap: normalMap), Task { getStatus() }.perform())
 
     case let .info(info):
         switch info {
@@ -242,7 +243,7 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model, TProcess.spawn { commit(true) }.perform())
     
     case .Log:
-        return (model, Task { getLog() }.perform())
+        return (model.pushView(view: Views.LogView), Task { getLog() }.perform())
         
     case .PopView:
         return model.views.count > 1 ? (model.popView(), Cmd.none()) : (model, TProcess.quit())
