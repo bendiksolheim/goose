@@ -42,30 +42,30 @@ struct Model: Equatable {
     let log: AsyncData<LogInfo>
     let commit: CommitModel
     let info: InfoMessage
-    let container: ScrollState
+    let scrollState: ScrollState
     let keyMap: KeyMap
 
-    func copy(withViews views: [Views]? = nil,
-              withStatus status: StatusModel? = nil,
-              withLog log: AsyncData<LogInfo>? = nil,
-              withCommit commit: CommitModel? = nil,
-              withInfo info: InfoMessage? = nil,
-              withContainer container: ScrollState? = nil,
-              withKeyMap keyMap: KeyMap? = nil) -> Model {
+    func with(views: [Views]? = nil,
+              status: StatusModel? = nil,
+              log: AsyncData<LogInfo>? = nil,
+              commit: CommitModel? = nil,
+              info: InfoMessage? = nil,
+              scrollState: ScrollState? = nil,
+              keyMap: KeyMap? = nil) -> Model {
         Model(views: views ?? self.views,
               status: status ?? self.status,
               log: log ?? self.log,
               commit: commit ?? self.commit,
               info: info ?? self.info,
-              container: container ?? self.container,
+              scrollState: scrollState ?? self.scrollState,
               keyMap: keyMap ?? self.keyMap)
     }
 
     func pushView(view: Views) -> Model {
-        copy(withViews: views + [view])
+        with(views: views + [view])
     }
 
     func popView() -> Model {
-        copy(withViews: views.dropLast())
+        with(views: views.dropLast())
     }
 }

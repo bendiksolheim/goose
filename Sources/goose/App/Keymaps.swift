@@ -1,4 +1,5 @@
 import Foundation
+import tea
 
 struct KeyMap: Equatable {
     let map: [KeyEvent: Message]

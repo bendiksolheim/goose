@@ -60,7 +60,7 @@ func initialize() -> (Model, Cmd<Message>) {
                   log: .loading,
                   commit: commitModel,
                   info: .None,
-                  container: ScrollView<Message>.initialState(),
+                  scrollState: ScrollView<Message>.initialState(),
                   keyMap: normalMap),
             Task { getStatus() }.perform())
 }
@@ -78,23 +78,23 @@ func render(model: Model) -> Window<Message> {
     }
 
     return Window(content:
-        [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.container), renderInfoLine(info: model.info)]
+        [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.scrollState), renderInfoLine(info: model.info)]
     )
 }
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
     case let .gotStatus(newStatus):
-        return (model.copy(withStatus: StatusModel(info: newStatus, visibility: model.status.visibility)), Cmd.none())
+        return (model.with(status: StatusModel(info: newStatus, visibility: model.status.visibility)), Cmd.none())
 
     case let .gotLog(log):
-        return (model.copy(withLog: log), Cmd.none())
+        return (model.with(log: log), Cmd.none())
 
     case let .getCommit(ref):
-        return (model.copy(withCommit: model.commit.with(hash: ref, commit: .loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .gotCommit($0) })
+        return (model.with(commit: model.commit.with(hash: ref, commit: .loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .gotCommit($0) })
 
     case let .gotCommit(commit):
-        return (model.copy(withCommit: model.commit.with(commit: commit)), Cmd.none())
+        return (model.with(commit: model.commit.with(commit: commit)), Cmd.none())
 
     case let .keyboard(event):
         if let message = model.keyMap[event] {
@@ -110,7 +110,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return performCommand(model, command)
 
     case let .updateVisibility(visibility):
-        return (model.copy(withStatus: model.status.with(visibility: visibility)), Cmd.none())
+        return (model.with(status: model.status.with(visibility: visibility)), Cmd.none())
 
     case .commandSuccess:
         return (model, Task { getStatus() }.perform())
@@ -118,29 +118,29 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .info(info):
         switch info {
         case .Message:
-            return (model.copy(withInfo: info), TProcess.sleep(5.0).perform { Message.clearInfo })
+            return (model.with(info: info), TProcess.sleep(5.0).perform { Message.clearInfo })
         case let .Query(_, cmd):
-            return (model.copy(withInfo: info, withKeyMap: queryMap(cmd)), Cmd.none())
+            return (model.with(info: info, keyMap: queryMap(cmd)), Cmd.none())
         default:
-            return (model.copy(withInfo: info), Cmd.none())
+            return (model.with(info: info), Cmd.none())
         }
 
     case .clearInfo:
-        return (model.copy(withInfo: .None), Cmd.none())
+        return (model.with(info: .None), Cmd.none())
 
     case let .queryResult(queryResult):
         switch queryResult {
         case .Abort:
-            return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.none())
+            return (model.with(info: .None, keyMap: normalMap), Cmd.none())
         case let .Perform(msg):
-            return (model.copy(withInfo: .None, withKeyMap: normalMap), Cmd.message(msg))
+            return (model.with(info: .None, keyMap: normalMap), Cmd.message(msg))
         }
 
     case let .ViewFile(file):
         return (model, TProcess.spawn { view(file: file) }.perform { $0 })
 
     case let .container(containerMsg):
-        return (model.copy(withContainer: ScrollView<Message>.update(containerMsg, model.container)), Cmd.none())
+        return (model.with(scrollState: ScrollView<Message>.update(containerMsg, model.scrollState)), Cmd.none())
     }
 }
 
@@ -233,7 +233,7 @@ func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
 func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     switch action {
     case let .KeyMap(keyMap):
-        return (model.copy(withKeyMap: keyMap), Cmd.none())
+        return (model.with(keyMap: keyMap), Cmd.none())
         
     case .Commit:
         return (model, TProcess.spawn { commit() }.perform())
