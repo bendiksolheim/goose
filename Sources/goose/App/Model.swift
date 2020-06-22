@@ -69,19 +69,3 @@ struct Model: Equatable {
         copy(withViews: views.dropLast())
     }
 }
-
-struct KeyMap: Equatable {
-    let map: [KeyEvent: Message]
-
-    init(_ map: [KeyEvent: Message]) {
-        self.map = map
-    }
-
-    subscript(key: KeyEvent) -> Message? {
-        map[key]
-    }
-
-    static func == (lhs: KeyMap, rhs: KeyMap) -> Bool {
-        lhs.map.keys == rhs.map.keys
-    }
-}

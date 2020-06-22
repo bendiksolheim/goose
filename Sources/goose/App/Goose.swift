@@ -44,10 +44,12 @@ enum Status {
 }
 
 enum Action {
+    case KeyMap(KeyMap)
     case PopView
     case Log
     case Refresh
     case Commit
+    case AmendCommit
 }
 
 func initialize() -> (Model, Cmd<Message>) {
@@ -230,8 +232,14 @@ func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
 
 func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     switch action {
+    case let .KeyMap(keyMap):
+        return (model.copy(withKeyMap: keyMap), Cmd.none())
+        
     case .Commit:
         return (model, TProcess.spawn { commit() }.perform())
+        
+    case .AmendCommit:
+        return (model, TProcess.spawn { commit(true) }.perform())
     
     case .Log:
         return (model, Task { getLog() }.perform())
@@ -242,22 +250,6 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     case .Refresh:
         return (model, Task { getStatus() }.perform())
     }
-}
-
-let normalMap = KeyMap([
-    .q: .Action(.PopView),
-    .l: .Action(.Log),
-    .g: .Action(.Refresh),
-    .c: .Action(.Commit),
-])
-
-func queryMap(_ msg: Message) -> KeyMap {
-    KeyMap([
-        .y: .queryResult(.Perform(msg)),
-        .n: .queryResult(.Abort),
-        .q: .queryResult(.Abort),
-        .esc: .queryResult(.Abort),
-    ])
 }
 
 let subscriptions: [Sub<Message>] = [
