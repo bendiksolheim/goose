@@ -28,14 +28,15 @@ Working (more or less)
 - UI: scrolling
 - Open file under cursor
 - Window resizing
+- Amend commit
 
-Next up (far from exhaustive, just a short list of possible next tasks..)
+Todo (far from exhaustive, just a short list of possible next tasks..)
 - Better git error handling
 - Git input/output log for debugging
 - Async tasks so we don’t block rendering
 - Transient command system (aka the Magit menu system)
-- Amend commit
 - Search in active buffer to quickly move around
+- Stashes
 - See commit content
 - Optimizations
 - Stage / unstage /discard lines
