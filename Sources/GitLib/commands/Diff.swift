@@ -4,15 +4,11 @@ import os.log
 
 public struct Diff {
     public static func files() -> GitCommand {
-        GitCommand(
-            arguments: ["diff-files", "--patch", "--no-color"]
-        )
+        GitCommand(["diff-files", "--patch", "--no-color"])
     }
 
     public static func index() -> GitCommand {
-        GitCommand(
-            arguments: ["diff-index", "--cached", "--patch", "--no-color", "HEAD"]
-        )
+        GitCommand(["diff-index", "--cached", "--patch", "--no-color", "HEAD"])
     }
 
     public static func parse(_ input: String) -> GitDiff {

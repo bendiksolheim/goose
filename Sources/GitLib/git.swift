@@ -2,55 +2,39 @@ import Foundation
 
 public struct GitCommand {
     public let arguments: [String]
+    
+    public init(_ arguments: [String]) {
+        self.arguments = arguments
+    }
 }
 
 public struct Git {
     public static func branchName() -> GitCommand {
-        GitCommand(
-            arguments: ["symbolic-ref", "--short", "HEAD"]
-        )
+        GitCommand(["symbolic-ref", "--short", "HEAD"])
     }
 
     public static func getCommit(_ ref: String) -> GitCommand {
-        GitCommand(
-            arguments: ["show", "-s", "-z", "--format=\(commitFormat)", ref]
-        )
+        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)", ref])
     }
 
     public static func log(num: Int) -> GitCommand {
-        GitCommand(
-            arguments: ["log", "-n\(num)", "--format=\(commitFormat)", "-z"]
-        )
+        GitCommand(["log", "-n\(num)", "--format=\(commitFormat)", "-z"])
     }
 
     public static func status() -> GitCommand {
-        GitCommand(
-            arguments: ["status", "--porcelain=v2"]
-        )
+        GitCommand(["status", "--porcelain=v2"])
     }
 
     public static func add(_ files: [String]) -> GitCommand {
-        GitCommand(
-            arguments: ["add", "--"] + files
-        )
+        GitCommand(["add", "--"] + files)
     }
 
     public static func reset(_ files: [String]) -> GitCommand {
-        GitCommand(
-            arguments: ["reset", "--"] + files
-        )
-    }
-
-    public static func diffFiles() -> GitCommand {
-        GitCommand(
-            arguments: ["diff-files", "-z", "--patch", "--no-color"]
-        )
+        GitCommand(["reset", "--"] + files)
     }
 
     public static func apply(reverse: Bool = false, cached: Bool = false) -> GitCommand {
-        GitCommand(
-            arguments: ["apply", "--ignore-space-change"] + (reverse ? ["--reverse"] : []) + (cached ? ["--cached"] : [])
-        )
+        GitCommand(["apply", "--ignore-space-change"] + (reverse ? ["--reverse"] : []) + (cached ? ["--cached"] : []))
     }
 }
 
