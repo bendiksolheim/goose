@@ -2,7 +2,7 @@ import Foundation
 
 public struct GitCommand {
     public let arguments: [String]
-    
+
     public init(_ arguments: [String]) {
         self.arguments = arguments
     }
@@ -35,6 +35,33 @@ public struct Git {
 
     public static func apply(reverse: Bool = false, cached: Bool = false) -> GitCommand {
         GitCommand(["apply", "--ignore-space-change"] + (reverse ? ["--reverse"] : []) + (cached ? ["--cached"] : []))
+    }
+    
+    public static func checkout(ref: String = "HEAD", files: [String]) -> GitCommand {
+        GitCommand(["checkout", ref, "--"] + files)
+    }
+    
+    public static func restore(_ files: [String], staged: Bool = false) -> GitCommand {
+        GitCommand(["restore"] + files + (staged ? ["--staged"] : []))
+    }
+
+    public struct diff {
+        public static func files() -> GitCommand {
+            GitCommand(["diff-files", "--patch", "--no-color"])
+        }
+
+        public static func index() -> GitCommand {
+            GitCommand(["diff-index", "--cached", "--patch", "--no-color", "HEAD"])
+        }
+
+        public static func parse(_ input: String) -> GitDiff {
+            let diff = internalParse(input)
+            return GitDiff(diff.files.map { filename, file in
+                GitFile(filename, file.hunks.map { _, hunk in
+                    GitHunk(hunk.lines, hunk.patch.joined(separator: "\n") + "\n")
+                })
+            })
+        }
     }
 }
 

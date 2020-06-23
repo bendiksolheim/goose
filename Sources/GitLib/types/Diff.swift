@@ -2,25 +2,6 @@ import Bow
 import Foundation
 import os.log
 
-public struct Diff {
-    public static func files() -> GitCommand {
-        GitCommand(["diff-files", "--patch", "--no-color"])
-    }
-
-    public static func index() -> GitCommand {
-        GitCommand(["diff-index", "--cached", "--patch", "--no-color", "HEAD"])
-    }
-
-    public static func parse(_ input: String) -> GitDiff {
-        let diff = internalParse(input)
-        return GitDiff(diff.files.map { filename, file in
-            GitFile(filename, file.hunks.map { _, hunk in
-                GitHunk(hunk.lines, hunk.patch.joined(separator: "\n") + "\n")
-            })
-        })
-    }
-}
-
 public enum GitAnnotation: Equatable {
     case Summary
     case Added
@@ -76,7 +57,7 @@ public struct GitDiff: Equatable {
     }
 }
 
-private func internalParse(_ input: String) -> GDiff {
+func internalParse(_ input: String) -> GDiff {
     let lines = input.split(regex: "\n")
 
     let diff = GDiff()
@@ -110,7 +91,7 @@ private func internalParse(_ input: String) -> GDiff {
     return diff
 }
 
-private class GHunk: CustomStringConvertible {
+class GHunk: CustomStringConvertible {
     var patch: [String] = []
     var header: String
     var lines: [String] = []
@@ -132,7 +113,7 @@ private class GHunk: CustomStringConvertible {
     }
 }
 
-private class GFile: CustomStringConvertible {
+class GFile: CustomStringConvertible {
     var header: [String] = []
     var hunks: [String: GHunk] = [:]
 
@@ -149,7 +130,7 @@ private class GFile: CustomStringConvertible {
     }
 }
 
-private class GDiff: CustomStringConvertible {
+class GDiff: CustomStringConvertible {
     var files: [String: GFile] = [:]
 
     subscript(key: String) -> GFile? {

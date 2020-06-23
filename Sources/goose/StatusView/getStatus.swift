@@ -28,8 +28,8 @@ public enum AsyncData<T: Equatable>: Equatable {
 func getStatus() -> Message {
     let tasks = IO.parZip(execute(process: ProcessDescription.git(Git.status())).flatMap(mapStatus),
                           execute(process: ProcessDescription.git(Git.log(num: 10))),
-                          execute(process: ProcessDescription.git(Diff.files())),
-                          execute(process: ProcessDescription.git(Diff.index())))^
+                          execute(process: ProcessDescription.git(Git.diff.files())),
+                          execute(process: ProcessDescription.git(Git.diff.index())))^
     let result = tasks.unsafeRunSyncEither()
     let status = result.fold(error, statusSuccess)
     return .gotStatus(status)
@@ -40,9 +40,9 @@ func error<T>(error: Error) -> AsyncData<T> {
 }
 
 func statusSuccess(status: GitStatus, log: ProcessResult, worktree: ProcessResult, index: ProcessResult) -> AsyncData<StatusInfo> {
-    let worktreeFiles = Diff.parse(worktree.output).files
+    let worktreeFiles = Git.diff.parse(worktree.output).files
     let worktreeFilesMap = worktreeFiles.reduce(into: [:]) { $0[$1.source] = $1.hunks }
-    let indexFiles = Diff.parse(index.output).files
+    let indexFiles = Git.diff.parse(index.output).files
     let indexFilesMap = indexFiles.reduce(into: [:]) { $0[$1.source] = $1.hunks }
     return .success(StatusInfo(
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
@@ -71,7 +71,7 @@ func apply(patch: String, reverse: Bool = false, cached: Bool = false) -> Messag
 }
 
 func restore(_ files: [String], _ staged: Bool) -> Message {
-    let task = execute(process: ProcessDescription.git(Restore.file(files, staged: staged)))
+    let task = execute(process: ProcessDescription.git(Git.restore(files, staged: staged)))
     let result = task.unsafeRunSyncEither()
     return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }

@@ -205,7 +205,7 @@ func stagedMapper(_ visibility: [String: Bool]) -> (Staged) -> [TextView<Message
 }
 
 func checkout(files: [String]) -> Message {
-    let task = execute(process: ProcessDescription.git(Checkout.head(files: files)))
+    let task = execute(process: ProcessDescription.git(Git.checkout(files: files)))
     let result = task.unsafeRunSyncEither()
     return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
 }
