@@ -21,8 +21,12 @@ public struct Git {
         GitCommand(["rev-list", "--left-right", "\(branch)...\(branch)@{u}"])
     }
 
-    public static func show(_ ref: String) -> GitCommand {
-        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)", ref])
+    public static func show(_ ref: String...) -> GitCommand {
+        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref)
+    }
+    
+    public static func show(_ ref: [String]) -> GitCommand {
+        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref)
     }
 
     public static func log(num: Int) -> GitCommand {
