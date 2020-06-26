@@ -62,6 +62,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         let exitCode = task.terminationStatus
         if exitCode == 0 {
             let stdOutput = String(data: stdoutData, encoding: .utf8)
+            os_log("Process output: %{public}@", stdOutput ?? "")
             return ProcessResult(output: stdOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
         } else {
             let errOutput = String(data: stderrData, encoding: .utf8)
