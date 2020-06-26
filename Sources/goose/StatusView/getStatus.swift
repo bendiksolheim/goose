@@ -1,3 +1,4 @@
+import Bow
 import BowEffects
 import Foundation
 import GitLib
@@ -25,14 +26,40 @@ public enum AsyncData<T: Equatable>: Equatable {
     }
 }
 
+extension GitCommand {
+    func exec() -> Task<ProcessResult> {
+        execute(process: ProcessDescription.git(self))
+    }
+}
+
 func getStatus() -> Message {
-    let tasks = IO.parZip(execute(process: ProcessDescription.git(Git.status())).flatMap(mapStatus),
-                          execute(process: ProcessDescription.git(Git.log(num: 10))),
-                          execute(process: ProcessDescription.git(Git.diff.files())),
-                          execute(process: ProcessDescription.git(Git.diff.index())))^
-    let result = tasks.unsafeRunSyncEither()
-    let status = result.fold(error, statusSuccess)
-    return .gotStatus(status)
+    let branch = Task<String>.var()
+    let aheadBehind = Task<([String], [String])>.var()
+    let status = Task<GitStatus>.var()
+    let log = Task<ProcessResult>.var()
+    let worktree = Task<ProcessResult>.var()
+    let index = Task<ProcessResult>.var()
+    
+    let result = binding(
+        branch <- Git.symbolicref().exec().map { $0.output },
+        aheadBehind <- Git.revlist(branch.get).exec().map(parseRevlist),
+        status <- Git.status().exec().flatMap(mapStatus),
+        log <- Git.log(num: 10).exec(),
+        worktree <- Git.diff.files().exec(),
+        index <- Git.diff.index().exec(),
+        yield: statusSuccess(status: status.get, log: log.get, worktree: worktree.get, index: index.get)
+    )^
+    
+    return .gotStatus(result.unsafeRunSyncEither().fold(error, identity))
+}
+
+func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
+    let commits = revlist.output.split(regex: "\n")
+    let ahead = commits.filter { $0.starts(with: "<") }.map { String($0[1...]) }
+    let behind = commits.filter { $0.starts(with: ">") }.map { String($0[1...]) }
+    os_log("Ahead: %{public}@", ahead.joined(separator: ","))
+    os_log("Behind: %{public}@", behind.joined(separator: ","))
+    return (ahead, behind)
 }
 
 func error<T>(error: Error) -> AsyncData<T> {
