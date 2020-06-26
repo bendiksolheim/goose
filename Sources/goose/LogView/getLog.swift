@@ -9,7 +9,7 @@ public struct LogInfo: Equatable {
 }
 
 func getLog() -> Message {
-    let tasks = IO.parZip(execute(process: ProcessDescription.git(Git.branchName())),
+    let tasks = IO.parZip(execute(process: ProcessDescription.git(Git.symbolicref())),
                           execute(process: ProcessDescription.git(Git.log(num: 100))))^
     let result = tasks.unsafeRunSyncEither()
     let log: AsyncData = result.fold(error, logSuccess)

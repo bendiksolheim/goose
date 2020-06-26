@@ -9,11 +9,19 @@ public struct GitCommand {
 }
 
 public struct Git {
-    public static func branchName() -> GitCommand {
+    public static func symbolicref() -> GitCommand {
         GitCommand(["symbolic-ref", "--short", "HEAD"])
     }
+    
+    public static func revparse(_ branch: String) -> GitCommand {
+        GitCommand(["rev-parse", "--abbrev-ref", "-symbolic-full-name", "\(branch)@{u}"])
+    }
+    
+    public static func revlist(_ branch: String) -> GitCommand {
+        GitCommand(["rev-list", "--left-right", "\(branch)...\(branch)@{u}"])
+    }
 
-    public static func getCommit(_ ref: String) -> GitCommand {
+    public static func show(_ ref: String) -> GitCommand {
         GitCommand(["show", "-s", "-z", "--format=\(commitFormat)", ref])
     }
 
