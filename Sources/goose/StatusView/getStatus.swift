@@ -47,8 +47,8 @@ func getStatus() -> Message {
         branch <- Git.symbolicref().exec().map { $0.output },
         tracking <- Git.revparse(branch.get).exec().map { $0.output },
         aheadBehind <- Git.revlist(branch.get).exec().map(parseRevlist),
-        ahead <- Git.show(aheadBehind.get.0).exec().map { $0.output }.map(parseCommits),
-        behind <- Git.show(aheadBehind.get.1).exec().map { $0.output }.map(parseCommits),
+        ahead <- getAheadOrBehind(aheadBehind.get.0),
+        behind <- getAheadOrBehind(aheadBehind.get.1),
         status <- Git.status().exec().flatMap(mapStatus),
         log <- Git.log(num: 10).exec().map { $0.output }.map(parseCommits),
         worktree <- Git.diff.files().exec().map(mapDiff),
@@ -66,18 +66,24 @@ func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
     return (ahead, behind)
 }
 
+func getAheadOrBehind(_ aheadOrBehind: [String]) -> Task<[GitCommit]> {
+    aheadOrBehind.isEmpty
+        ? Task.pure([])^
+        : Git.show(aheadOrBehind).exec().map { $0.output }.map(parseCommits)^
+}
+
 func error<T>(error: Error) -> AsyncData<T> {
     .error(error)
 }
 
-func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ log: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit]) -> AsyncData<StatusInfo> {
+func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit]) -> AsyncData<StatusInfo> {
     return .success(StatusInfo(
         branch: branch,
         tracking: tracking,
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
         unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, worktree[$0.file] ?? []) },
         staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, index[$0.file] ?? []) },
-        log: log,
+        log: commits,
         ahead: ahead,
         behind: behind
     ))
