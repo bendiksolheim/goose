@@ -14,7 +14,7 @@ public struct Git {
     }
     
     public static func revparse(_ branch: String) -> GitCommand {
-        GitCommand(["rev-parse", "--abbrev-ref", "-symbolic-full-name", "\(branch)@{u}"])
+        GitCommand(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "\(branch)@{u}"])
     }
     
     public static func revlist(_ branch: String) -> GitCommand {
