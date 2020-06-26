@@ -55,6 +55,13 @@ Bugs
 - Uninstall: `make uninstall`
 - Clean: `make clean`
 
+## References
+
+Useful references to get the functionality just right
+
+- [The official Magit documentation](https://github.com/magit/magit/blob/master/Documentation/magit.org)
+- [edamagit – Magit for VSCode](https://github.com/kahole/edamagit)
+
 ## Attribution
 
 The [tea library](libraries/tea) is inspired (and some stuff copied) from [Ashen](https://github.com/colinta/Ashen).
