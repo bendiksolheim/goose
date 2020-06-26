@@ -1,6 +1,9 @@
 prefix ?= /usr/local
 bindir = $(prefix)/bin
 
+run:
+	swift run
+
 build:
 	swift build -c release --disable-sandbox
 

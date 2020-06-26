@@ -49,7 +49,7 @@ Bugs
 
 ## Instructions
 
-- Run: `swift run`
+- Run: `make run`
 - Build debug: `make debug`
 - Build production: `make build`
 - Install: `make install`
