@@ -30,7 +30,13 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
             views.append(EmptyLine())
         }
 
-        views.append(renderLog(model, status.log))
+        if !status.ahead.isEmpty {
+            views.append(renderLog("Unmerged into \(status.tracking) (\(status.ahead.count))", model, status.ahead))
+        }
+        
+        if !status.log.isEmpty && status.ahead.isEmpty {
+            views.append(renderLog("Recent commits", model, status.log))
+        }
 
         return views
     }
@@ -74,12 +80,12 @@ func renderStaged(_ model: StatusModel, _ staged: [Staged]) -> View<Message> {
     return CollapseView(content: [title] + staged.flatMap(mapper), open: open)
 }
 
-func renderLog(_ model: StatusModel, _ log: [GitCommit]) -> View<Message> {
+func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> View<Message> {
     let open = model.visibility["recent", default: true]
     let events: [ViewEvent<Message>] = [
         (.tab, .updateVisibility(model.visibility.merging(["recent": !open]) { $1 })),
     ]
-    let logTitle = TextView("Recent commits", events: events)
+    let logTitle = TextView(title, events: events)
     return CollapseView(content: [logTitle] + log.map(commitMapper), open: open)
 }
 

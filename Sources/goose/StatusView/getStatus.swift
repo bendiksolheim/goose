@@ -34,22 +34,28 @@ extension GitCommand {
 
 func getStatus() -> Message {
     let branch = Task<String>.var()
+    let tracking = Task<String>.var()
     let aheadBehind = Task<([String], [String])>.var()
+    let ahead = Task<[GitCommit]>.var()
+    let behind = Task<[GitCommit]>.var()
     let status = Task<GitStatus>.var()
-    let log = Task<ProcessResult>.var()
-    let worktree = Task<ProcessResult>.var()
-    let index = Task<ProcessResult>.var()
-    
+    let log = Task<[GitCommit]>.var()
+    let worktree = Task<[String: [GitHunk]]>.var()
+    let index = Task<[String: [GitHunk]]>.var()
+
     let result = binding(
         branch <- Git.symbolicref().exec().map { $0.output },
+        tracking <- Git.revparse(branch.get).exec().map { $0.output },
         aheadBehind <- Git.revlist(branch.get).exec().map(parseRevlist),
+        ahead <- Git.show(aheadBehind.get.0).exec().map { $0.output }.map(parseCommits),
+        behind <- Git.show(aheadBehind.get.1).exec().map { $0.output }.map(parseCommits),
         status <- Git.status().exec().flatMap(mapStatus),
-        log <- Git.log(num: 10).exec(),
-        worktree <- Git.diff.files().exec(),
-        index <- Git.diff.index().exec(),
-        yield: statusSuccess(status: status.get, log: log.get, worktree: worktree.get, index: index.get)
+        log <- Git.log(num: 10).exec().map { $0.output }.map(parseCommits),
+        worktree <- Git.diff.files().exec().map(mapDiff),
+        index <- Git.diff.index().exec().map(mapDiff),
+        yield: statusSuccess(branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get)
     )^
-    
+
     return .gotStatus(result.unsafeRunSyncEither().fold(error, identity))
 }
 
@@ -57,8 +63,6 @@ func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
     let commits = revlist.output.split(regex: "\n")
     let ahead = commits.filter { $0.starts(with: "<") }.map { String($0[1...]) }
     let behind = commits.filter { $0.starts(with: ">") }.map { String($0[1...]) }
-    os_log("Ahead: %{public}@", ahead.joined(separator: ","))
-    os_log("Behind: %{public}@", behind.joined(separator: ","))
     return (ahead, behind)
 }
 
@@ -66,16 +70,16 @@ func error<T>(error: Error) -> AsyncData<T> {
     .error(error)
 }
 
-func statusSuccess(status: GitStatus, log: ProcessResult, worktree: ProcessResult, index: ProcessResult) -> AsyncData<StatusInfo> {
-    let worktreeFiles = Git.diff.parse(worktree.output).files
-    let worktreeFilesMap = worktreeFiles.reduce(into: [:]) { $0[$1.source] = $1.hunks }
-    let indexFiles = Git.diff.parse(index.output).files
-    let indexFilesMap = indexFiles.reduce(into: [:]) { $0[$1.source] = $1.hunks }
+func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ log: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit]) -> AsyncData<StatusInfo> {
     return .success(StatusInfo(
+        branch: branch,
+        tracking: tracking,
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
-        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, worktreeFilesMap[$0.file] ?? []) },
-        staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, indexFilesMap[$0.file] ?? []) },
-        log: parseCommits(log.output)
+        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, worktree[$0.file] ?? []) },
+        staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, index[$0.file] ?? []) },
+        log: log,
+        ahead: ahead,
+        behind: behind
     ))
 }
 
@@ -106,4 +110,9 @@ func restore(_ files: [String], _ staged: Bool) -> Message {
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {
     parseStatus(status.output)
         .fold(IO.raiseError, IO.pure)^
+}
+
+private func mapDiff(diff: ProcessResult) -> [String: [GitHunk]] {
+    let files = Git.diff.parse(diff.output).files
+    return files.reduce(into: [:]) { $0[$1.source] = $1.hunks }
 }

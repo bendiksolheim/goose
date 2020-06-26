@@ -45,10 +45,14 @@ public struct Staged: Equatable {
 }
 
 public struct StatusInfo: Equatable {
+    let branch: String
+    let tracking: String
     let untracked: [Untracked]
     let unstaged: [Unstaged]
     let staged: [Staged]
     let log: [GitCommit]
+    let ahead: [GitCommit]
+    let behind: [GitCommit]
 }
 
 public func isUntracked(_ change: GitChange) -> Bool {
