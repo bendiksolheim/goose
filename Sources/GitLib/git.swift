@@ -56,6 +56,10 @@ public struct Git {
     public static func restore(_ files: [String], staged: Bool = false) -> GitCommand {
         GitCommand(["restore"] + files + (staged ? ["--staged"] : []))
     }
+    
+    public static func push() -> GitCommand {
+        GitCommand(["push"])
+    }
 
     public struct diff {
         public static func files() -> GitCommand {
