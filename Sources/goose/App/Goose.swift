@@ -50,6 +50,7 @@ enum Action {
     case Refresh
     case Commit
     case AmendCommit
+    case Push
 }
 
 func initialize() -> (Model, Cmd<Message>) {
@@ -250,6 +251,9 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         
     case .Refresh:
         return (model, Task { getStatus() }.perform())
+        
+    case .Push:
+        return (model, Task { push() }.perform())
     }
 }
 

@@ -22,11 +22,16 @@ let normalMap = KeyMap([
     .l: .Action(.Log),
     .g: .Action(.Refresh),
     .c: .Action(.KeyMap(commitMap)),
+    .p: .Action(.KeyMap(pushMap))
 ])
 
 let commitMap = KeyMap([
     .c: .Action(.Commit),
     .a: .Action(.AmendCommit)
+])
+
+let pushMap = KeyMap([
+    .u: .Action(.Push)
 ])
 
 func queryMap(_ msg: Message) -> KeyMap {
