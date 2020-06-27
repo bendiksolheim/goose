@@ -1,7 +1,6 @@
 import BowEffects
 import Foundation
 import GitLib
-import os.log
 
 public struct LogInfo: Equatable {
     let branch: String

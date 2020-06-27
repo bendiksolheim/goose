@@ -1,6 +1,5 @@
 import Foundation
 import GitLib
-import os.log
 import tea
 
 indirect enum Message {
@@ -105,7 +104,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         }
         
     case let .Action(action):
-        os_log("%{public}@", "\(action)")
+        log("\(action)")
         return performAction(action, model)
 
     case let .gitCommand(command):

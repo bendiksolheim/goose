@@ -1,7 +1,6 @@
 import Bow
 import Foundation
 import GitLib
-import os.log
 import tea
 
 func renderStatus(model: StatusModel) -> [View<Message>] {
@@ -178,7 +177,7 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String, _ status: Status) -> Text
 
 func stagedMapper(_ visibility: [String: Bool]) -> (Staged) -> [TextView<Message>] {
     { staged in
-        os_log("%{public}@", "\(staged.file)")
+        log(staged.file)
         let open = visibility["staged-\(staged.file)", default: false]
         let events: [ViewEvent<Message>] = [
             (.s, .gitCommand(.Stage(.File(staged.file, .Staged)))),

@@ -2,7 +2,6 @@ import Bow
 import BowEffects
 import Foundation
 import GitLib
-import os.log
 
 public enum AsyncData<T: Equatable>: Equatable {
     case loading

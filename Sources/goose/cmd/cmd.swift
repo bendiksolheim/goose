@@ -1,7 +1,6 @@
 import BowEffects
 import Foundation
 import GitLib
-import os.log
 
 public struct ProcessDescription {
     let workingDirectory: String
@@ -42,14 +41,14 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         task.standardError = stderrPipe
 
         if let _input = input {
-            os_log("Input: %{public}@", _input)
+            log("Input", _input)
             let stdinPipe = Pipe()
             task.standardInput = stdinPipe
             if let data = _input.data(using: .utf8) {
                 stdinPipe.fileHandleForWriting.write(data)
                 stdinPipe.fileHandleForWriting.closeFile()
             } else {
-                os_log("Could not convert string to data: %{public}@", _input)
+                log("Could not convert string to data", _input)
             }
         }
 
@@ -62,13 +61,13 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         let exitCode = task.terminationStatus
         if exitCode == 0 {
             let stdOutput = String(data: stdoutData, encoding: .utf8)
-            os_log("Process output: %{public}@", stdOutput ?? "")
+            log("Process output", stdOutput ?? "")
             return ProcessResult(output: stdOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
         } else {
             let errOutput = String(data: stderrData, encoding: .utf8)
             let stdOutput = String(data: stdoutData, encoding: .utf8)
-            os_log("Command failed stdErr: %{public}@", errOutput ?? "")
-            os_log("Command failed stdOut: %{public}@", stdOutput ?? "")
+            log("Command failed stdErr", errOutput ?? "")
+            log("Command failed stdOut", stdOutput ?? "")
             throw StringError(errOutput ?? "Command exited without error message")
         }
     }
@@ -77,7 +76,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
 private func logCommand(process: ProcessDescription) {
     let executedCommand = ([process.executable] + process.arguments).joined(separator: " ")
     let command = "Process(executable=\(process.executable), arguments=\(process.arguments), workingDirectory=\(process.workingDirectory), cmd=\(executedCommand)"
-    os_log("%{public}@", command)
+    log(command)
 }
 
 private let gitExecutable = "/usr/local/bin/git"

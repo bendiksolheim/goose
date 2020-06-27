@@ -1,7 +1,6 @@
 import BowEffects
 import Foundation
 import GitLib
-import os.log
 
 // https://gist.github.com/dduan/d4e967f3fc2801d3736b726cd34446bc
 
@@ -16,33 +15,33 @@ func runCommand(_ command: String) -> Int {
     cEnvs.forEach { free($0) }
     cArgs.forEach { free($0) }
 
-    os_log("posix_spawn return for pid %{public}d: %{public}d", Int(pid), Int(status))
+    log("posix_spawn return for pid", "pid: \(pid), status: \(status)")
     var returnStatus = -1
     let rc = waitpid(pid, &status, 0)
     if rc == -1 {
         let error = POSIXErrorCode(rawValue: errno)
         switch error {
         case .ECHILD:
-            os_log("ECHILD")
+            log("ECHILD")
         case .EDEADLK:
-            os_log("EDEADLK")
+            log("EDEADLK")
         default:
             if let _error = error {
-                os_log("%{public}@", "\(_error.rawValue)")
+                log("\(_error.rawValue)")
             } else {
-                os_log("Unknown error")
+                log("Unknown error")
             }
         }
     } else {
         if rc != pid {
-            os_log("waitpid returned wrong pid?")
+            log("waitpid returned wrong pid?")
         } else if WIFEXITED(status) { // Normal exit
-            os_log("Normal exit with status code %{public}d", Int(WEXITSTATUS(status)))
+            log("Normal exit with status code", "\(WEXITSTATUS(status))")
             returnStatus = Int(WEXITSTATUS(status))
         } else if WIFSIGNALED(status) {
-            os_log("Terminated due to signal: %{public}d", Int(WTERMSIG(status)))
+            log("Terminated due to signal", "\(WTERMSIG(status))")
         } else if WIFSTOPPED(status) {
-            os_log("Process stopped, can be restarted: %{public}d", Int(WSTOPSIG(status)))
+            log("Process stopped, can be restarted", "\(WSTOPSIG(status))")
         }
     }
 
