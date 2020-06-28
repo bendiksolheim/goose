@@ -3,13 +3,13 @@ import tea
 
 func renderLog(log: AsyncData<LogInfo>) -> [View<Message>] {
     switch log {
-    case .loading:
+    case .Loading:
         return [TextView("Loading...")]
 
-    case let .error(error):
+    case let .Error(error):
         return [TextView("Error: \(error.localizedDescription)")]
 
-    case let .success(log):
+    case let .Success(log):
         let title = TextView<Message>("Commits in \(log.branch)")
         return [CollapseView(content: [title] + log.commits.map(commitMapper), open: true)]
     }

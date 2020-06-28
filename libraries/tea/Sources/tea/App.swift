@@ -5,17 +5,17 @@ import ReactiveSwift
 import Termbox
 
 public enum Sub<Message> {
-    case cursor((ScrollMessage) -> Message)
-    case keyboard((KeyEvent) -> Message)
-    case none
+    case Cursor((ScrollMessage) -> Message)
+    case Keyboard((KeyEvent) -> Message)
+    case None
 }
 
 public func cursor<Message>(_ callback: @escaping (ScrollMessage) -> Message) -> Sub<Message> {
-    Sub.cursor(callback)
+    Sub.Cursor(callback)
 }
 
 public func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Sub<Message> {
-    Sub.keyboard(callback)
+    Sub.Keyboard(callback)
 }
 
 public func run<Model: Equatable, Message>(
@@ -49,19 +49,19 @@ public func run<Model: Equatable, Message>(
                 if let event = app.nextEvent() {
                     os_log("Event: %{public}@", "\(event)")
                     switch event {
-                    case let .key(key):
+                    case let .Key(key):
                         switch key {
                         case let .char(char):
                             switch char {
                             case .j:
                                 if let sub = cursorSubscription {
-                                    let msg = sub(.move(1))
+                                    let msg = sub(.Move(1))
                                     async { messageProducer.send(value: msg) }
                                 }
 
                             case .k:
                                 if let sub = cursorSubscription {
-                                    let msg = sub(.move(-1))
+                                    let msg = sub(.Move(-1))
                                     messageProducer.send(value: msg)
                                 }
 
@@ -97,13 +97,13 @@ public func run<Model: Equatable, Message>(
 
                             case .d:
                                 if let sub = cursorSubscription {
-                                    let msg = sub(.move(10))
+                                    let msg = sub(.Move(10))
                                     async { messageProducer.send(value: msg) }
                                 }
 
                             case .u:
                                 if let sub = cursorSubscription {
-                                    let msg = sub(.move(-10))
+                                    let msg = sub(.Move(-10))
                                     async { messageProducer.send(value: msg) }
                                 }
 
@@ -119,7 +119,7 @@ public func run<Model: Equatable, Message>(
                             async { messageProducer.send(value: message) }
                         }
 
-                    case let .window(width, height):
+                    case let .Window(width, height):
                         let newSize = Size(width: width, height: height)
                         buffer.resize(to: newSize)
                         let window = render(model)
@@ -253,7 +253,7 @@ func renderToScreen<Message>(_ buffer: Buffer<Message>, _ screen: TermboxScreen,
 func getKeyboardSubscription<Message>(subscriptions: [Sub<Message>]) -> ((KeyEvent) -> Message)? {
     for subscription in subscriptions {
         switch subscription {
-        case let .keyboard(fn):
+        case let .Keyboard(fn):
             return fn
         default:
             break
@@ -266,7 +266,7 @@ func getKeyboardSubscription<Message>(subscriptions: [Sub<Message>]) -> ((KeyEve
 func getCursorSubscription<Message>(subscriptions: [Sub<Message>]) -> ((ScrollMessage) -> Message)? {
     for subscription in subscriptions {
         switch subscription {
-        case let .cursor(fn):
+        case let .Cursor(fn):
             return fn
         default:
             break

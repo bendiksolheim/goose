@@ -2,6 +2,6 @@ import Foundation
 import Termbox
 
 enum Event {
-    case key(KeyEvent)
-    case window(width: Int, height: Int)
+    case Key(KeyEvent)
+    case Window(width: Int, height: Int)
 }

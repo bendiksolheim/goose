@@ -12,12 +12,12 @@ func getLog() -> Message {
                           execute(process: ProcessDescription.git(Git.log(num: 100))))^
     let result = tasks.unsafeRunSyncEither()
     let log: AsyncData = result.fold(error, logSuccess)
-    return .gotLog(log)
+    return .GotLog(log)
 }
 
 func logSuccess(branchResult: ProcessResult, logResult: ProcessResult) -> AsyncData<LogInfo> {
     let branch = branchResult.output
     let log = parseCommits(logResult.output)
 
-    return .success(LogInfo(branch: branch, commits: log))
+    return .Success(LogInfo(branch: branch, commits: log))
 }

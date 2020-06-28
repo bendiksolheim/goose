@@ -54,13 +54,13 @@ class TermboxScreen {
         switch termboxEvent {
         case let .key(mod, value):
             if let key = termboxKey(mod, value) {
-                return .key(key)
+                return .Key(key)
             }
         case let .character(mod, value):
             guard let key = termboxCharacter(mod, value) else { return nil }
-            return .key(key)
+            return .Key(key)
         case let .resize(width, height):
-            return .window(width: Int(width), height: Int(height))
+            return .Window(width: Int(width), height: Int(height))
         default:
             break
         }

@@ -3,16 +3,16 @@ import tea
 
 func renderCommit(commit: CommitModel) -> [View<Message>] {
     switch commit.commit {
-    case .loading:
+    case .Loading:
         return [TextView("Loading...")]
 
-    case let .error(error):
+    case let .Error(error):
         return [TextView("Error: \(error.localizedDescription)")]
 
-    case let .success(commit):
+    case let .Success(commit):
         var views: [View<Message>] = []
-        views.append(TextView(Text("Commit \(commit.hash.short)", .white, .blue)))
-        views.append(TextView(Text(commit.hash.full, .any(240))))
+        views.append(TextView(Text("Commit \(commit.hash.short)", .White, .Blue)))
+        views.append(TextView(Text(commit.hash.full, .Custom(240))))
         views.append(TextView("Author:     \(commit.author) \(commit.email)"))
         views.append(TextView("AuthorDate: \(commit.authorDate.format(commitDateFormat))"))
         views.append(TextView("Commit:     \(commit.author) \(commit.email)")) // TODO: need to parse committer

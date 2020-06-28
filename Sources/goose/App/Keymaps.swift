@@ -36,9 +36,9 @@ let pushMap = KeyMap([
 
 func queryMap(_ msg: Message) -> KeyMap {
     KeyMap([
-        .y: .queryResult(.Perform(msg)),
-        .n: .queryResult(.Abort),
-        .q: .queryResult(.Abort),
-        .esc: .queryResult(.Abort),
+        .y: .QueryResult(.Perform(msg)),
+        .n: .QueryResult(.Abort),
+        .q: .QueryResult(.Abort),
+        .esc: .QueryResult(.Abort),
     ])
 }

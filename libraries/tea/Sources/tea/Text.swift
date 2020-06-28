@@ -14,7 +14,7 @@ public struct Text: TextType {
         chars.count
     }
 
-    public init(_ text: String, _ foreground: Color = .normal, _ background: Color = .normal) {
+    public init(_ text: String, _ foreground: Color = .Normal, _ background: Color = .Normal) {
         chars = text.map { Char($0, foreground, background) }
     }
 
@@ -38,7 +38,7 @@ public struct Char {
     let foreground: Color
     let background: Color
 
-    public init(_ char: Character, _ foreground: Color = .normal, _ background: Color = .normal) {
+    public init(_ char: Character, _ foreground: Color = .Normal, _ background: Color = .Normal) {
         self.char = char
         self.foreground = foreground
         self.background = background
@@ -64,11 +64,11 @@ extension String: TextType {
     }
 
     public var foreground: Color {
-        .normal
+        .Normal
     }
 
     public var background: Color {
-        .normal
+        .Normal
     }
 }
 

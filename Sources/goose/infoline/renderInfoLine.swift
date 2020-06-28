@@ -10,6 +10,6 @@ func renderInfoLine(info: InfoMessage) -> TextView<Message> {
         return TextView(message)
 
     case let .Query(message, _):
-        return TextView(Text(message, .blue, .normal))
+        return TextView(Text(message, .Blue, .Normal))
     }
 }

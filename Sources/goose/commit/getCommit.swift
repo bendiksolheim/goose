@@ -9,5 +9,5 @@ func getCommit(_ ref: String) -> AsyncData<GitCommit> {
 }
 
 private func success(commit: ProcessResult) -> AsyncData<GitCommit> {
-    .success(parseCommit(commit.output))
+    .Success(parseCommit(commit.output))
 }

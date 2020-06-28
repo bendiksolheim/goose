@@ -4,19 +4,19 @@ import Foundation
 import GitLib
 
 public enum AsyncData<T: Equatable>: Equatable {
-    case loading
-    case success(T)
-    case error(Error)
+    case Loading
+    case Success(T)
+    case Error(Error)
 
     public static func == (lhs: AsyncData<T>, rhs: AsyncData<T>) -> Bool {
         switch (lhs, rhs) {
-        case (.loading, .loading):
+        case (.Loading, .Loading):
             return true
 
-        case let (.success(l), .success(r)):
+        case let (.Success(l), .Success(r)):
             return l == r
 
-        case let (.error(l), .error(r)):
+        case let (.Error(l), .Error(r)):
             return l.localizedDescription == r.localizedDescription
 
         default:
@@ -55,7 +55,7 @@ func getStatus() -> Message {
         yield: statusSuccess(branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get)
     )^
 
-    return .gotStatus(result.unsafeRunSyncEither().fold(error, identity))
+    return .GotStatus(result.unsafeRunSyncEither().fold(error, identity))
 }
 
 func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
@@ -72,11 +72,11 @@ func getAheadOrBehind(_ aheadOrBehind: [String]) -> Task<[GitCommit]> {
 }
 
 func error<T>(error: Error) -> AsyncData<T> {
-    .error(error)
+    .Error(error)
 }
 
 func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit]) -> AsyncData<StatusInfo> {
-    return .success(StatusInfo(
+    return .Success(StatusInfo(
         branch: branch,
         tracking: tracking,
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
@@ -91,25 +91,25 @@ func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ 
 func addFile(files: [String]) -> Message {
     let task = execute(process: ProcessDescription.git(Git.add(files)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
 }
 
 func resetFile(files: [String]) -> Message {
     let task = execute(process: ProcessDescription.git(Git.reset(files)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
 }
 
 func apply(patch: String, reverse: Bool = false, cached: Bool = false) -> Message {
     let task = execute(process: ProcessDescription.git(Git.apply(reverse: reverse, cached: cached)), input: patch)
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
 }
 
 func restore(_ files: [String], _ staged: Bool) -> Message {
     let task = execute(process: ProcessDescription.git(Git.restore(files, staged: staged)))
     let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.info(.Message($0.localizedDescription)) }, { _ in Message.commandSuccess })
+    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
 }
 
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {

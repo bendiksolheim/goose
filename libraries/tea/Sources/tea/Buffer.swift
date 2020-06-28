@@ -68,16 +68,16 @@ public class Buffer<Message> {
 
         // Colorize leftmost cell inverted
         if let cell = chars[cursor.y, cursor.x] {
-            chars[cursor.y, cursor.x] = cell.with(content: cell.content.with(foreground: .black, background: .white))
+            chars[cursor.y, cursor.x] = cell.with(content: cell.content.with(foreground: .Black, background: .White))
             cursors.append(cursor)
         }
 
         // Colorize line
         for column in 1 ..< size.width {
             if let cell = chars[cursor.y, column] {
-                chars[cursor.y, column] = cell.with(content: cell.content.with(background: .black))
+                chars[cursor.y, column] = cell.with(content: cell.content.with(background: .Black))
             } else {
-                chars[cursor.y, column] = BufferCell(Char(" ", .normal, .black), [])
+                chars[cursor.y, column] = BufferCell(Char(" ", .Normal, .Black), [])
             }
         }
     }

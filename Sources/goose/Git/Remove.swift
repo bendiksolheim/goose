@@ -8,11 +8,11 @@ func remove(files: [String]) -> Message {
     if allExists {
         do {
             try files.forEach { file in try fileManager.removeItem(atPath: file) }
-            return .commandSuccess
+            return .CommandSuccess
         } catch {
-            return .info(.Message("File not found"))
+            return .Info(.Message("File not found"))
         }
     } else {
-        return .info(.Message("File not found"))
+        return .Info(.Message("File not found"))
     }
 }

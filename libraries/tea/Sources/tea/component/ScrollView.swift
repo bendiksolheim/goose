@@ -54,7 +54,7 @@ public class ScrollState: Equatable {
 }
 
 public enum ScrollMessage {
-    case move(Int)
+    case Move(Int)
 }
 
 public class ScrollView<Message>: View<Message> {
@@ -116,7 +116,7 @@ public class ScrollView<Message>: View<Message> {
 
     public class func update(_ message: ScrollMessage, _ state: ScrollState) -> ScrollState {
         switch message {
-        case let .move(num):
+        case let .Move(num):
             var newY = state.cursor.y + num
 
             // Handle moving outside container

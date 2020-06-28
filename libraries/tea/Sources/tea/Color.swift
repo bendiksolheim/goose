@@ -1,39 +1,39 @@
 import Termbox
 
 public enum Color {
-    case normal
-    case black
-    case red
-    case green
-    case yellow
-    case blue
-    case magenta
-    case cyan
-    case white
-    case any(AttrSize)
+    case Normal
+    case Black
+    case Red
+    case Green
+    case Yellow
+    case Blue
+    case Magenta
+    case Cyan
+    case White
+    case Custom(AttrSize)
 
     var toTermbox: Attributes {
         switch self {
-        case .normal:
+        case .Normal:
             return .default
-        case .black:
+        case .Black:
             return .black
-        case .red:
+        case .Red:
             return .red
-        case .green:
+        case .Green:
             return .green
-        case .yellow:
+        case .Yellow:
             return .yellow
-        case .blue:
+        case .Blue:
             return .blue
-        case .magenta:
+        case .Magenta:
             return .magenta
-        case .cyan:
+        case .Cyan:
             return .cyan
-        case .white:
+        case .White:
             return .white
 
-        case let .any(color):
+        case let .Custom(color):
             guard color >= 0, color < 256 else { return .default }
             return Attributes(rawValue: color)
         }

@@ -3,20 +3,20 @@ import GitLib
 import tea
 
 indirect enum Message {
-    case gotStatus(AsyncData<StatusInfo>)
-    case gotLog(AsyncData<LogInfo>)
-    case getCommit(String)
-    case gotCommit(AsyncData<GitCommit>)
-    case keyboard(KeyEvent)
+    case GotStatus(AsyncData<StatusInfo>)
+    case GotLog(AsyncData<LogInfo>)
+    case GetCommit(String)
+    case GotCommit(AsyncData<GitCommit>)
+    case Keyboard(KeyEvent)
     case Action(Action)
-    case gitCommand(GitCmd)
-    case updateVisibility([String: Bool])
-    case commandSuccess
-    case info(InfoMessage)
-    case clearInfo
-    case queryResult(QueryResult)
+    case GitCommand(GitCmd)
+    case UpdateVisibility([String: Bool])
+    case CommandSuccess
+    case Info(InfoMessage)
+    case ClearInfo
+    case QueryResult(QueryResult)
     case ViewFile(String)
-    case container(ScrollMessage)
+    case Container(ScrollMessage)
 }
 
 enum GitCmd {
@@ -53,11 +53,11 @@ enum Action {
 }
 
 func initialize() -> (Model, Cmd<Message>) {
-    let statusModel = StatusModel(info: .loading, visibility: [:])
-    let commitModel = CommitModel(hash: "", commit: .loading)
+    let statusModel = StatusModel(info: .Loading, visibility: [:])
+    let commitModel = CommitModel(hash: "", commit: .Loading)
     return (Model(views: [.StatusView],
                   status: statusModel,
-                  log: .loading,
+                  log: .Loading,
                   commit: commitModel,
                   info: .None,
                   scrollState: ScrollView<Message>.initialState(),
@@ -84,19 +84,19 @@ func render(model: Model) -> Window<Message> {
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
-    case let .gotStatus(newStatus):
+    case let .GotStatus(newStatus):
         return (model.with(status: StatusModel(info: newStatus, visibility: model.status.visibility)), Cmd.none())
 
-    case let .gotLog(log):
+    case let .GotLog(log):
         return (model.with(log: log), Cmd.none())
 
-    case let .getCommit(ref):
-        return (model.with(commit: model.commit.with(hash: ref, commit: .loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .gotCommit($0) })
+    case let .GetCommit(ref):
+        return (model.with(commit: model.commit.with(hash: ref, commit: .Loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .GotCommit($0) })
 
-    case let .gotCommit(commit):
+    case let .GotCommit(commit):
         return (model.with(commit: model.commit.with(commit: commit)), Cmd.none())
 
-    case let .keyboard(event):
+    case let .Keyboard(event):
         if let message = model.keyMap[event] {
             return (model, Cmd.message(message))
         } else {
@@ -107,29 +107,29 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         log("\(action)")
         return performAction(action, model)
 
-    case let .gitCommand(command):
+    case let .GitCommand(command):
         return performCommand(model, command)
 
-    case let .updateVisibility(visibility):
+    case let .UpdateVisibility(visibility):
         return (model.with(status: model.status.with(visibility: visibility)), Cmd.none())
 
-    case .commandSuccess:
+    case .CommandSuccess:
         return (model.with(keyMap: normalMap), Task { getStatus() }.perform())
 
-    case let .info(info):
+    case let .Info(info):
         switch info {
         case .Message:
-            return (model.with(info: info), TProcess.sleep(5.0).perform { Message.clearInfo })
+            return (model.with(info: info), TProcess.sleep(5.0).perform { Message.ClearInfo })
         case let .Query(_, cmd):
             return (model.with(info: info, keyMap: queryMap(cmd)), Cmd.none())
         default:
             return (model.with(info: info), Cmd.none())
         }
 
-    case .clearInfo:
+    case .ClearInfo:
         return (model.with(info: .None), Cmd.none())
 
-    case let .queryResult(queryResult):
+    case let .QueryResult(queryResult):
         switch queryResult {
         case .Abort:
             return (model.with(info: .None, keyMap: normalMap), Cmd.none())
@@ -140,7 +140,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .ViewFile(file):
         return (model, TProcess.spawn { view(file: file) }.perform { $0 })
 
-    case let .container(containerMsg):
+    case let .Container(containerMsg):
         return (model.with(scrollState: ScrollView<Message>.update(containerMsg, model.scrollState)), Cmd.none())
     }
 }
@@ -158,7 +158,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked, .Unstaged:
                 return (model, Task { apply(patch: hunk, cached: true) }.perform())
             case .Staged:
-                return (model, Cmd.message(.info(.Message("Already staged"))))
+                return (model, Cmd.message(.Info(.Message("Already staged"))))
             }
         }
 
@@ -171,7 +171,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         case let .Hunk(patch, status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, Cmd.message(.info(.Message("Already unstaged"))))
+                return (model, Cmd.message(.Info(.Message("Already unstaged"))))
             case .Staged:
                 return (model, Task { apply(patch: patch, reverse: true, cached: true) }.perform())
             }
@@ -205,16 +205,16 @@ func stage(_ files: [String], _ type: Status) -> Cmd<Message> {
     case .Unstaged:
         return Task { addFile(files: files) }.perform()
     case .Staged:
-        return Cmd.message(.info(.Message("Already staged")))
+        return Cmd.message(.Info(.Message("Already staged")))
     }
 }
 
 func unstage(_ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
-        return Cmd.message(.info(.Message("Already unstaged")))
+        return Cmd.message(.Info(.Message("Already unstaged")))
     case .Unstaged:
-        return Cmd.message(.info(.Message("Already unstaged")))
+        return Cmd.message(.Info(.Message("Already unstaged")))
     case .Staged:
         return Task { resetFile(files: files) }.perform()
     }
@@ -257,6 +257,6 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
 }
 
 let subscriptions: [Sub<Message>] = [
-    cursor { .container($0) },
-    keyboard { event in .keyboard(event) },
+    cursor { .Container($0) },
+    keyboard { event in .Keyboard(event) },
 ]
