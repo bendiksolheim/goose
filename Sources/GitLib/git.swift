@@ -20,13 +20,9 @@ public struct Git {
     public static func revlist(_ branch: String) -> GitCommand {
         GitCommand(["rev-list", "--left-right", "\(branch)...\(branch)@{u}"])
     }
-
-    public static func show(_ ref: String...) -> GitCommand {
-        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref)
-    }
     
-    public static func show(_ ref: [String]) -> GitCommand {
-        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref)
+    public static func show(_ ref: [String], patch: Bool = false) -> GitCommand {
+        GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref + (patch ? ["-p"] : []))
     }
 
     public static func log(num: Int) -> GitCommand {
