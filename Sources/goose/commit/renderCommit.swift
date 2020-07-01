@@ -1,3 +1,4 @@
+import Bow
 import Foundation
 import tea
 
@@ -19,6 +20,17 @@ func renderCommit(commit: CommitModel) -> [View<Message>] {
         views.append(TextView("CommitDate: \(commit.commitDate)"))
         views.append(EmptyLine())
         views.append(TextView("Parent      \(commit.parents[0])"))
+        log("\(commit.diff)")
+        views.append(contentsOf:
+            commit.diff.map { diff in
+                diff.files.flatMap { file in
+                    file.hunks.flatMap { hunk in
+                        mapHunks(hunk, .Staged)
+                    }
+                }
+            }
+            .combineAll()
+        )
 
         return views
     }

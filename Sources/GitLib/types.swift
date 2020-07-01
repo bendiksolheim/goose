@@ -11,6 +11,7 @@ public struct GitCommit: Equatable {
     public let author: String
     public let email: String
     public let refName: Option<String>
+    public let diff: Option<GitDiff>
 }
 
 public struct GitHash: Equatable {
@@ -32,7 +33,14 @@ public func parseCommit(_ commit: String) -> GitCommit {
                      authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
                      author: String(lines[2]),
                      email: String(lines[3]),
-                     refName: parseRefName(lines[8]))
+                     refName: parseRefName(lines[8]),
+                     diff: hasDiff(lines) ? .some(Git.diff.parse(lines[9...].joined(separator: "\n"))) : .none()
+    )
+}
+
+func hasDiff<S: StringProtocol>(_ lines: [S]) -> Bool {
+    lines.count >= 10
+        && lines[9].starts(with: "diff --git")
 }
 
 public func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
