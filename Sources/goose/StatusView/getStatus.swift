@@ -41,6 +41,7 @@ func getStatus() -> Message {
     let log = Task<[GitCommit]>.var()
     let worktree = Task<[String: [GitHunk]]>.var()
     let index = Task<[String: [GitHunk]]>.var()
+    let gitConfig = Task<GitConfig>.var()
 
     let result = binding(
         branch <- Git.symbolicref().exec().map { $0.output },
@@ -52,7 +53,8 @@ func getStatus() -> Message {
         log <- Git.log(num: 10).exec().map { $0.output }.map(parseCommits),
         worktree <- Git.diff.files().exec().map(mapDiff),
         index <- Git.diff.index().exec().map(mapDiff),
-        yield: statusSuccess(branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get)
+        gitConfig <- config(),
+        yield: statusSuccess(branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get, gitConfig.get)
     )^
 
     return .GotStatus(result.unsafeRunSyncEither().fold(error, identity))
@@ -75,7 +77,7 @@ func error<T>(error: Error) -> AsyncData<T> {
     .Error(error)
 }
 
-func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit]) -> AsyncData<StatusInfo> {
+func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit], _ gitConfig: GitConfig) -> AsyncData<StatusInfo> {
     return .Success(StatusInfo(
         branch: branch,
         tracking: tracking,
@@ -84,7 +86,8 @@ func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ 
         staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, index[$0.file] ?? []) },
         log: commits,
         ahead: ahead,
-        behind: behind
+        behind: behind,
+        config: gitConfig
     ))
 }
 

@@ -53,6 +53,7 @@ public struct StatusInfo: Equatable {
     let log: [GitCommit]
     let ahead: [GitCommit]
     let behind: [GitCommit]
+    let config: GitConfig
 }
 
 public func isUntracked(_ change: GitChange) -> Bool {

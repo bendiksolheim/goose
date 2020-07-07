@@ -12,7 +12,13 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         return [TextView(error.localizedDescription)]
 
     case let .Success(status):
-        var views: [View<Message>] = [headMapper(status.log[0]), EmptyLine()]
+        var views: [View<Message>] = [headBranchHeader(status.log[0])]
+        
+        if let upstreamBranch = upstreamBranchHeader(status) {
+            views.append(upstreamBranch)
+        }
+        
+        views.append(EmptyLine())
 
         if status.untracked.count > 0 {
             views.append(renderUntracked(model, status.untracked))
@@ -38,6 +44,20 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         }
 
         return views
+    }
+}
+
+func upstreamBranchHeader(_ model: StatusInfo) -> View<Message>? {
+    let remote = model.config.string("branch.\(model.branch).remote")
+    let merge = model.config.string("branch.\(model.branch).merge")
+    if (remote == nil && merge == nil) {
+        return nil
+    } else {
+        let isRebase = model.config.bool("branch.\(model.branch).rebase", default: false) || model.config.bool("pull.rebase", default: false)
+        let header = isRebase ? "Rebase:   " : "Merge:    "
+        let upstreamCommit = model.log.first(where: { $0.refName == Option.some(model.tracking) })?.message ?? "(no commit message)"
+        //let upstreamCommit = model.log.compactMap { $0.refName }.first?.orNil ?? "(no commit message)"
+        return TextView(header + Text(model.tracking, .Green) + " " + Text(upstreamCommit))
     }
 }
 
@@ -88,7 +108,7 @@ func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> Vie
     return CollapseView(content: [logTitle] + log.map(commitMapper), open: open)
 }
 
-func headMapper(_ commit: GitCommit) -> TextView<Message> {
+func headBranchHeader(_ commit: GitCommit) -> TextView<Message> {
     let ref = commit.refName.getOrElse("")
     return TextView("Head:     " + Text(ref, .Cyan) + " " + commit.message)
 }
