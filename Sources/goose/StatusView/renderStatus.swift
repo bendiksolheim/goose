@@ -12,7 +12,7 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         return [TextView(error.localizedDescription)]
 
     case let .Success(status):
-        var views: [View<Message>] = [headBranchHeader(status.log[0])]
+        var views: [View<Message>] = [headBranchHeader(status.branch, status.log[0])]
         
         if let upstreamBranch = upstreamBranchHeader(status) {
             views.append(upstreamBranch)
@@ -108,9 +108,8 @@ func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> Vie
     return CollapseView(content: [logTitle] + log.map(commitMapper), open: open)
 }
 
-func headBranchHeader(_ commit: GitCommit) -> TextView<Message> {
-    let ref = commit.refName.getOrElse("")
-    return TextView("Head:     " + Text(ref, .Cyan) + " " + commit.message)
+func headBranchHeader(_ branch: String, _ commit: GitCommit) -> TextView<Message> {
+    return TextView("Head:     " + Text(branch, .Cyan) + " " + commit.message)
 }
 
 func commitMapper(_ commit: GitCommit) -> TextView<Message> {
