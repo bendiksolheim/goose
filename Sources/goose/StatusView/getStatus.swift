@@ -80,7 +80,7 @@ func error<T>(error: Error) -> AsyncData<T> {
 func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit], _ gitConfig: GitConfig) -> AsyncData<StatusInfo> {
     return .Success(StatusInfo(
         branch: branch,
-        tracking: tracking,
+        upstream: tracking,
         untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
         unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, worktree[$0.file] ?? []) },
         staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, index[$0.file] ?? []) },

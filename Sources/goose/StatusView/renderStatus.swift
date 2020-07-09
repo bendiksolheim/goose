@@ -36,7 +36,7 @@ func renderStatus(model: StatusModel) -> [View<Message>] {
         }
 
         if !status.ahead.isEmpty {
-            views.append(renderLog("Unmerged into \(status.tracking) (\(status.ahead.count))", model, status.ahead))
+            views.append(renderLog("Unmerged into \(status.upstream) (\(status.ahead.count))", model, status.ahead))
         }
         
         if !status.log.isEmpty && status.ahead.isEmpty {
@@ -55,9 +55,9 @@ func upstreamBranchHeader(_ model: StatusInfo) -> View<Message>? {
     } else {
         let isRebase = model.config.bool("branch.\(model.branch).rebase", default: false) || model.config.bool("pull.rebase", default: false)
         let header = isRebase ? "Rebase:   " : "Merge:    "
-        let upstreamCommit = model.log.first(where: { $0.refName == Option.some(model.tracking) })?.message ?? "(no commit message)"
-        //let upstreamCommit = model.log.compactMap { $0.refName }.first?.orNil ?? "(no commit message)"
-        return TextView(header + Text(model.tracking, .Green) + " " + Text(upstreamCommit))
+        let upstreamCommit = model.log.first(where: { $0.refName == Option.some(model.upstream) })?.message
+            ?? model.log[0].message
+        return TextView(header + Text(model.upstream, .Green) + " " + Text(upstreamCommit))
     }
 }
 

@@ -46,7 +46,7 @@ public struct Staged: Equatable {
 
 public struct StatusInfo: Equatable {
     let branch: String
-    let tracking: String
+    let upstream: String
     let untracked: [Untracked]
     let unstaged: [Unstaged]
     let staged: [Staged]
