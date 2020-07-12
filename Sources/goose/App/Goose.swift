@@ -104,7 +104,6 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         }
         
     case let .Action(action):
-        log("\(action)")
         return performAction(action, model)
 
     case let .GitCommand(command):
