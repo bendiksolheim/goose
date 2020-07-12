@@ -91,30 +91,6 @@ func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ 
     ))
 }
 
-func addFile(files: [String]) -> Message {
-    let task = execute(process: ProcessDescription.git(Git.add(files)))
-    let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
-}
-
-func resetFile(files: [String]) -> Message {
-    let task = execute(process: ProcessDescription.git(Git.reset(files)))
-    let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
-}
-
-func apply(patch: String, reverse: Bool = false, cached: Bool = false) -> Message {
-    let task = execute(process: ProcessDescription.git(Git.apply(reverse: reverse, cached: cached)), input: patch)
-    let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
-}
-
-func restore(_ files: [String], _ staged: Bool) -> Message {
-    let task = execute(process: ProcessDescription.git(Git.restore(files, staged: staged)))
-    let result = task.unsafeRunSyncEither()
-    return result.fold({ Message.Info(.Message($0.localizedDescription)) }, { _ in Message.CommandSuccess })
-}
-
 private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {
     parseStatus(status.output)
         .fold(IO.raiseError, IO.pure)^
