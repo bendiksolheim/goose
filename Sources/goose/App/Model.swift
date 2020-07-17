@@ -1,10 +1,10 @@
 import Foundation
 import tea
 
-enum Views {
-    case StatusView
-    case LogView
-    case CommitView
+enum Buffer {
+    case StatusBuffer
+    case LogBuffer
+    case CommitBuffer
 }
 
 struct CursorModel: Equatable {
@@ -37,7 +37,7 @@ enum InfoMessage: Equatable {
 }
 
 struct Model: Equatable {
-    let views: [Views]
+    let buffer: Buffer
     let status: StatusModel
     let log: AsyncData<LogInfo>
     let commit: CommitModel
@@ -45,27 +45,19 @@ struct Model: Equatable {
     let scrollState: ScrollState
     let keyMap: KeyMap
 
-    func with(views: [Views]? = nil,
+    func with(buffer: Buffer? = nil,
               status: StatusModel? = nil,
               log: AsyncData<LogInfo>? = nil,
               commit: CommitModel? = nil,
               info: InfoMessage? = nil,
               scrollState: ScrollState? = nil,
               keyMap: KeyMap? = nil) -> Model {
-        Model(views: views ?? self.views,
+        Model(buffer: buffer ?? self.buffer,
               status: status ?? self.status,
               log: log ?? self.log,
               commit: commit ?? self.commit,
               info: info ?? self.info,
               scrollState: scrollState ?? self.scrollState,
               keyMap: keyMap ?? self.keyMap)
-    }
-
-    func pushView(view: Views) -> Model {
-        with(views: views + [view])
-    }
-
-    func popView() -> Model {
-        with(views: views.dropLast())
     }
 }

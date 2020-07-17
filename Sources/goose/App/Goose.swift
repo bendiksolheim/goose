@@ -17,6 +17,7 @@ indirect enum Message {
     case QueryResult(QueryResult)
     case ViewFile(String)
     case Container(ScrollMessage)
+    case Exit
 }
 
 enum GitCmd {
@@ -44,7 +45,6 @@ enum Status {
 
 enum Action {
     case KeyMap(KeyMap)
-    case PopView
     case Log
     case Refresh
     case Commit
@@ -55,25 +55,24 @@ enum Action {
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .Loading, visibility: [:])
     let commitModel = CommitModel(hash: "", commit: .Loading)
-    return (Model(views: [.StatusView],
+    return (Model(buffer: .StatusBuffer,
                   status: statusModel,
                   log: .Loading,
                   commit: commitModel,
                   info: .None,
                   scrollState: ScrollView<Message>.initialState(),
-                  keyMap: normalMap),
+                  keyMap: statusMap),
             Task { getStatus() }.perform())
 }
 
 func render(model: Model) -> Window<Message> {
-    let view = model.views.last!
     let content: [View<Message>]
-    switch view {
-    case .StatusView:
+    switch model.buffer {
+    case .StatusBuffer:
         content = renderStatus(model: model.status)
-    case .LogView:
+    case .LogBuffer:
         content = renderLog(log: model.log)
-    case .CommitView:
+    case .CommitBuffer:
         content = renderCommit(commit: model.commit)
     }
 
@@ -91,7 +90,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.with(log: log), Cmd.none())
 
     case let .GetCommit(ref):
-        return (model.with(commit: model.commit.with(hash: ref, commit: .Loading)).pushView(view: .CommitView), Task { getCommit(ref) }.perform { .GotCommit($0) })
+        return (model.with(buffer: .CommitBuffer, commit: model.commit.with(hash: ref, commit: .Loading)), Task { getCommit(ref) }.perform { .GotCommit($0) })
 
     case let .GotCommit(commit):
         return (model.with(commit: model.commit.with(commit: commit)), Cmd.none())
@@ -113,7 +112,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.with(status: model.status.with(visibility: visibility)), Cmd.none())
 
     case .CommandSuccess:
-        return (model.with(keyMap: normalMap), Task { getStatus() }.perform())
+        return (model.with(keyMap: statusMap), Task { getStatus() }.perform())
 
     case let .Info(info):
         switch info {
@@ -131,9 +130,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .QueryResult(queryResult):
         switch queryResult {
         case .Abort:
-            return (model.with(info: .None, keyMap: normalMap), Cmd.none())
+            return (model.with(info: .None, keyMap: statusMap), Cmd.none())
         case let .Perform(msg):
-            return (model.with(info: .None, keyMap: normalMap), Cmd.message(msg))
+            return (model.with(info: .None, keyMap: statusMap), Cmd.message(msg))
         }
 
     case let .ViewFile(file):
@@ -141,6 +140,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 
     case let .Container(containerMsg):
         return (model.with(scrollState: ScrollView<Message>.update(containerMsg, model.scrollState)), Cmd.none())
+        
+    case .Exit:
+        return (model, TProcess.quit())
     }
 }
 
@@ -242,10 +244,7 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model, TProcess.spawn { commit(true) }.perform())
     
     case .Log:
-        return (model.pushView(view: Views.LogView), Task { getLog() }.perform())
-        
-    case .PopView:
-        return model.views.count > 1 ? (model.popView(), Cmd.none()) : (model, TProcess.quit())
+        return (model.with(buffer: .LogBuffer), Task { getLog() }.perform())
         
     case .Refresh:
         return (model, Task { getStatus() }.perform())
