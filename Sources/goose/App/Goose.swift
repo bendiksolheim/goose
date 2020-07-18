@@ -6,11 +6,11 @@ indirect enum Message {
     case GotStatus(AsyncData<StatusInfo>)
     case GotLog(AsyncData<LogInfo>)
     case GetCommit(String)
-    case GotCommit(AsyncData<GitCommit>)
+    case GotCommit(String, AsyncData<GitCommit>)
     case Keyboard(KeyEvent)
     case Action(Action)
     case GitCommand(GitCmd)
-    case UpdateVisibility([String: Bool])
+    case UpdateStatus(StatusModel)
     case CommandSuccess
     case Info(InfoMessage)
     case ClearInfo
@@ -54,11 +54,8 @@ enum Action {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .Loading, visibility: [:])
-    let commitModel = CommitModel(hash: "", commit: .Loading)
-    return (Model(buffer: .StatusBuffer,
-                  status: statusModel,
+    return (Model(buffer: .StatusBuffer(statusModel),
                   log: .Loading,
-                  commit: commitModel,
                   info: .None,
                   scrollState: ScrollView<Message>.initialState(),
                   keyMap: statusMap),
@@ -68,12 +65,12 @@ func initialize() -> (Model, Cmd<Message>) {
 func render(model: Model) -> Window<Message> {
     let content: [View<Message>]
     switch model.buffer {
-    case .StatusBuffer:
-        content = renderStatus(model: model.status)
+    case let .StatusBuffer(statusModel):
+        content = renderStatus(model: statusModel)
     case .LogBuffer:
         content = renderLog(log: model.log)
-    case .CommitBuffer:
-        content = renderCommit(commit: model.commit)
+    case let .CommitBuffer(commitModel):
+        content = renderCommit(commit: commitModel)
     }
 
     return Window(content:
@@ -84,16 +81,16 @@ func render(model: Model) -> Window<Message> {
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
     case let .GotStatus(newStatus):
-        return (model.with(status: StatusModel(info: newStatus, visibility: model.status.visibility)), Cmd.none())
+        return (model.with(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
 
     case let .GotLog(log):
         return (model.with(log: log), Cmd.none())
 
     case let .GetCommit(ref):
-        return (model.with(buffer: .CommitBuffer, commit: model.commit.with(hash: ref, commit: .Loading)), Task { getCommit(ref) }.perform { .GotCommit($0) })
+        return (model.with(buffer: .CommitBuffer(CommitModel(hash: ref, commit: .Loading))), Task { getCommit(ref) }.perform { .GotCommit(ref, $0) })
 
-    case let .GotCommit(commit):
-        return (model.with(commit: model.commit.with(commit: commit)), Cmd.none())
+    case let .GotCommit(ref, commit):
+        return (model.with(buffer: .CommitBuffer(CommitModel(hash: ref, commit: commit))), Cmd.none())
 
     case let .Keyboard(event):
         if let message = model.keyMap[event] {
@@ -108,8 +105,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .GitCommand(command):
         return performCommand(model, command)
 
-    case let .UpdateVisibility(visibility):
-        return (model.with(status: model.status.with(visibility: visibility)), Cmd.none())
+    case let .UpdateStatus(status):
+        return (model.with(buffer: .StatusBuffer(status)), Cmd.none())
 
     case .CommandSuccess:
         return (model.with(keyMap: statusMap), Task { getStatus() }.perform())

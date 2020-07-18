@@ -67,7 +67,7 @@ func renderUntracked(_ model: StatusModel, _ untracked: [Untracked]) -> View<Mes
     let events: [ViewEvent<Message>] = [
         (.s, .GitCommand(.Stage(.Section(untracked.map { $0.file }, .Untracked)))),
         (.x, .Info(.Query("Trash \(untracked.count) files? (y or n)", .GitCommand(.Discard(.Section(untracked.map { $0.file }, .Untracked)))))),
-        (.tab, .UpdateVisibility(visibility.merging(["untracked": !open]) { $1 })),
+        (.tab, .UpdateStatus(model.with(visibility: visibility.merging(["untracked": !open]) { $1 }))),
     ]
     let title = TextView<Message>(Text("Untracked files (\(untracked.count))", .Blue), events: events)
     return CollapseView(content: [title] + untracked.map(untrackedMapper), open: open)
@@ -79,10 +79,10 @@ func renderUnstaged(_ model: StatusModel, _ unstaged: [Unstaged]) -> View<Messag
     let events: [ViewEvent<Message>] = [
         (.s, .GitCommand(.Stage(.Section(unstaged.map { $0.file }, .Unstaged)))),
         (.x, .Info(.Query("Discard unstaged changes in \(unstaged.count) files? (y or n)", .GitCommand(.Discard(.Section(unstaged.map { $0.file }, .Unstaged)))))),
-        (.tab, .UpdateVisibility(visibility.merging(["unstaged": !open]) { $1 })),
+        (.tab, .UpdateStatus(model.with(visibility: visibility.merging(["unstaged": !open]) { $1 }))),
     ]
     let title = TextView<Message>(Text("Unstaged changes (\(unstaged.count))", .Blue), events: events)
-    let mapper = unstagedMapper(visibility)
+    let mapper = unstagedMapper(model)
     return CollapseView(content: [title] + unstaged.flatMap(mapper), open: open)
 }
 
@@ -92,17 +92,17 @@ func renderStaged(_ model: StatusModel, _ staged: [Staged]) -> View<Message> {
     let events: [ViewEvent<Message>] = [
         (.u, .GitCommand(.Unstage(.Section(staged.map { $0.file }, .Staged)))),
         (.x, .Info(.Query("Discard staged changes in \(staged.count) files? (y or n)", .GitCommand(.Discard(.Section(staged.map { $0.file }, .Staged)))))),
-        (.tab, .UpdateVisibility(visibility.merging(["staged": !open]) { $1 })),
+        (.tab, .UpdateStatus(model.with(visibility: visibility.merging(["staged": !open]) { $1 }))),
     ]
     let title = TextView<Message>(Text("Staged changes (\(staged.count))", .Blue), events: events)
-    let mapper = stagedMapper(visibility)
+    let mapper = stagedMapper(model)
     return CollapseView(content: [title] + staged.flatMap(mapper), open: open)
 }
 
 func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> View<Message> {
     let open = model.visibility["recent", default: true]
     let events: [ViewEvent<Message>] = [
-        (.tab, .UpdateVisibility(model.visibility.merging(["recent": !open]) { $1 })),
+        (.tab, .UpdateStatus(model.with(visibility: model.visibility.merging(["recent": !open]) { $1 }))),
     ]
     let logTitle = TextView(title, events: events)
     return CollapseView(content: [logTitle] + log.map(commitMapper), open: open)
@@ -129,14 +129,14 @@ func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
     return TextView(untracked.file, events: events)
 }
 
-func unstagedMapper(_ visibility: [String: Bool]) -> (Unstaged) -> [TextView<Message>] {
+func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [TextView<Message>] {
     { unstaged in
-        let open = visibility["unstaged-\(unstaged.file)", default: false]
+        let open = model.visibility["unstaged-\(unstaged.file)", default: false]
         let events: [ViewEvent<Message>] = [
             (.s, .GitCommand(.Stage(.File(unstaged.file, .Unstaged)))),
             (.u, .GitCommand(.Unstage(.File(unstaged.file, .Unstaged)))),
             (.x, .Info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", .GitCommand(.Discard(.File(unstaged.file, .Unstaged)))))),
-            (.tab, .UpdateVisibility(visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 })),
+            (.tab, .UpdateStatus(model.with(visibility: model.visibility.merging(["unstaged-\(unstaged.file)": !open]) { $1 }))),
             (.enter, .ViewFile(unstaged.file)),
         ]
 
@@ -194,15 +194,15 @@ func mapDiffLine(_ line: GitHunkLine, _ patch: String, _ status: Status) -> Text
     return TextView(Text(line.content, foreground, background), events: events)
 }
 
-func stagedMapper(_ visibility: [String: Bool]) -> (Staged) -> [TextView<Message>] {
+func stagedMapper(_ model: StatusModel) -> (Staged) -> [TextView<Message>] {
     { staged in
         log(staged.file)
-        let open = visibility["staged-\(staged.file)", default: false]
+        let open = model.visibility["staged-\(staged.file)", default: false]
         let events: [ViewEvent<Message>] = [
             (.s, .GitCommand(.Stage(.File(staged.file, .Staged)))),
             (.u, .GitCommand(.Unstage(.File(staged.file, .Staged)))),
             (.x, .Info(.Query("Discard staged changes in \(staged.file)? (y or n)", .GitCommand(.Discard(.File(staged.file, .Staged)))))),
-            (.tab, .UpdateVisibility(visibility.merging(["staged-\(staged.file)": !open]) { $1 })),
+            (.tab, .UpdateStatus(model.with(visibility: model.visibility.merging(["staged-\(staged.file)": !open]) { $1 }))),
             (.enter, .ViewFile(staged.file)),
         ]
         let hunks = open ? staged.diff.flatMap { mapHunks($0, .Staged) } : []

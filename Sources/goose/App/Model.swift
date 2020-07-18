@@ -1,10 +1,10 @@
 import Foundation
 import tea
 
-enum Buffer {
-    case StatusBuffer
+enum Buffer: Equatable {
+    case StatusBuffer(StatusModel)
     case LogBuffer
-    case CommitBuffer
+    case CommitBuffer(CommitModel)
 }
 
 struct CursorModel: Equatable {
@@ -38,24 +38,18 @@ enum InfoMessage: Equatable {
 
 struct Model: Equatable {
     let buffer: Buffer
-    let status: StatusModel
     let log: AsyncData<LogInfo>
-    let commit: CommitModel
     let info: InfoMessage
     let scrollState: ScrollState
     let keyMap: KeyMap
 
     func with(buffer: Buffer? = nil,
-              status: StatusModel? = nil,
               log: AsyncData<LogInfo>? = nil,
-              commit: CommitModel? = nil,
               info: InfoMessage? = nil,
               scrollState: ScrollState? = nil,
               keyMap: KeyMap? = nil) -> Model {
         Model(buffer: buffer ?? self.buffer,
-              status: status ?? self.status,
               log: log ?? self.log,
-              commit: commit ?? self.commit,
               info: info ?? self.info,
               scrollState: scrollState ?? self.scrollState,
               keyMap: keyMap ?? self.keyMap)
