@@ -1,6 +1,6 @@
 import Foundation
 
-func commit(_ amend: Bool = false) -> Message {
+func commit(amend: Bool = false) -> Message {
     let result = amend ? runCommand("git commit --amend -v") : runCommand("git commit -v")
     if result == 0 {
         return Message.CommandSuccess

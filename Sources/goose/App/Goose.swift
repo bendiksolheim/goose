@@ -238,7 +238,7 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model, TProcess.spawn { commit() }.perform())
         
     case .AmendCommit:
-        return (model, TProcess.spawn { commit(true) }.perform())
+        return (model, TProcess.spawn { commit(amend: true) }.perform())
     
     case .Log:
         return (model.with(buffer: .LogBuffer, keyMap: logMap), Task { getLog() }.perform())
