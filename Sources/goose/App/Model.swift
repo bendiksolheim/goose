@@ -37,12 +37,12 @@ enum InfoMessage: Equatable {
 }
 
 struct Model: Equatable {
-    let buffer: Buffer
+    let buffer: [Buffer]
     let info: InfoMessage
     let scrollState: ScrollState
     let keyMap: KeyMap
 
-    func with(buffer: Buffer? = nil,
+    func with(buffer: [Buffer]? = nil,
               info: InfoMessage? = nil,
               scrollState: ScrollState? = nil,
               keyMap: KeyMap? = nil) -> Model {
@@ -50,5 +50,17 @@ struct Model: Equatable {
               info: info ?? self.info,
               scrollState: scrollState ?? self.scrollState,
               keyMap: keyMap ?? self.keyMap)
+    }
+    
+    func navigate(to newBuffer: Buffer) -> Model {
+        with(buffer: buffer + [newBuffer])
+    }
+    
+    func replace(buffer newBuffer: Buffer) -> Model {
+        with(buffer: buffer.dropLast() + [newBuffer])
+    }
+    
+    func back() -> Model {
+        with(buffer: buffer.dropLast())
     }
 }

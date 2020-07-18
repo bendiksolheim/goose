@@ -3,6 +3,7 @@ import GitLib
 import tea
 
 indirect enum Message {
+    case GetStatus
     case GotStatus(AsyncData<StatusInfo>)
     case GotLog(AsyncData<LogInfo>)
     case GetCommit(String)
@@ -17,7 +18,7 @@ indirect enum Message {
     case QueryResult(QueryResult)
     case ViewFile(String)
     case Container(ScrollMessage)
-    case Exit
+    case DropBuffer
 }
 
 enum GitCmd {
@@ -54,7 +55,7 @@ enum Action {
 
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .Loading, visibility: [:])
-    return (Model(buffer: .StatusBuffer(statusModel),
+    return (Model(buffer: [.StatusBuffer(statusModel)],
                   info: .None,
                   scrollState: ScrollView<Message>.initialState(),
                   keyMap: statusMap),
@@ -62,8 +63,9 @@ func initialize() -> (Model, Cmd<Message>) {
 }
 
 func render(model: Model) -> Window<Message> {
+    let buffer = model.buffer.last!
     let content: [View<Message>]
-    switch model.buffer {
+    switch buffer {
     case let .StatusBuffer(statusModel):
         content = renderStatus(model: statusModel)
     case let .LogBuffer(log):
@@ -79,17 +81,20 @@ func render(model: Model) -> Window<Message> {
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
+    case .GetStatus:
+        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus() }.perform())
+        
     case let .GotStatus(newStatus):
-        return (model.with(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
+        return (model.replace(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
 
     case let .GotLog(log):
-        return (model.with(buffer: .LogBuffer(log)), Cmd.none())
+        return (model.replace(buffer: .LogBuffer(log)), Cmd.none())
 
     case let .GetCommit(ref):
-        return (model.with(buffer: .CommitBuffer(CommitModel(hash: ref, commit: .Loading))), Task { getCommit(ref) }.perform { .GotCommit(ref, $0) })
+        return (model.navigate(to: .CommitBuffer(CommitModel(hash: ref, commit: .Loading))), Task { getCommit(ref) }.perform { .GotCommit(ref, $0) })
 
     case let .GotCommit(ref, commit):
-        return (model.with(buffer: .CommitBuffer(CommitModel(hash: ref, commit: commit))), Cmd.none())
+        return (model.replace(buffer: .CommitBuffer(CommitModel(hash: ref, commit: commit))), Cmd.none())
 
     case let .Keyboard(event):
         if let message = model.keyMap[event] {
@@ -105,7 +110,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return performCommand(model, command)
 
     case let .UpdateStatus(status):
-        return (model.with(buffer: .StatusBuffer(status)), Cmd.none())
+        return (model.replace(buffer: .StatusBuffer(status)), Cmd.none())
 
     case .CommandSuccess:
         return (model.with(keyMap: statusMap), Task { getStatus() }.perform())
@@ -137,8 +142,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .Container(containerMsg):
         return (model.with(scrollState: ScrollView<Message>.update(containerMsg, model.scrollState)), Cmd.none())
         
-    case .Exit:
-        return (model, TProcess.quit())
+    case .DropBuffer:
+        return model.buffer.count > 1 ? (model.back(), Cmd.none()) : (model, TProcess.quit())
     }
 }
 
@@ -240,7 +245,7 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model, TProcess.spawn { commit(amend: true) }.perform())
     
     case .Log:
-        return (model.with(buffer: .LogBuffer(.Loading), keyMap: logMap), Task { getLog() }.perform())
+        return (model.navigate(to: .LogBuffer(.Loading)), Task { getLog() }.perform())
         
     case .Refresh:
         return (model, Task { getStatus() }.perform())

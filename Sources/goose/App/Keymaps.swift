@@ -24,15 +24,15 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
 // View maps
 
 let statusMap = KeyMap([
-    .q: .Exit
+    .q: .DropBuffer
 ]) + actionsMap
 
 let logMap = KeyMap([
-    .q: .Exit
+    .q: .DropBuffer
 ]) + actionsMap
 
 let commitMap = KeyMap([
-    .q: .Exit
+    .q: .DropBuffer
 ]) + actionsMap
 
 // Action maps
