@@ -3,7 +3,7 @@ import tea
 
 enum Buffer: Equatable {
     case StatusBuffer(StatusModel)
-    case LogBuffer
+    case LogBuffer(AsyncData<LogInfo>)
     case CommitBuffer(CommitModel)
 }
 
@@ -38,18 +38,15 @@ enum InfoMessage: Equatable {
 
 struct Model: Equatable {
     let buffer: Buffer
-    let log: AsyncData<LogInfo>
     let info: InfoMessage
     let scrollState: ScrollState
     let keyMap: KeyMap
 
     func with(buffer: Buffer? = nil,
-              log: AsyncData<LogInfo>? = nil,
               info: InfoMessage? = nil,
               scrollState: ScrollState? = nil,
               keyMap: KeyMap? = nil) -> Model {
         Model(buffer: buffer ?? self.buffer,
-              log: log ?? self.log,
               info: info ?? self.info,
               scrollState: scrollState ?? self.scrollState,
               keyMap: keyMap ?? self.keyMap)

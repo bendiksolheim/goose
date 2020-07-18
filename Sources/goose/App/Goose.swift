@@ -55,7 +55,6 @@ enum Action {
 func initialize() -> (Model, Cmd<Message>) {
     let statusModel = StatusModel(info: .Loading, visibility: [:])
     return (Model(buffer: .StatusBuffer(statusModel),
-                  log: .Loading,
                   info: .None,
                   scrollState: ScrollView<Message>.initialState(),
                   keyMap: statusMap),
@@ -67,8 +66,8 @@ func render(model: Model) -> Window<Message> {
     switch model.buffer {
     case let .StatusBuffer(statusModel):
         content = renderStatus(model: statusModel)
-    case .LogBuffer:
-        content = renderLog(log: model.log)
+    case let .LogBuffer(log):
+        content = renderLog(log: log)
     case let .CommitBuffer(commitModel):
         content = renderCommit(commit: commitModel)
     }
@@ -84,7 +83,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.with(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
 
     case let .GotLog(log):
-        return (model.with(log: log), Cmd.none())
+        return (model.with(buffer: .LogBuffer(log)), Cmd.none())
 
     case let .GetCommit(ref):
         return (model.with(buffer: .CommitBuffer(CommitModel(hash: ref, commit: .Loading))), Task { getCommit(ref) }.perform { .GotCommit(ref, $0) })
@@ -241,7 +240,7 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model, TProcess.spawn { commit(amend: true) }.perform())
     
     case .Log:
-        return (model.with(buffer: .LogBuffer, keyMap: logMap), Task { getLog() }.perform())
+        return (model.with(buffer: .LogBuffer(.Loading), keyMap: logMap), Task { getLog() }.perform())
         
     case .Refresh:
         return (model, Task { getStatus() }.perform())
