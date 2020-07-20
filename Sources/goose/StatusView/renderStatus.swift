@@ -140,7 +140,7 @@ func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [TextView<Message>] {
             (.enter, .ViewFile(unstaged.file)),
         ]
 
-        let hunks = open ? unstaged.diff.flatMap { mapHunks($0, .Unstaged) } : []
+        let hunks = open ? unstaged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Unstaged)) } : []
 
         switch unstaged.status {
         case .Modified:
@@ -164,36 +164,6 @@ func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [TextView<Message>] {
     }
 }
 
-func mapHunks(_ hunk: GitHunk, _ status: Status) -> [TextView<Message>] {
-    hunk.lines.map { mapDiffLine($0, hunk.patch, status) }
-}
-
-func mapDiffLine(_ line: GitHunkLine, _ patch: String, _ status: Status) -> TextView<Message> {
-    var foreground = Color.Normal
-    var background = Color.Normal
-    switch line.annotation {
-    case .Summary:
-        background = Color.Magenta
-
-    case .Added:
-        foreground = Color.Green
-
-    case .Removed:
-        foreground = Color.Red
-
-    case .Context:
-        break
-    }
-
-    let events: [ViewEvent<Message>] = [
-        (.s, .GitCommand(.Stage(.Hunk(patch, status)))),
-        (.u, .GitCommand(.Unstage(.Hunk(patch, status)))),
-        (.x, .Info(.Query("Discard hunk? (y or n)", .GitCommand(.Discard(.Hunk(patch, status)))))),
-    ]
-
-    return TextView(Text(line.content, foreground, background), events: events)
-}
-
 func stagedMapper(_ model: StatusModel) -> (Staged) -> [TextView<Message>] {
     { staged in
         log(staged.file)
@@ -205,7 +175,7 @@ func stagedMapper(_ model: StatusModel) -> (Staged) -> [TextView<Message>] {
             (.tab, .UpdateStatus(model.with(visibility: model.visibility.merging(["staged-\(staged.file)": !open]) { $1 }))),
             (.enter, .ViewFile(staged.file)),
         ]
-        let hunks = open ? staged.diff.flatMap { mapHunks($0, .Staged) } : []
+        let hunks = open ? staged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Staged)) } : []
         switch staged.status {
         case .Added:
             return [TextView("new file  \(staged.file)", events: events)] + hunks
@@ -226,4 +196,12 @@ func stagedMapper(_ model: StatusModel) -> (Staged) -> [TextView<Message>] {
             return [TextView("copied    \(staged.file)", events: events)] + hunks
         }
     }
+}
+
+func makeHunkEvents(_ patch: String, _ status: Status) -> [ViewEvent<Message>] {
+    [
+        (.s, .GitCommand(.Stage(.Hunk(patch, status)))),
+        (.u, .GitCommand(.Unstage(.Hunk(patch, status)))),
+        (.x, .Info(.Query("Discard hunk? (y or n)", .GitCommand(.Discard(.Hunk(patch, status)))))),
+    ]
 }

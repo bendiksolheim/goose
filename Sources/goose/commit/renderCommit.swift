@@ -29,7 +29,7 @@ func renderCommit(commit: CommitModel) -> [View<Message>] {
             commit.diff.map { diff in
                 diff.files.flatMap { file in
                     file.hunks.flatMap { hunk in
-                        mapHunks(hunk, .Staged)
+                        renderHunk(hunk, [])
                     }
                 }
             }
