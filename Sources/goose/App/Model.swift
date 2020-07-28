@@ -4,7 +4,7 @@ import tea
 enum Buffer: Equatable {
     case StatusBuffer(StatusModel)
     case LogBuffer(AsyncData<LogInfo>)
-    case CommitBuffer(CommitModel)
+    case CommitBuffer(DiffModel)
 }
 
 struct CursorModel: Equatable {

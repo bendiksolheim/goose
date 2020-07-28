@@ -70,7 +70,7 @@ func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
 func getAheadOrBehind(_ aheadOrBehind: [String]) -> Task<[GitCommit]> {
     aheadOrBehind.isEmpty
         ? Task.pure([])^
-        : Git.show(aheadOrBehind).exec().map { $0.output }.map(parseCommits)^
+        : Git.show.plain(aheadOrBehind).exec().map { $0.output }.map(parseCommits)^
 }
 
 func error<T>(error: Error) -> AsyncData<T> {

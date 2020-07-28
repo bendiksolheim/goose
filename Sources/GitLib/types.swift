@@ -19,6 +19,20 @@ public struct GitHash: Equatable {
     public let short: String
 }
 
+public func parseStat(_ input: String) -> Stats {
+    let lines = input.split(regex: "\n")
+    var stats: [Stat] = []
+    for line in lines {
+        let matches = line.match(regex: "(?<added>\\d+)\\s+(?<removed>\\d+)\\s+(?<file>.*)")
+        let added = Int(matches["added", default: "0"]) ?? 0
+        let removed = Int(matches["removed", default: "0"]) ?? 0
+        let file = matches["file", default: "Error parsing \(line)"]
+        stats.append(Stat(file: file, added: added, removed: removed))
+    }
+    
+    return Stats(stats: stats)
+}
+
 public func parseCommits(_ input: String) -> [GitCommit] {
     let commits = input.trimmingCharacters(in: .init(charactersIn: "\0")).split(regex: "\0")
     return commits.map(parseCommit)
@@ -26,6 +40,7 @@ public func parseCommits(_ input: String) -> [GitCommit] {
 
 public func parseCommit(_ commit: String) -> GitCommit {
     let lines = commit.split(separator: "\n", omittingEmptySubsequences: false)
+    os_log("%{public}@", "\(lines)")
     return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
                      message: String(lines[7]),
                      parents: lines[6].split(separator: " ").map { parent in String(parent) },
@@ -54,6 +69,20 @@ public func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
 
 public func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
     GitHash(full: String(input), short: String(input.prefix(7)))
+}
+
+public struct Stats: Equatable {
+    public let stats: [Stat]
+}
+
+public struct Stat: Equatable {
+    public let file: String
+    public let added: Int
+    public let removed: Int
+    
+    public func total() -> Int {
+        added + removed
+    }
 }
 
 public enum Area {

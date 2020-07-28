@@ -21,9 +21,9 @@ public struct Git {
         GitCommand(["rev-list", "--left-right", "\(branch)...\(branch)@{u}"])
     }
     
-    public static func show(_ ref: [String], patch: Bool = false) -> GitCommand {
+    /*public static func show(_ ref: [String], patch: Bool = false) -> GitCommand {
         GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref + (patch ? ["-p"] : []))
-    }
+    }*/
 
     public static func log(num: Int) -> GitCommand {
         GitCommand(["log", "-n\(num)", "--format=\(commitFormat)", "-z"])
@@ -55,6 +55,20 @@ public struct Git {
     
     public static func push() -> GitCommand {
         GitCommand(["push"])
+    }
+    
+    public struct show {
+        public static func patch(_ ref: [String]) -> GitCommand {
+            GitCommand(["show", "-s", "-z", "--format=\(commitFormat)", "-p"] + ref)
+        }
+        
+        public static func plain(_ ref: [String]) -> GitCommand {
+            GitCommand(["show", "-s", "-z", "--format=\(commitFormat)"] + ref)
+        }
+        
+        public static func stat(_ ref: String) -> GitCommand {
+            GitCommand(["show", "--format=", "--numstat"] + [ref])
+        }
     }
 
     public struct diff {

@@ -7,7 +7,7 @@ indirect enum Message {
     case GotStatus(AsyncData<StatusInfo>)
     case GotLog(AsyncData<LogInfo>)
     case GetCommit(String)
-    case GotCommit(String, AsyncData<GitCommit>)
+    case GotCommit(String, AsyncData<CommitInfo>)
     case Keyboard(KeyEvent)
     case Action(Action)
     case GitCommand(GitCmd)
@@ -71,7 +71,7 @@ func render(model: Model) -> Window<Message> {
     case let .LogBuffer(log):
         content = renderLog(log: log)
     case let .CommitBuffer(commitModel):
-        content = renderCommit(commit: commitModel)
+        content = renderDiff(diff: commitModel)
     }
 
     return Window(content:
@@ -91,10 +91,10 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.replace(buffer: .LogBuffer(log)), Cmd.none())
 
     case let .GetCommit(ref):
-        return (model.navigate(to: .CommitBuffer(CommitModel(hash: ref, commit: .Loading))), Task { getCommit(ref) }.perform { .GotCommit(ref, $0) })
+        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform { .GotCommit(ref, $0) })
 
     case let .GotCommit(ref, commit):
-        return (model.replace(buffer: .CommitBuffer(CommitModel(hash: ref, commit: commit))), Cmd.none())
+        return (model.replace(buffer: .CommitBuffer(DiffModel(hash: ref, commit: commit))), Cmd.none())
 
     case let .Keyboard(event):
         if let message = model.keyMap[event] {
