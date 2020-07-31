@@ -24,6 +24,7 @@ Working (more or less)
 - Discard section / file / hunk
 - Commiting
 - Listing log
+- Display commit content
 - UI: Information line
 - UI: scrolling
 - Open file under cursor
@@ -37,7 +38,6 @@ Todo (far from exhaustive, just a short list of possible next tasks..)
 - Transient command system (aka the Magit menu system)
 - Search in active buffer to quickly move around
 - Stashes
-- See commit content
 - Optimizations
 - Stage / unstage /discard lines
 - Binary files?
