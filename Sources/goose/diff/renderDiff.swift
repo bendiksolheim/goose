@@ -29,17 +29,18 @@ func renderDiff(diff: DiffModel) -> [View<Message>] {
 
         views.append(contentsOf:
             commit.diff.map { diff in
-                diff.files.flatMap { file in
-                    file.hunks.flatMap { hunk in
-                        renderHunk(hunk, [])
-                    }
-                }
+                diff.files.flatMap(renderFile)
             }
             .combineAll()
         )
 
         return views
     }
+}
+
+func renderFile(_ file: GitFile) -> [TextView<Message>] {
+    return [TextView("\(file.mode.padding(toLength: 11, withPad: " ", startingAt: 0)) \(file.source)")]
+        + file.hunks.flatMap { hunk in renderHunk(hunk, []) }
 }
 
 func renderSummary(commit: GitCommit, stats: Stats) -> View<Message> {
