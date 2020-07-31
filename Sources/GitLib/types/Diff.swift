@@ -41,10 +41,12 @@ public struct GitHunk: Equatable {
 
 public struct GitFile: Equatable {
     public let source: String
+    public let mode: String
     public let hunks: [GitHunk]
 
-    init(_ source: String, _ hunks: [GitHunk]) {
+    init(_ source: String, _ mode: String, _ hunks: [GitHunk]) {
         self.source = source
+        self.mode = mode
         self.hunks = hunks
     }
 }
@@ -70,12 +72,16 @@ func internalParse(_ input: String) -> GDiff {
             diff.add(file: currentFile)
             diff[currentFile]?.header.append(line)
         } else if line.starts(with: "deleted file mode") {
+            diff[currentFile]?.mode = "deleted"
             diff[currentFile]?.header.append(line)
         } else if line.starts(with: "new file mode") {
+            diff[currentFile]?.mode = "new file"
             diff[currentFile]?.header.append(line)
         } else if line.starts(with: "rename to") {
+            diff[currentFile]?.mode = "renamed"
             diff[currentFile]?.header.append(line)
         } else if line.starts(with: "index ") {
+            diff[currentFile]?.mode = "modified"
             diff[currentFile]?.header.append(line)
         } else if line.starts(with: "--- a/") {
             diff[currentFile]?.header.append(line)
@@ -116,6 +122,7 @@ class GHunk: CustomStringConvertible {
 class GFile: CustomStringConvertible {
     var header: [String] = []
     var hunks: [String: GHunk] = [:]
+    var mode: String = ""
 
     subscript(key: String) -> GHunk? {
         hunks[key]

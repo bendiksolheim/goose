@@ -83,7 +83,7 @@ public struct Git {
         public static func parse(_ input: String) -> GitDiff {
             let diff = internalParse(input)
             return GitDiff(diff.files.map { filename, file in
-                GitFile(filename, file.hunks.map { _, hunk in
+                GitFile(filename, file.mode, file.hunks.map { _, hunk in
                     GitHunk(hunk.lines, hunk.patch.joined(separator: "\n") + "\n")
                 })
             })
