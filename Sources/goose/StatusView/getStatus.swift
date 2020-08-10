@@ -3,34 +3,6 @@ import BowEffects
 import Foundation
 import GitLib
 
-public enum AsyncData<T: Equatable>: Equatable {
-    case Loading
-    case Success(T)
-    case Error(Error)
-
-    public static func == (lhs: AsyncData<T>, rhs: AsyncData<T>) -> Bool {
-        switch (lhs, rhs) {
-        case (.Loading, .Loading):
-            return true
-
-        case let (.Success(l), .Success(r)):
-            return l == r
-
-        case let (.Error(l), .Error(r)):
-            return l.localizedDescription == r.localizedDescription
-
-        default:
-            return false
-        }
-    }
-}
-
-extension GitCommand {
-    func exec(_ input: String? = nil) -> Task<ProcessResult> {
-        execute(process: ProcessDescription.git(self), input: input)
-    }
-}
-
 func getStatus() -> Message {
     let branch = Task<String>.var()
     let tracking = Task<String>.var()
@@ -71,10 +43,6 @@ func getAheadOrBehind(_ aheadOrBehind: [String]) -> Task<[GitCommit]> {
     aheadOrBehind.isEmpty
         ? Task.pure([])^
         : Git.show.plain(aheadOrBehind).exec().map { $0.output }.map(parseCommits)^
-}
-
-func error<T>(error: Error) -> AsyncData<T> {
-    .Error(error)
 }
 
 func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit], _ gitConfig: GitConfig) -> AsyncData<StatusInfo> {
