@@ -25,6 +25,7 @@ public struct ProcessDescription {
 public struct ProcessResult {
     let output: String
     let exitCode: Int32
+    let success: Bool
 }
 
 func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessResult> {
@@ -41,7 +42,6 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         task.standardError = stderrPipe
 
         if let _input = input {
-            log("Input", _input)
             let stdinPipe = Pipe()
             task.standardInput = stdinPipe
             if let data = _input.data(using: .utf8) {
@@ -59,17 +59,16 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         task.waitUntilExit()
 
         let exitCode = task.terminationStatus
-        if exitCode == 0 {
-            let stdOutput = String(data: stdoutData, encoding: .utf8)
-            log("Process output", stdOutput ?? "")
-            return ProcessResult(output: stdOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "", exitCode: task.terminationStatus)
-        } else {
-            let errOutput = String(data: stderrData, encoding: .utf8)
-            let stdOutput = String(data: stdoutData, encoding: .utf8)
-            log("Command failed stdErr", errOutput ?? "")
-            log("Command failed stdOut", stdOutput ?? "")
-            throw StringError(errOutput ?? "Command exited without error message")
-        }
+        let stdOutput = String(data: stdoutData, encoding: .utf8) ?? ""
+        let errOutput = String(data: stderrData, encoding: .utf8) ?? ""
+        let output = stdOutput + errOutput
+        log("Process output", output)
+        
+        return ProcessResult(
+            output: output.trimmingCharacters(in: .whitespacesAndNewlines),
+            exitCode: exitCode,
+            success: exitCode == 0
+        )
     }
 }
 
