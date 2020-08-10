@@ -1,3 +1,4 @@
+import Bow
 import BowEffects
 import Foundation
 import GitLib
@@ -8,11 +9,15 @@ public struct LogInfo: Equatable {
 }
 
 func getLog() -> Message {
-    let tasks = IO.parZip(execute(process: ProcessDescription.git(Git.symbolicref())),
-                          execute(process: ProcessDescription.git(Git.log(num: 100))))^
-    let result = tasks.unsafeRunSyncEither()
-    let log: AsyncData = result.fold(error, logSuccess)
-    return .GotLog(log)
+    let ref = Task<ProcessResult>.var()
+    let log = Task<ProcessResult>.var()
+    let result = binding(
+        ref <- Git.symbolicref().exec(),
+        log <- Git.log(num: 100).exec(),
+        yield: logSuccess(branchResult: ref.get, logResult: log.get)
+    )^
+    
+    return .GotLog(result.unsafeRunSyncEither().fold(error, identity))
 }
 
 func logSuccess(branchResult: ProcessResult, logResult: ProcessResult) -> AsyncData<LogInfo> {

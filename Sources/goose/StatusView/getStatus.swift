@@ -26,8 +26,8 @@ public enum AsyncData<T: Equatable>: Equatable {
 }
 
 extension GitCommand {
-    func exec() -> Task<ProcessResult> {
-        execute(process: ProcessDescription.git(self))
+    func exec(_ input: String? = nil) -> Task<ProcessResult> {
+        execute(process: ProcessDescription.git(self), input: input)
     }
 }
 
