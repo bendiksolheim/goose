@@ -4,13 +4,11 @@ import tea
 
 indirect enum Message {
     case GetStatus
-    case GotStatus(AsyncData<StatusInfo>)
-    case GotLog(AsyncData<LogInfo>)
     case GetCommit(String)
-    case GotCommit(String, AsyncData<CommitInfo>)
     case Keyboard(KeyEvent)
     case Action(Action)
     case GitCommand(GitCmd)
+    case GitResult(GitResult)
     case UpdateStatus(StatusModel)
     case CommandSuccess
     case Info(InfoMessage)
@@ -42,6 +40,12 @@ enum Status {
     case Untracked
     case Unstaged
     case Staged
+}
+
+enum GitResult {
+    case GotStatus(AsyncData<StatusInfo>)
+    case GotLog(AsyncData<LogInfo>)
+    case GotCommit(String, AsyncData<CommitInfo>)
 }
 
 enum Action {
@@ -84,17 +88,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case .GetStatus:
         return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus() }.perform())
         
-    case let .GotStatus(newStatus):
-        return (model.replace(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
-
-    case let .GotLog(log):
-        return (model.replace(buffer: .LogBuffer(log)), Cmd.none())
-
     case let .GetCommit(ref):
-        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform { .GotCommit(ref, $0) })
-
-    case let .GotCommit(ref, commit):
-        return (model.replace(buffer: .CommitBuffer(DiffModel(hash: ref, commit: commit))), Cmd.none())
+        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform { .GitResult(.GotCommit(ref, $0)) })
 
     case let .Keyboard(event):
         if let message = model.keyMap[event] {
@@ -108,6 +103,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 
     case let .GitCommand(command):
         return performCommand(model, command)
+        
+    case let .GitResult(result):
+        return updateGitResult(model, result)
 
     case let .UpdateStatus(status):
         return (model.replace(buffer: .StatusBuffer(status)), Cmd.none())
@@ -144,6 +142,19 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         
     case .DropBuffer:
         return model.buffer.count > 1 ? (model.back(), Cmd.none()) : (model, TProcess.quit())
+    }
+}
+
+func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Message>) {
+    switch gitResult {
+    case let .GotStatus(newStatus):
+        return (model.replace(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
+        
+    case let .GotLog(log):
+        return (model.replace(buffer: .LogBuffer(log)), Cmd.none())
+        
+    case let .GotCommit(ref, commit):
+        return (model.replace(buffer: .CommitBuffer(DiffModel(hash: ref, commit: commit))), Cmd.none())
     }
 }
 

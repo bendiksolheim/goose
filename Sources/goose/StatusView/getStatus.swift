@@ -29,7 +29,7 @@ func getStatus() -> Message {
         yield: statusSuccess(branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get, gitConfig.get)
     )^
 
-    return .GotStatus(result.unsafeRunSyncEither().fold(error, identity))
+    return .GitResult(.GotStatus(result.unsafeRunSyncEither().fold(error, identity)))
 }
 
 func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
