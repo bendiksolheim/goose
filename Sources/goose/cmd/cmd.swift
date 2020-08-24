@@ -23,6 +23,7 @@ public struct ProcessDescription {
 }
 
 public struct ProcessResult {
+    let command: String
     let output: String
     let exitCode: Int32
     let success: Bool
@@ -65,6 +66,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         log("Process output", output)
         
         return ProcessResult(
+            command: ([process.executable] + process.arguments).joined(separator: " "),
             output: output.trimmingCharacters(in: .whitespacesAndNewlines),
             exitCode: exitCode,
             success: exitCode == 0
