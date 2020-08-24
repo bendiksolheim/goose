@@ -115,7 +115,7 @@ func headBranchHeader(_ branch: String, _ commit: GitCommit) -> TextView<Message
 func commitMapper(_ commit: GitCommit) -> TextView<Message> {
     let message = commit.refName
         .fold(constant(Text(" "))) { name in Text(" \(name) ", .Cyan) } + commit.message
-    return TextView(Text(commit.hash.short, .Custom(241)) + message, events: [(.enter, .GetCommit(commit.hash.full))])
+    return TextView(Text(commit.hash.short, .Custom(241)) + message, events: [(.enter, .GitCommand(.GetCommit(commit.hash.full)))])
 }
 
 func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {

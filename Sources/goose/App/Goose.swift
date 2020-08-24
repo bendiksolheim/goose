@@ -3,8 +3,6 @@ import GitLib
 import tea
 
 indirect enum Message {
-    case GetStatus
-    case GetCommit(String)
     case Keyboard(KeyEvent)
     case Action(Action)
     case GitCommand(GitCmd)
@@ -20,6 +18,8 @@ indirect enum Message {
 }
 
 enum GitCmd {
+    case Status
+    case GetCommit(String)
     case Stage(Selection)
     case Unstage(Selection)
     case Discard(Selection)
@@ -85,12 +85,6 @@ func render(model: Model) -> Window<Message> {
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     switch message {
-    case .GetStatus:
-        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus() }.perform())
-        
-    case let .GetCommit(ref):
-        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform { .GitResult(.GotCommit(ref, $0)) })
-
     case let .Keyboard(event):
         if let message = model.keyMap[event] {
             return (model, Cmd.message(message))
@@ -160,6 +154,12 @@ func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Mess
 
 func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message>) {
     switch gitCommand {
+    case .Status:
+        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus() }.perform())
+        
+    case let .GetCommit(ref):
+        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform { .GitResult(.GotCommit(ref, $0)) })
+
     case let .Stage(selection):
         switch selection {
         case let .Section(files, status):
