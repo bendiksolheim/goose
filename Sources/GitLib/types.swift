@@ -119,28 +119,22 @@ public struct GitStatus {
     }
 }
 
-public func parseStatus(_ input: String) -> Either<Error, GitStatus> {
+public func parseStatus(_ input: String) -> GitStatus {
     let lines = input.split(separator: "\n")
-    return lines
-        .map(parseChange)
-        .traverse { either in either }
-        .map { changes in GitStatus(changes: changes.flatMap { $0 }) }^
+    return GitStatus(changes: lines.flatMap(parseChange))
 }
 
-public func parseChange<S: StringProtocol>(_ input: S) -> Either<Error, [GitChange]> {
+public func parseChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     let type = input.prefix(1)
     switch type {
     case "1":
-        return .right(parseOrdinaryChange(input))
+        return parseOrdinaryChange(input)
 
     case "2":
-        return .right(parseRenamedChange(input))
+        return parseRenamedChange(input)
 
-    case "?":
-        return .right(parseUntrackedChange(input))
-
-    default:
-        return .left(StringError("Unknown change type: \(input)"))
+    default: // "?"
+        return parseUntrackedChange(input)
     }
 }
 

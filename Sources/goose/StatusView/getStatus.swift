@@ -4,32 +4,39 @@ import Foundation
 import GitLib
 
 func getStatus() -> Message {
-    let branch = Task<String>.var()
-    let tracking = Task<String>.var()
-    let aheadBehind = Task<([String], [String])>.var()
+    let branch = Task<ProcessResult>.var()
+    let tracking = Task<ProcessResult>.var()
+    let aheadBehind = Task<ProcessResult>.var()
     let ahead = Task<[GitCommit]>.var()
     let behind = Task<[GitCommit]>.var()
-    let status = Task<GitStatus>.var()
-    let log = Task<[GitCommit]>.var()
-    let worktree = Task<[String: [GitHunk]]>.var()
-    let index = Task<[String: [GitHunk]]>.var()
+    let status = Task<ProcessResult>.var()
+    let log = Task<ProcessResult>.var()
+    let worktree = Task<ProcessResult>.var()
+    let index = Task<ProcessResult>.var()
     let gitConfig = Task<GitConfig>.var()
 
     let result = binding(
-        branch <- Git.symbolicref().exec().map { $0.output },
-        tracking <- Git.revparse(branch.get).exec().map { $0.output },
-        aheadBehind <- Git.revlist(branch.get).exec().map(parseRevlist),
-        ahead <- getAheadOrBehind(aheadBehind.get.0),
-        behind <- getAheadOrBehind(aheadBehind.get.1),
-        status <- Git.status().exec().flatMap(mapStatus),
-        log <- Git.log(num: 10).exec().map { $0.output }.map(parseCommits),
-        worktree <- Git.diff.files().exec().map(mapDiff),
-        index <- Git.diff.index().exec().map(mapDiff),
+        branch <- Git.symbolicref().exec(),
+        tracking <- Git.revparse(branch.get.output).exec(),
+        aheadBehind <- Git.revlist(branch.get.output).exec(),
+        ahead <- getAheadOrBehind(parseAhead(aheadBehind.get)),
+        behind <- getAheadOrBehind(parseBehind(aheadBehind.get)),
+        status <- Git.status().exec(),
+        log <- Git.log(num: 10).exec(),
+        worktree <- Git.diff.files().exec(),
+        index <- Git.diff.index().exec(),
         gitConfig <- config(),
         yield: statusSuccess(branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get, gitConfig.get)
     )^
 
-    return .GitResult(.GotStatus(result.unsafeRunSyncEither().fold(error, identity)))
+    return runAndMap(result) { .GotStatus($0) }
+}
+
+func runAndMap<T>(_ task: IO<Error, GitLogAndResult<AsyncData<T>>>, _ mapper: (AsyncData<T>) -> GitResult) -> Message {
+    task.unsafeRunSyncEither().fold(
+        { error in .GitResult([], mapper(.Error(error))) },
+        { success in .GitResult(success.gitLog, mapper(success.result)) }
+    )
 }
 
 func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
@@ -39,32 +46,65 @@ func parseRevlist(_ revlist: ProcessResult) -> ([String], [String]) {
     return (ahead, behind)
 }
 
+func parseAhead(_ revlist: ProcessResult) -> [String] {
+    revlist.output.split(regex: "\n")
+        .filter { $0.starts(with: "<") }.map { String($0[1...]) }
+}
+
+func parseBehind(_ revlist: ProcessResult) -> [String] {
+    revlist.output.split(regex: "\n")
+        .filter { $0.starts(with: ">") }.map { String($0[1...]) }
+}
+
 func getAheadOrBehind(_ aheadOrBehind: [String]) -> Task<[GitCommit]> {
     aheadOrBehind.isEmpty
         ? Task.pure([])^
         : Git.show.plain(aheadOrBehind).exec().map { $0.output }.map(parseCommits)^
 }
 
-func statusSuccess(_ branch: String, _ tracking: String, _ status: GitStatus, _ commits: [GitCommit], _ worktree: [String: [GitHunk]], _ index: [String: [GitHunk]], _ ahead: [GitCommit], _ behind: [GitCommit], _ gitConfig: GitConfig) -> AsyncData<StatusInfo> {
-    return .Success(StatusInfo(
-        branch: branch,
-        upstream: tracking,
-        untracked: status.changes.filter(isUntracked).map { Untracked($0.file) },
-        unstaged: status.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, worktree[$0.file] ?? []) },
-        staged: status.changes.filter(isStaged).map { Staged($0.file, $0.status, index[$0.file] ?? []) },
-        log: commits,
-        ahead: ahead,
-        behind: behind,
-        config: gitConfig
-    ))
-}
+func statusSuccess(
+    _ branch: ProcessResult,
+    _ tracking: ProcessResult,
+    _ status: ProcessResult,
+    _ log: ProcessResult,
+    _ worktree: ProcessResult,
+    _ index: ProcessResult,
+    _ ahead: [GitCommit],
+    _ behind: [GitCommit],
+    _ gitConfig: GitConfig) -> GitLogAndResult<AsyncData<StatusInfo>> {
+    let parsedStatus = parseStatus(status.output)
+    let commits = parseCommits(log.output)
+    let parsedWorktree = mapDiff(diff: worktree)
+    let parsedIndex = mapDiff(diff: index)
 
-private func mapStatus(status: ProcessResult) -> IO<Error, GitStatus> {
-    parseStatus(status.output)
-        .fold(IO.raiseError, IO.pure)^
+    return GitLogAndResult(
+        [branch, tracking, status, log, worktree, index].map { GitLogEntry($0) },
+        .Success(StatusInfo(
+            branch: branch.output,
+            upstream: tracking.output,
+            untracked: parsedStatus.changes.filter(isUntracked).map { Untracked($0.file) },
+            unstaged: parsedStatus.changes.filter(isUnstaged).map { Unstaged($0.file, $0.status, parsedWorktree[$0.file] ?? []) },
+            staged: parsedStatus.changes.filter(isStaged).map { Staged($0.file, $0.status, parsedIndex[$0.file] ?? []) },
+            log: commits,
+            ahead: ahead,
+            behind: behind,
+            config: gitConfig
+
+        ))
+    )
 }
 
 private func mapDiff(diff: ProcessResult) -> [String: [GitHunk]] {
     let files = Git.diff.parse(diff.output).files
     return files.reduce(into: [:]) { $0[$1.source] = $1.hunks }
+}
+
+struct GitLogAndResult<T> {
+    let gitLog: [GitLogEntry]
+    let result: T
+
+    init(_ gitLog: [GitLogEntry], _ result: T) {
+        self.gitLog = gitLog
+        self.result = result
+    }
 }

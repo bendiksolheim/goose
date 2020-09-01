@@ -3,7 +3,7 @@ import BowEffects
 import Foundation
 import GitLib
 
-func getDiff(_ ref: String) -> AsyncData<CommitInfo> {
+func getDiff(_ ref: String) -> Message {
     let commit = Task<GitCommit>.var()
     let stats = Task<Stats>.var()
     let tasks = binding(
@@ -12,8 +12,7 @@ func getDiff(_ ref: String) -> AsyncData<CommitInfo> {
         yield: commitSuccess(commit.get, stats.get)
     )^
     
-    let result = tasks.unsafeRunSyncEither()
-    return result.fold(error, identity)
+    return .GitResult([], .GotCommit(ref, tasks.unsafeRunSyncEither().fold(error, identity)))
 }
 
 private func commitSuccess(_ commit: GitCommit, _ stats: Stats) -> AsyncData<CommitInfo> {

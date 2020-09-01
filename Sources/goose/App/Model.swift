@@ -4,6 +4,7 @@ import tea
 enum Buffer: Equatable {
     case StatusBuffer(StatusModel)
     case LogBuffer(AsyncData<LogInfo>)
+    case GitLogBuffer
     case CommitBuffer(DiffModel)
 }
 
@@ -41,15 +42,18 @@ struct Model: Equatable {
     let info: InfoMessage
     let scrollState: ScrollState
     let keyMap: KeyMap
+    let gitLog: GitLogModel
 
     func with(buffer: [Buffer]? = nil,
               info: InfoMessage? = nil,
               scrollState: ScrollState? = nil,
-              keyMap: KeyMap? = nil) -> Model {
+              keyMap: KeyMap? = nil,
+              gitLog: GitLogModel? = nil) -> Model {
         Model(buffer: buffer ?? self.buffer,
               info: info ?? self.info,
               scrollState: scrollState ?? self.scrollState,
-              keyMap: keyMap ?? self.keyMap)
+              keyMap: keyMap ?? self.keyMap,
+              gitLog: gitLog ?? self.gitLog)
     }
     
     func navigate(to newBuffer: Buffer) -> Model {

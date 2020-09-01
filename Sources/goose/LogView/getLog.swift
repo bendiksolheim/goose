@@ -17,7 +17,9 @@ func getLog() -> Message {
         yield: logSuccess(branchResult: ref.get, logResult: log.get)
     )^
     
-    return .GitResult(.GotLog(result.unsafeRunSyncEither().fold(error, identity)))
+    let gitLog = [GitLogEntry(ref.get), GitLogEntry(log.get)]
+    
+    return .GitResult(gitLog, .GotLog(result.unsafeRunSyncEither().fold(error, identity)))
 }
 
 func logSuccess(branchResult: ProcessResult, logResult: ProcessResult) -> AsyncData<LogInfo> {

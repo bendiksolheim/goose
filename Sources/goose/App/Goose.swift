@@ -6,7 +6,7 @@ indirect enum Message {
     case Keyboard(KeyEvent)
     case Action(Action)
     case GitCommand(GitCmd)
-    case GitResult(GitResult)
+    case GitResult([GitLogEntry], GitResult)
     case UpdateStatus(StatusModel)
     case CommandSuccess
     case Info(InfoMessage)
@@ -51,6 +51,7 @@ enum GitResult {
 enum Action {
     case KeyMap(KeyMap)
     case Log
+    case GitLog
     case Refresh
     case Commit
     case AmendCommit
@@ -62,7 +63,8 @@ func initialize() -> (Model, Cmd<Message>) {
     return (Model(buffer: [.StatusBuffer(statusModel)],
                   info: .None,
                   scrollState: ScrollView<Message>.initialState(),
-                  keyMap: statusMap),
+                  keyMap: statusMap,
+                  gitLog: GitLogModel()),
             Task { getStatus() }.perform())
 }
 
@@ -74,6 +76,8 @@ func render(model: Model) -> Window<Message> {
         content = renderStatus(model: statusModel)
     case let .LogBuffer(log):
         content = renderLog(log: log)
+    case .GitLogBuffer:
+        content = renderGitLog(gitLog: model.gitLog)
     case let .CommitBuffer(commitModel):
         content = renderDiff(diff: commitModel)
     }
@@ -98,8 +102,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .GitCommand(command):
         return performCommand(model, command)
         
-    case let .GitResult(result):
-        return updateGitResult(model, result)
+    case let .GitResult(log, result):
+        return updateGitResult(model.with(gitLog: model.gitLog.append(log)), result)
 
     case let .UpdateStatus(status):
         return (model.replace(buffer: .StatusBuffer(status)), Cmd.none())
@@ -158,7 +162,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus() }.perform())
         
     case let .GetCommit(ref):
-        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform { .GitResult(.GotCommit(ref, $0)) })
+        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform())
 
     case let .Stage(selection):
         switch selection {
@@ -257,6 +261,9 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     
     case .Log:
         return (model.navigate(to: .LogBuffer(.Loading)), Task { getLog() }.perform())
+        
+    case .GitLog:
+        return (model.navigate(to: .GitLogBuffer), Cmd.none())
         
     case .Refresh:
         return (model, Task { getStatus() }.perform())
