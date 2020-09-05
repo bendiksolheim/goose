@@ -45,7 +45,6 @@ Todo (far from exhaustive, just a short list of possible next tasks..)
 
 Bugs
 - Diffs with tab characters (and possibly others) breaks rendering
-- Diffs are not shown when running goose in sub folder
 
 ## Instructions
 
