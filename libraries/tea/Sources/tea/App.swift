@@ -179,52 +179,6 @@ public func run<Model: Equatable, Message>(
             messageProducer.sendCompleted()
             commandProducer.sendCompleted()
         }
-
-        /* case .cmd(let message):
-             async { messageProducer.send(value: message) }
-
-         case .task(let task):
-             let message = task()
-             async { messageProducer.send(value: message) }
-
-         case .asyncTask(let task):
-             taskDispatchQueue.async {
-                 task({ message in
-                     async { messageProducer.send(value: message) }
-                 })
-             }
-
-         case .delayedTask(let interval, let task):
-             let message = task()
-             taskDispatchQueue.asyncAfter(deadline: .now() + interval)
-                 { messageProducer.send(value: message) }
-
-         case .process(let process):
-             polling = false
-             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
-                 app.teardown()
-                 os_log("starting process")
-                 let message = process()
-                 os_log("process ended")
-                 polling = true
-
-                 async {
-                     try! app.setup()
-                     let window = render(model)
-                     renderToScreen(buffer, app, window)
-                     startEventPolling()
-                 }
-
-                 async { messageProducer.send(value: message) }
-
-             }
-
-         case .exit:
-             messageProducer.sendCompleted()
-             commandProducer.sendCompleted()
-
-         case .none:
-             break; */
     }
 
     async { commandProducer.send(value: initialCommand) }
