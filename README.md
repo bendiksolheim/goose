@@ -8,7 +8,7 @@ or less identical, with the only difference being that it lives in your terminal
 
 ## Rationale
 [Magit](https://magit.vc) is probably the best git client/porcelain around. My only problem is that it lives inside Emacs,
-and even though I really enjoy using Emacs I don’t like being tied to one single tool for all my tasks. Hence, I try to move
+and even though I really enjoy using Emacs I don’t like being tied to one single tool for all my needs. Hence, I try to move
 the best git client out of the best code editor and make it stand alone.
 
 What could possibly go wrong.
