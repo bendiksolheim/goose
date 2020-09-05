@@ -47,7 +47,6 @@ public func run<Model: Equatable, Message>(
         termboxDispatchQueue.async {
             while polling {
                 if let event = app.nextEvent() {
-                    os_log("Event: %{public}@", "\(event)")
                     switch event {
                     case let .Key(key):
                         switch key {
@@ -160,9 +159,7 @@ public func run<Model: Equatable, Message>(
             polling = false
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
                 app.teardown()
-                os_log("starting process")
                 let message = process()
-                os_log("process ended")
                 polling = true
 
                 async {
