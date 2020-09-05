@@ -1,4 +1,5 @@
 import Foundation
+import GitLib
 import tea
 
 enum Buffer: Equatable {
@@ -38,6 +39,7 @@ enum InfoMessage: Equatable {
 }
 
 struct Model: Equatable {
+    let git: Git
     let buffer: [Buffer]
     let info: InfoMessage
     let scrollState: ScrollState
@@ -49,7 +51,8 @@ struct Model: Equatable {
               scrollState: ScrollState? = nil,
               keyMap: KeyMap? = nil,
               gitLog: GitLogModel? = nil) -> Model {
-        Model(buffer: buffer ?? self.buffer,
+        Model(git: git,
+              buffer: buffer ?? self.buffer,
               info: info ?? self.info,
               scrollState: scrollState ?? self.scrollState,
               keyMap: keyMap ?? self.keyMap,

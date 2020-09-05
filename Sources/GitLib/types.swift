@@ -29,28 +29,29 @@ public func parseStat(_ input: String) -> Stats {
         let file = matches["file", default: "Error parsing \(line)"]
         stats.append(Stat(file: file, added: added, removed: removed))
     }
-    
+
     return Stats(stats: stats)
 }
 
-public func parseCommits(_ input: String) -> [GitCommit] {
+public func parseCommits(git: Git, _ input: String) -> [GitCommit] {
     let commits = input.trimmingCharacters(in: .init(charactersIn: "\0")).split(regex: "\0")
-    return commits.map(parseCommit)
+    return commits.map(parseCommit(git: git))
 }
 
-public func parseCommit(_ commit: String) -> GitCommit {
-    let lines = commit.split(separator: "\n", omittingEmptySubsequences: false)
-    os_log("%{public}@", "\(lines)")
-    return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
-                     message: String(lines[7]),
-                     parents: lines[6].split(separator: " ").map { parent in String(parent) },
-                     commitDate: Date(timeIntervalSince1970: Double(lines[4])!),
-                     authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
-                     author: String(lines[2]),
-                     email: String(lines[3]),
-                     refName: parseRefName(lines[8]),
-                     diff: hasDiff(lines) ? .some(Git.diff.parse(lines[9...].joined(separator: "\n"))) : .none()
-    )
+public func parseCommit(git: Git) -> (String) -> GitCommit {
+    return { commit in
+        let lines = commit.split(separator: "\n", omittingEmptySubsequences: false)
+        os_log("%{public}@", "\(lines)")
+        return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
+                         message: String(lines[7]),
+                         parents: lines[6].split(separator: " ").map { parent in String(parent) },
+                         commitDate: Date(timeIntervalSince1970: Double(lines[4])!),
+                         authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
+                         author: String(lines[2]),
+                         email: String(lines[3]),
+                         refName: parseRefName(lines[8]),
+                         diff: hasDiff(lines) ? .some(git.diff.parse(lines[9...].joined(separator: "\n"))) : .none())
+    }
 }
 
 func hasDiff<S: StringProtocol>(_ lines: [S]) -> Bool {
@@ -79,7 +80,7 @@ public struct Stat: Equatable {
     public let file: String
     public let added: Int
     public let removed: Int
-    
+
     public func total() -> Int {
         added + removed
     }

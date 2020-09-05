@@ -58,14 +58,17 @@ enum Action {
     case Push
 }
 
-func initialize() -> (Model, Cmd<Message>) {
-    let statusModel = StatusModel(info: .Loading, visibility: [:])
-    return (Model(buffer: [.StatusBuffer(statusModel)],
-                  info: .None,
-                  scrollState: ScrollView<Message>.initialState(),
-                  keyMap: statusMap,
-                  gitLog: GitLogModel()),
-            Task { getStatus() }.perform())
+func initialize(basePath: String) -> () -> (Model, Cmd<Message>) {
+    return {
+        let git = Git(path: basePath)
+        return (Model(git: git,
+                      buffer: [.StatusBuffer(StatusModel(info: .Loading, visibility: [:]))],
+                      info: .None,
+                      scrollState: ScrollView<Message>.initialState(),
+                      keyMap: statusMap,
+                      gitLog: GitLogModel()),
+                Task { getStatus(git: git) }.perform())
+    }
 }
 
 func render(model: Model) -> Window<Message> {
@@ -95,13 +98,13 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         } else {
             return (model, Cmd.none())
         }
-        
+
     case let .Action(action):
         return performAction(action, model)
 
     case let .GitCommand(command):
         return performCommand(model, command)
-        
+
     case let .GitResult(log, result):
         return updateGitResult(model.with(gitLog: model.gitLog.append(log)), result)
 
@@ -109,7 +112,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model.replace(buffer: .StatusBuffer(status)), Cmd.none())
 
     case .CommandSuccess:
-        return (model.with(keyMap: statusMap), Task { getStatus() }.perform())
+        return (model.with(keyMap: statusMap), Task { getStatus(git: model.git) }.perform())
 
     case let .Info(info):
         switch info {
@@ -137,7 +140,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 
     case let .Container(containerMsg):
         return (model.with(scrollState: ScrollView<Message>.update(containerMsg, model.scrollState)), Cmd.none())
-        
+
     case .DropBuffer:
         return model.buffer.count > 1 ? (model.back(), Cmd.none()) : (model, TProcess.quit())
     }
@@ -147,10 +150,10 @@ func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Mess
     switch gitResult {
     case let .GotStatus(newStatus):
         return (model.replace(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
-        
+
     case let .GotLog(log):
         return (model.replace(buffer: .LogBuffer(log)), Cmd.none())
-        
+
     case let .GotCommit(ref, commit):
         return (model.replace(buffer: .CommitBuffer(DiffModel(hash: ref, commit: commit))), Cmd.none())
     }
@@ -159,21 +162,21 @@ func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Mess
 func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message>) {
     switch gitCommand {
     case .Status:
-        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus() }.perform())
-        
+        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus(git: model.git) }.perform())
+
     case let .GetCommit(ref):
-        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(ref) }.perform())
+        return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(git: model.git, ref) }.perform())
 
     case let .Stage(selection):
         switch selection {
         case let .Section(files, status):
-            return (model, stage(files, status))
+            return (model, stage(model, files, status))
         case let .File(file, status):
-            return (model, stage([file], status))
+            return (model, stage(model, [file], status))
         case let .Hunk(hunk, status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, Task { apply(patch: hunk, cached: true) }.perform())
+                return (model, Task { apply(git: model.git, patch: hunk, cached: true) }.perform())
             case .Staged:
                 return (model, Cmd.message(.Info(.Message("Already staged"))))
             }
@@ -182,69 +185,71 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
     case let .Unstage(selection):
         switch selection {
         case let .Section(files, status):
-            return (model, unstage(files, status))
+            return (model, unstage(model, files, status))
         case let .File(file, status):
-            return (model, unstage([file], status))
+            return (model, unstage(model, [file], status))
         case let .Hunk(patch, status):
             switch status {
             case .Untracked, .Unstaged:
                 return (model, Cmd.message(.Info(.Message("Already unstaged"))))
             case .Staged:
-                return (model, Task { apply(patch: patch, reverse: true, cached: true) }.perform())
+                return (model, Task { apply(git: model.git, patch: patch, reverse: true, cached: true) }.perform())
             }
         }
 
     case let .Discard(selection):
         switch selection {
         case let .Section(files, status):
-            return (model, discard(files, status))
+            return (model, discard(model, files, status))
 
         case let .File(file, status):
-            return (model, discard([file], status))
+            return (model, discard(model, [file], status))
 
         case let .Hunk(patch, status):
             switch status {
             case .Untracked:
                 return (model, Cmd.none()) // Impossible state, untracked files does not have hunks
             case .Unstaged:
-                return (model, Task { apply(patch: patch, reverse: true) }.perform())
+                return (model, Task { apply(git: model.git, patch: patch, reverse: true) }.perform())
             case .Staged:
-                return (model, Task { apply(patch: patch, reverse: true, cached: true) }.andThen { _ in apply(patch: patch, reverse: true) }.perform())
+                return (model, Task { apply(git: model.git, patch: patch, reverse: true, cached: true) }
+                    .andThen { _ in apply(git: model.git, patch: patch, reverse: true) }.perform())
             }
         }
     }
 }
 
-func stage(_ files: [String], _ type: Status) -> Cmd<Message> {
+func stage(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
-        return Task { addFile(files: files) }.perform()
+        return Task { addFile(git: model.git, files: files) }.perform()
     case .Unstaged:
-        return Task { addFile(files: files) }.perform()
+        return Task { addFile(git: model.git, files: files) }.perform()
     case .Staged:
         return Cmd.message(.Info(.Message("Already staged")))
     }
 }
 
-func unstage(_ files: [String], _ type: Status) -> Cmd<Message> {
+func unstage(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
         return Cmd.message(.Info(.Message("Already unstaged")))
     case .Unstaged:
         return Cmd.message(.Info(.Message("Already unstaged")))
     case .Staged:
-        return Task { resetFile(files: files) }.perform()
+        return Task { resetFile(git: model.git, files: files) }.perform()
     }
 }
 
-func discard(_ files: [String], _ type: Status) -> Cmd<Message> {
+func discard(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
         return Task { remove(files: files) }.perform()
     case .Unstaged:
-        return Task { checkout(files: files) }.perform()
+        return Task { checkout(git: model.git, files: files) }.perform()
     case .Staged:
-        return Task { restore(files, true) }.andThen { _ in checkout(files: files) }.perform()
+        return Task { restore(git: model.git, files, true) }
+            .andThen { _ in checkout(git: model.git, files: files) }.perform()
     }
 }
 
@@ -252,24 +257,24 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     switch action {
     case let .KeyMap(keyMap):
         return (model.with(keyMap: keyMap), Cmd.none())
-        
+
     case .Commit:
         return (model, TProcess.spawn { commit() }.perform())
-        
+
     case .AmendCommit:
         return (model, TProcess.spawn { commit(amend: true) }.perform())
-    
+
     case .Log:
-        return (model.navigate(to: .LogBuffer(.Loading)), Task { getLog() }.perform())
-        
+        return (model.navigate(to: .LogBuffer(.Loading)), Task { getLog(git: model.git) }.perform())
+
     case .GitLog:
         return (model.navigate(to: .GitLogBuffer), Cmd.none())
-        
+
     case .Refresh:
-        return (model, Task { getStatus() }.perform())
-        
+        return (model, Task { getStatus(git: model.git) }.perform())
+
     case .Push:
-        return (model, Task { push() }.perform())
+        return (model, Task { push(git: model.git) }.perform())
     }
 }
 
