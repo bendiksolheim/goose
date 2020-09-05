@@ -14,17 +14,15 @@ func getLog(git: Git) -> Message {
     let result = binding(
         ref <- git.symbolicref().exec(),
         log <- git.log(num: 100).exec(),
-        yield: logSuccess(git: git, branchResult: ref.get, logResult: log.get)
+        yield: logSuccess(git: git, branch: ref.get, log: log.get)
     )^
     
-    let gitLog = [GitLogEntry(ref.get), GitLogEntry(log.get)]
-    
-    return .GitResult(gitLog, .GotLog(result.unsafeRunSyncEither().fold(error, identity)))
+    return runAndMap(result) { .GotLog($0) }
 }
 
-func logSuccess(git: Git, branchResult: ProcessResult, logResult: ProcessResult) -> AsyncData<LogInfo> {
-    let branch = branchResult.output
-    let log = parseCommits(git: git, logResult.output)
-
-    return .Success(LogInfo(branch: branch, commits: log))
+func logSuccess(git: Git, branch: ProcessResult, log: ProcessResult) -> GitLogAndResult<AsyncData<LogInfo>> {
+    GitLogAndResult(
+        [branch, log].map { GitLogEntry($0) },
+        .Success(LogInfo(branch: branch.output, commits: parseCommits(git: git, log.output)))
+    )
 }
