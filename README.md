@@ -30,10 +30,10 @@ Working (more or less)
 - Open file under cursor
 - Window resizing
 - Amend commit
+- Git input/output log for debugging
 
 Todo (far from exhaustive, just a short list of possible next tasks..)
 - Better git error handling
-- Git input/output log for debugging
 - Async tasks so we don’t block rendering
 - Transient command system (aka the Magit menu system)
 - Search in active buffer to quickly move around
