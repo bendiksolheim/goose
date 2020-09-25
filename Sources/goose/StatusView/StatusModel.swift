@@ -10,6 +10,10 @@ public struct StatusModel: Equatable {
         StatusModel(info: info ?? self.info,
                     visibility: visibility ?? self.visibility)
     }
+    
+    func toggle(file: String) -> StatusModel {
+        return with(visibility: visibility.merging([file: !visibility[file, default: false]], uniquingKeysWith: { $1 }))
+    }
 }
 
 public struct Untracked: Equatable {
