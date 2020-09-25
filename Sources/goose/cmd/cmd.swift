@@ -49,7 +49,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
                 stdinPipe.fileHandleForWriting.write(data)
                 stdinPipe.fileHandleForWriting.closeFile()
             } else {
-                log("Could not convert string to data", _input)
+                Logger.log("Could not convert string to data", _input)
             }
         }
 
@@ -63,7 +63,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         let stdOutput = String(data: stdoutData, encoding: .utf8) ?? ""
         let errOutput = String(data: stderrData, encoding: .utf8) ?? ""
         let output = stdOutput + errOutput
-        log("Process output", output)
+        Logger.log("Process output", output)
         
         return ProcessResult(
             command: ([process.executable] + process.arguments).joined(separator: " "),
@@ -77,7 +77,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
 private func logCommand(process: ProcessDescription) {
     let executedCommand = ([process.executable] + process.arguments).joined(separator: " ")
     let command = "Process(executable=\(process.executable), arguments=\(process.arguments), workingDirectory=\(process.workingDirectory), cmd=\(executedCommand)"
-    log(command)
+    Logger.log(command)
 }
 
 private let gitExecutable = "/usr/local/bin/git"

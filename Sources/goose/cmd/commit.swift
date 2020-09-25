@@ -15,33 +15,33 @@ func runCommand(_ command: String) -> Int {
     cEnvs.forEach { free($0) }
     cArgs.forEach { free($0) }
 
-    log("posix_spawn return for pid", "pid: \(pid), status: \(status)")
+    Logger.log("posix_spawn return for pid", "pid: \(pid), status: \(status)")
     var returnStatus = -1
     let rc = waitpid(pid, &status, 0)
     if rc == -1 {
         let error = POSIXErrorCode(rawValue: errno)
         switch error {
         case .ECHILD:
-            log("ECHILD")
+            Logger.log("ECHILD")
         case .EDEADLK:
-            log("EDEADLK")
+            Logger.log("EDEADLK")
         default:
             if let _error = error {
-                log("\(_error.rawValue)")
+                Logger.log("\(_error.rawValue)")
             } else {
-                log("Unknown error")
+                Logger.log("Unknown error")
             }
         }
     } else {
         if rc != pid {
-            log("waitpid returned wrong pid?")
+            Logger.log("waitpid returned wrong pid?")
         } else if WIFEXITED(status) { // Normal exit
-            log("Normal exit with status code", "\(WEXITSTATUS(status))")
+            Logger.log("Normal exit with status code", "\(WEXITSTATUS(status))")
             returnStatus = Int(WEXITSTATUS(status))
         } else if WIFSIGNALED(status) {
-            log("Terminated due to signal", "\(WTERMSIG(status))")
+            Logger.log("Terminated due to signal", "\(WTERMSIG(status))")
         } else if WIFSTOPPED(status) {
-            log("Process stopped, can be restarted", "\(WSTOPSIG(status))")
+            Logger.log("Process stopped, can be restarted", "\(WSTOPSIG(status))")
         }
     }
 

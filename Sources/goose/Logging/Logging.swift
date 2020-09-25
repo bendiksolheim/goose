@@ -1,10 +1,18 @@
 import Foundation
 import os.log
 
-func log(_ message: String) {
-    os_log("%{public}@", message)
-}
+struct Logger {
+    static var debug = false
+    
+    static func log(_ message: String) {
+        if debug {
+            os_log("%{public}@", message)
+        }
+    }
 
-func log(_ prefix: String, _ message: String) {
-    os_log("%{public}@: %{public}@", prefix, message)
+    static func log(_ prefix: String, _ message: String) {
+        if debug {
+            os_log("%{public}@: %{public}@", prefix, message)
+        }
+    }
 }
