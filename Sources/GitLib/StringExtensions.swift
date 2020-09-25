@@ -2,7 +2,11 @@ import Foundation
 
 public extension String {
     subscript(value: Int) -> Character {
-        self[index(at: value)]
+        if self.count == 0 {
+            return " "
+        } else {
+            return self[index(at: value)]
+        }
     }
 
     func split(regex pattern: String) -> [String] {
