@@ -7,7 +7,7 @@ indirect enum Message {
     case Action(Action)
     case GitCommand(GitCmd)
     case GitResult([GitLogEntry], GitResult)
-    case UpdateStatus(StatusModel)
+    case UpdateStatus(String, StatusModel)
     case CommandSuccess
     case Info(InfoMessage)
     case ClearInfo
@@ -108,8 +108,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .GitResult(log, result):
         return updateGitResult(model.with(gitLog: model.gitLog.append(log)), result)
 
-    case let .UpdateStatus(status):
-        return (model.replace(buffer: .StatusBuffer(status)), Cmd.none())
+    case let .UpdateStatus(file, status):
+        return (model.replace(buffer: .StatusBuffer(status.toggle(file: file))), Cmd.none())
 
     case .CommandSuccess:
         return (model.with(keyMap: statusMap), Task { getStatus(git: model.git) }.perform())
