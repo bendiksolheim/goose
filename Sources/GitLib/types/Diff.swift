@@ -67,7 +67,7 @@ func internalParse(_ input: String) -> GDiff {
     var currentHunk = ""
     for line in lines {
         if line.starts(with: "diff --git") {
-            let matches = line.match(regex: "diff --git a\\/(?<a>[\\w.\\/]+)\\sb\\/(?<b>[\\w.\\/]+)")
+            let matches = line.match(regex: "diff --git a\\/(?<a>[\\w.\\/-_]+)\\sb\\/(?<b>[\\w.\\/-_]+)")
             currentFile = matches["a", default: ""]
             diff.add(file: currentFile)
             diff[currentFile]?.header.append(line)
