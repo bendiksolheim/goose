@@ -91,6 +91,7 @@ func render(model: Model) -> Window<Message> {
 }
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
+    Logger.log("Message: \(message)")
     switch message {
     case let .Keyboard(event):
         if let message = model.keyMap[event] {
