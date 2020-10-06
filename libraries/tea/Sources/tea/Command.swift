@@ -5,6 +5,7 @@ enum Command<Msg> {
     case Command(Msg)
     case Commands([Cmd<Msg>])
     case Task(() -> Msg)
+    case AsyncTask(TimeInterval, () -> Msg)
     case Process(() -> Msg)
     case Quit
 }

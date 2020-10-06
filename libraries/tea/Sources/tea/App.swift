@@ -154,6 +154,11 @@ public func run<Model: Equatable, Message>(
             taskDispatchQueue.async {
                 messageProducer.send(value: task())
             }
+            
+        case let .AsyncTask(delay, task):
+            taskDispatchQueue.asyncAfter(deadline: .now() + delay) {
+                messageProducer.send(value: task())
+            }
 
         case let .Process(process):
             polling = false

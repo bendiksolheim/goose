@@ -5,18 +5,32 @@ enum TaskType {
     case External
 }
 
+enum Sync {
+    case Sync
+    case Async(TimeInterval)
+}
+
 public struct Task<R> {
     let task: () -> R
     let type: TaskType
+    let sync: Sync
 
     public init(_ task: @escaping () -> R) {
         self.task = task
         type = .Internal
+        self.sync = .Sync
     }
 
     init(_ task: @escaping () -> R, _ taskType: TaskType) {
         self.task = task
         type = taskType
+        sync = .Sync
+    }
+    
+    init(_ task: @escaping () -> R, _ sync: Sync) {
+        self.task = task
+        type = .Internal
+        self.sync = sync
     }
 
     public func perform<Msg>(_ toMessage: @escaping (R) -> Msg) -> Cmd<Msg> {
@@ -27,10 +41,18 @@ public struct Task<R> {
                 return toMessage(result)
             })
         case .Internal:
-            return Cmd(.Task {
-                let result = self.task()
-                return toMessage(result)
-            })
+            switch sync {
+            case .Sync:
+                return Cmd(.Task {
+                    let result = self.task()
+                    return toMessage(result)
+                })
+            case let .Async(delay):
+                return Cmd(.AsyncTask(delay) {
+                    let result = self.task()
+                    return toMessage(result)
+                })
+            }
         }
     }
 
