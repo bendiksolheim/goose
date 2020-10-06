@@ -15,11 +15,13 @@ struct GitLogModel: Equatable {
 }
 
 struct GitLogEntry: Equatable {
+    let timestamp: Int
     let command: String
     let result: String
     let success: Bool
     
     init(_ processResult: ProcessResult) {
+        timestamp = processResult.timestamp
         command = processResult.command
         result = processResult.output
         success = processResult.success

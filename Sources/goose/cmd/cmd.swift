@@ -23,6 +23,7 @@ public struct ProcessDescription {
 }
 
 public struct ProcessResult {
+    let timestamp: Int
     let command: String
     let output: String
     let exitCode: Int32
@@ -66,6 +67,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         Logger.log("Process output", output)
         
         return ProcessResult(
+            timestamp: Int(Date().timeIntervalSince1970),
             command: ([process.executable] + process.arguments).joined(separator: " "),
             output: output.trimmingCharacters(in: .whitespacesAndNewlines),
             exitCode: exitCode,
