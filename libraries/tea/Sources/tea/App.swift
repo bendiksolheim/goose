@@ -27,7 +27,7 @@ public func run<Model: Equatable, Message>(
     let termboxDispatchQueue = DispatchQueue(label: "termbox.queue.producer", qos: .background)
     let taskDispatchQueue = DispatchQueue(label: "tea.task.queue", qos: .userInitiated)
 
-    var app = TermboxScreen()
+    let app = TermboxScreen()
     try! app.setup()
     let buffer = Buffer<Message>(size: app.size)
     var polling = true
