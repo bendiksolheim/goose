@@ -7,7 +7,7 @@ struct GitLogModel: Equatable {
         visibility = [:]
     }
     
-    private init(_ history: [GitLogEntry], _ visibility: [String : Bool]) {
+    private init(_ history: [GitLogEntry], _ visibility: [String: Bool]) {
         self.history = history
         self.visibility = visibility
     }
@@ -16,7 +16,7 @@ struct GitLogModel: Equatable {
         GitLogModel(history + entry, visibility)
     }
     
-    func with(visibility: [String : Bool]?) -> GitLogModel {
+    func with(visibility: [String: Bool]?) -> GitLogModel {
         GitLogModel(history, visibility ?? self.visibility)
     }
     
@@ -26,14 +26,17 @@ struct GitLogModel: Equatable {
 }
 
 struct GitLogEntry: Equatable {
+    let exitCode: Int
     let timestamp: Int
     let command: String
     let result: String
     let success: Bool
     
     init(_ processResult: ProcessResult) {
+        exitCode = Int(processResult.exitCode)
         timestamp = processResult.timestamp
         command = processResult.command
+            .match(regex: "(?<cmd>git\\s.*)")["cmd", default: processResult.command]
         result = processResult.output
         success = processResult.success
     }
