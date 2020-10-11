@@ -68,6 +68,10 @@ public struct Git: Equatable {
     public func push() -> GitCommand {
         GitCommand(path, ["push"])
     }
+    
+    public func pull() -> GitCommand {
+        GitCommand(path, ["pull"])
+    }
 }
 
 public struct Config: Equatable {
