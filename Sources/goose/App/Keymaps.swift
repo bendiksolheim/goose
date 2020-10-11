@@ -42,6 +42,7 @@ let actionsMap = KeyMap([
     .g: .Action(.Refresh),
     .c: .Action(.KeyMap(commitActionsMap)),
     .p: .Action(.KeyMap(pushActionsMap)),
+    .F: .Action(.KeyMap(pullActionsMap)),
     .dollar: .Action(.GitLog)
 ])
 
@@ -52,6 +53,10 @@ let commitActionsMap = KeyMap([
 
 let pushActionsMap = KeyMap([
     .u: .Action(.Push)
+])
+
+let pullActionsMap = KeyMap([
+    .u: .Action(.Pull)
 ])
 
 // Querying
