@@ -6,6 +6,10 @@ public struct GitCommand {
     public init(_ path: String, _ arguments: [String]) {
         self.arguments = ["-C", path] + arguments
     }
+    
+    public func cmd() -> String {
+        (["git"] + arguments).joined(separator: " ")
+    }
 }
 
 public struct Git: Equatable {
