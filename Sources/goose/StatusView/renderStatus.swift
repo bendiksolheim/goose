@@ -128,12 +128,12 @@ func untrackedMapper(_ untracked: Untracked) -> TextView<Message> {
 
 func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [TextView<Message>] {
     { unstaged in
-        let open = model.visibility[unstaged.file, default: false]
+        let open = model.visibility["unstaged-\(unstaged.file)", default: false]
         let events: [ViewEvent<Message>] = [
             (.s, .GitCommand(.Stage(.File(unstaged.file, .Unstaged)))),
             (.u, .GitCommand(.Unstage(.File(unstaged.file, .Unstaged)))),
             (.x, .Info(.Query("Discard unstaged changes in \(unstaged.file) (y or n)", .GitCommand(.Discard(.File(unstaged.file, .Unstaged)))))),
-            (.tab, .UpdateStatus(unstaged.file, model)),
+            (.tab, .UpdateStatus("unstaged-\(unstaged.file)", model)),
             (.enter, .ViewFile(unstaged.file)),
         ]
 
@@ -163,12 +163,12 @@ func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [TextView<Message>] {
 
 func stagedMapper(_ model: StatusModel) -> (Staged) -> [TextView<Message>] {
     { staged in
-        let open = model.visibility[staged.file, default: false]
+        let open = model.visibility["staged-\(staged.file)", default: false]
         let events: [ViewEvent<Message>] = [
             (.s, .GitCommand(.Stage(.File(staged.file, .Staged)))),
             (.u, .GitCommand(.Unstage(.File(staged.file, .Staged)))),
             (.x, .Info(.Query("Discard staged changes in \(staged.file)? (y or n)", .GitCommand(.Discard(.File(staged.file, .Staged)))))),
-            (.tab, .UpdateStatus(staged.file, model.with(visibility: model.visibility.merging([staged.file: !open]) { $1 }))),
+            (.tab, .UpdateStatus("staged-\(staged.file)", model)),
             (.enter, .ViewFile(staged.file)),
         ]
         let hunks = open ? staged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Staged)) } : []
