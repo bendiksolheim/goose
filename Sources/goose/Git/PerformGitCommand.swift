@@ -2,19 +2,22 @@ import GitLib
 import tea
 import Bow
 
-func performGitCommand(_ cmd: GitCommand, _ showStatus: Bool, _ input: String? = nil) -> Cmd<Message> {
+func performGitCommand(_ cmd: GitCommand, _ input: String? = nil) -> Task<Message> {
+    let task = cmd.exec(input)
+    return Task { () -> Message in
+        let t = task.unsafeRunSyncEither()
+        return .UserInitiatedGitCommandResult(t, false)
+    }
+}
+
+func performAndShowGitCommand(_ cmd: GitCommand, _ input: String? = nil) -> (Message, Task<Message>) {
     let task = cmd.exec(input)
     let resultTask = Task { () -> Message in
         let t = task.unsafeRunSyncEither()
-        return .UserInitiatedGitCommandResult(t, showStatus)
+        return .UserInitiatedGitCommandResult(t, true)
     }
-    
-    if showStatus {
-        let msg = Cmd.message(Message.Info(.Message("Running \(cmd.cmd())")))
-        return Cmd.batch(msg, resultTask.perform())
-    } else {
-        return resultTask.perform()
-    }
+    let msg = Message.Info(.Message("Running \(cmd.cmd())"))
+    return (msg, resultTask)
 }
 
 func getResultMessage(_ processResult: ProcessResult) -> String {

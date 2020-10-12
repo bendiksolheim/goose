@@ -1,4 +1,5 @@
 import Foundation
+import Bow
 import GitLib
 import tea
 
@@ -9,6 +10,7 @@ indirect enum Message {
     case GitResult([GitLogEntry], GitResult)
     case UpdateStatus(String, StatusModel)
     case UpdateGitLog(String)
+    case UserInitiatedGitCommandResult(Either<Error, ProcessResult>, Bool)
     case CommandSuccess
     case Info(InfoMessage)
     case ClearInfo
@@ -57,6 +59,7 @@ enum Action {
     case Commit
     case AmendCommit
     case Push
+    case Pull
 }
 
 func initialize(basePath: String) -> () -> (Model, Cmd<Message>) {
@@ -115,6 +118,22 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         
     case let .UpdateGitLog(file):
         return (model.with(gitLog: model.gitLog.toggle(file: file)), Cmd.none())
+        
+    case let .UserInitiatedGitCommandResult(result, showStatus):
+        let modelAndCmd = result.fold(
+            { error in (model.with(keyMap: statusMap), Cmd.message(Message.Info(.Message(error.localizedDescription)))) },
+            { success in
+                let newModel = model.with(keyMap: statusMap, gitLog: model.gitLog.append([GitLogEntry(success)]))
+                if showStatus {
+                    let message = Cmd.message(Message.Info(.Message(getResultMessage(success))))
+                    return (newModel, Cmd.batch(message, Task { getStatus(git: model.git) }.perform()))
+                } else {
+                    return (newModel, Task { getStatus(git: model.git) }.perform())
+                }
+                
+            }
+        )
+        return modelAndCmd
 
     case .CommandSuccess:
         return (model.with(keyMap: statusMap), Task { getStatus(git: model.git) }.perform())
@@ -181,7 +200,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         case let .Hunk(hunk, status):
             switch status {
             case .Untracked, .Unstaged:
-                return (model, Task { apply(git: model.git, patch: hunk, cached: true) }.perform())
+                return (model, performGitCommand(model.git.apply(reverse: false, cached: true), hunk).perform())
             case .Staged:
                 return (model, Cmd.message(.Info(.Message("Already staged"))))
             }
@@ -198,7 +217,7 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked, .Unstaged:
                 return (model, Cmd.message(.Info(.Message("Already unstaged"))))
             case .Staged:
-                return (model, Task { apply(git: model.git, patch: patch, reverse: true, cached: true) }.perform())
+                return (model, performGitCommand(model.git.apply(reverse: true, cached: true), patch).perform())
             }
         }
 
@@ -215,10 +234,12 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             case .Untracked:
                 return (model, Cmd.none()) // Impossible state, untracked files does not have hunks
             case .Unstaged:
-                return (model, Task { apply(git: model.git, patch: patch, reverse: true) }.perform())
+                return (model, performGitCommand(model.git.apply(reverse: true, cached: false), patch).perform())
             case .Staged:
-                return (model, Task { apply(git: model.git, patch: patch, reverse: true, cached: true) }
-                    .andThen { _ in apply(git: model.git, patch: patch, reverse: true) }.perform())
+                let unstage = performGitCommand(model.git.apply(reverse: true, cached: true), patch)
+                let remove = performGitCommand(model.git.apply(reverse: true, cached: false), patch)
+                let command = Task.sequence([unstage, remove]).perform { $0.last! }
+                return (model, command)
             }
         }
     }
@@ -227,9 +248,9 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
 func stage(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> {
     switch type {
     case .Untracked:
-        return Task { addFile(git: model.git, files: files) }.perform()
+        return performGitCommand(model.git.add(files)).perform()
     case .Unstaged:
-        return Task { addFile(git: model.git, files: files) }.perform()
+        return performGitCommand(model.git.add(files)).perform()
     case .Staged:
         return Cmd.message(.Info(.Message("Already staged")))
     }
@@ -242,7 +263,7 @@ func unstage(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> 
     case .Unstaged:
         return Cmd.message(.Info(.Message("Already unstaged")))
     case .Staged:
-        return Task { resetFile(git: model.git, files: files) }.perform()
+        return performGitCommand(model.git.reset(files)).perform()
     }
 }
 
@@ -251,10 +272,11 @@ func discard(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> 
     case .Untracked:
         return Task { remove(files: files) }.perform()
     case .Unstaged:
-        return Task { checkout(git: model.git, files: files) }.perform()
+        return performGitCommand(model.git.checkout(files: files)).perform()
     case .Staged:
-        return Task { restore(git: model.git, files, true) }
-            .andThen { _ in checkout(git: model.git, files: files) }.perform()
+        let restore = performGitCommand(model.git.restore(files, staged: true))
+        let checkout = performGitCommand(model.git.checkout(files: files))
+        return Task.sequence([restore, checkout]).perform { $0.last! }
     }
 }
 
@@ -279,7 +301,12 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model, Task { getStatus(git: model.git) }.perform())
 
     case .Push:
-        return (model, Task { push(git: model.git) }.perform())
+        let (message, task) = performAndShowGitCommand(model.git.push())
+        return (model, Cmd.batch(Cmd.message(message), task.perform()))
+        
+    case .Pull:
+        let (message, task) = performAndShowGitCommand(model.git.pull())
+        return (model, Cmd.batch(Cmd.message(message), task.perform()))
     }
 }
 

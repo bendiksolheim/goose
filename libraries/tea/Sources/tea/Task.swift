@@ -67,4 +67,17 @@ public struct Task<R> {
             return t
         }
     }
+    
+    public func andThen<R2>(_ task: Task<R2>) -> Task<R2> {
+        Task<R2> {
+            let _ = self.task()
+            return task.task()
+        }
+    }
+    
+    public static func sequence(_ tasks: [Task<R>]) -> Task<[R]> {
+        Task<[R]> {
+            return tasks.map { $0.task() }
+        }
+    }
 }
