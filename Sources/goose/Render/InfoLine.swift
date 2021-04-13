@@ -1,15 +1,16 @@
 import Foundation
 import tea
+import TermSwift
 
-func renderInfoLine(info: InfoMessage) -> TextView<Message> {
+func renderInfoLine(info: InfoMessage) -> Line<Message> {
     switch info {
     case .None:
-        return TextView("")
+        return Line("")
 
     case let .Message(message):
-        return TextView(message)
+        return Line(message)
 
     case let .Query(message, _):
-        return TextView(Text(message, .Blue, .Normal))
+        return Line(Text(message, .Blue, .Default))
     }
 }

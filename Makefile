@@ -16,6 +16,9 @@ install: build
 uninstall:
 	rm -r "$(bindir)/goose"
 
+update:
+	swift package update
+
 clean:
 	rm -rf .build
 

@@ -6,26 +6,8 @@
         "repositoryURL": "https://github.com/bow-swift/bow.git",
         "state": {
           "branch": null,
-          "revision": "7961dee245bb28bd22b94cb3158ec09e66fbd582",
-          "version": "0.7.0"
-        }
-      },
-      {
-        "package": "Chalk",
-        "repositoryURL": "https://github.com/mxcl/Chalk.git",
-        "state": {
-          "branch": null,
-          "revision": "9aa9f348b86db3cf6702a3e43c081ecec80cf3c7",
-          "version": "0.4.0"
-        }
-      },
-      {
-        "package": "FileCheck",
-        "repositoryURL": "https://github.com/llvm-swift/FileCheck.git",
-        "state": {
-          "branch": null,
-          "revision": "9ed91cc30a1a325d989fac117f3f3065a16b9f76",
-          "version": "0.2.3"
+          "revision": "17ff76f1e0427a67e221c0a20b96324d256c340f",
+          "version": "0.8.0"
         }
       },
       {
@@ -33,8 +15,8 @@
         "repositoryURL": "https://github.com/ReactiveCocoa/ReactiveSwift.git",
         "state": {
           "branch": null,
-          "revision": "3f4351d04115fd8797802d9b2d17b812cd761602",
-          "version": "6.3.0"
+          "revision": "4a8e1e4a683e96daf658f68132dae781738bc862",
+          "version": "6.6.0"
         }
       },
       {
@@ -42,8 +24,8 @@
         "repositoryURL": "https://github.com/ReactiveX/RxSwift.git",
         "state": {
           "branch": null,
-          "revision": "002d325b0bdee94e7882e1114af5ff4fe1e96afa",
-          "version": "5.1.1"
+          "revision": "254617dd7fae0c45319ba5fbea435bf4d0e15b5d",
+          "version": "5.1.2"
         }
       },
       {
@@ -51,26 +33,17 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "92646c0cdbaca076c8d3d0207891785b3379cbff",
-          "version": "0.3.1"
-        }
-      },
-      {
-        "package": "swift-tools-support-core",
-        "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
-        "state": {
-          "branch": null,
-          "revision": "693aba4c4c9dcc4767cc853a0dd38bf90ad8c258",
-          "version": "0.0.1"
+          "revision": "831ed5e860a70e745bc1337830af4786b2576881",
+          "version": "0.4.1"
         }
       },
       {
         "package": "SwiftCheck",
-        "repositoryURL": "https://github.com/typelift/SwiftCheck.git",
+        "repositoryURL": "https://github.com/bow-swift/SwiftCheck.git",
         "state": {
           "branch": null,
-          "revision": "077c096c3ddfc38db223ac8e525ad16ffb987138",
-          "version": "0.12.0"
+          "revision": "748359f9a95edf94d0c4664102f104f56b1ff1fb",
+          "version": "0.12.1"
         }
       },
       {
@@ -78,7 +51,16 @@
         "repositoryURL": "https://github.com/davedufresne/SwiftParsec",
         "state": {
           "branch": "master",
-          "revision": "47c2fc47fb0610ee317e9a5ca4bdcfd596a16241",
+          "revision": "7169bfda454a086ea362b0af6d209d5de99743bd",
+          "version": null
+        }
+      },
+      {
+        "package": "TermSwift",
+        "repositoryURL": "https://github.com/bendiksolheim/TermSwift.git",
+        "state": {
+          "branch": "master",
+          "revision": "498d5e7259626fb0f0ddd7b621cb9c0bf75c9bf2",
           "version": null
         }
       }

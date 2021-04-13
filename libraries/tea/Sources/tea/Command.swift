@@ -8,6 +8,11 @@ enum Command<Msg> {
     case AsyncTask(TimeInterval, () -> Msg)
     case Process(() -> Msg)
     case Quit
+    case Terminal(TerminalCommand)
+}
+
+enum TerminalCommand {
+    case MoveCursor(Int, Int)
 }
 
 public struct Cmd<Msg> {

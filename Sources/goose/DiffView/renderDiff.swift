@@ -2,29 +2,30 @@ import Bow
 import Foundation
 import GitLib
 import tea
+import TermSwift
 
-func renderDiff(diff: DiffModel) -> [View<Message>] {
+func renderDiff(diff: DiffModel) -> [Line<Message>] {
     switch diff.commit {
     case .Loading:
-        return [TextView("Loading...")]
+        return [Line("Loading...")]
 
     case let .Error(error):
-        return [TextView("Error: \(error.localizedDescription)")]
+        return [Line("Error: \(error.localizedDescription)")]
 
     case let .Success(commitInfo):
         let commit = commitInfo.commit
-        var views: [View<Message>] = []
-        views.append(TextView(Text("Commit \(commit.hash.short)", .White, .Blue)))
-        views.append(TextView(Text(commit.hash.full, .Custom(240))))
-        views.append(TextView("Author:     \(commit.author) \(commit.email)"))
-        views.append(TextView("AuthorDate: \(commit.authorDate.format(commitDateFormat))"))
-        views.append(TextView("Commit:     \(commit.author) \(commit.email)")) // TODO: need to parse committer
-        views.append(TextView("CommitDate: \(commit.commitDate)"))
+        var views: [Line<Message>] = []
+        views.append(Line(Text("Commit \(commit.hash.short)", .White, .Blue)))
+        views.append(Line(Text(commit.hash.full, .LightGray)))
+        views.append(Line("Author:     \(commit.author) \(commit.email)"))
+        views.append(Line("AuthorDate: \(commit.authorDate.format(commitDateFormat))"))
+        views.append(Line("Commit:     \(commit.author) \(commit.email)")) // TODO: need to parse committer
+        views.append(Line("CommitDate: \(commit.commitDate)"))
         views.append(EmptyLine())
-        views.append(TextView("Parent      \(commit.parents[0])"))
+        views.append(Line("Parent      \(commit.parents[0])"))
         views.append(EmptyLine())
 
-        views.append(renderSummary(commit: commit, stats: commitInfo.stats))
+        views.append(contentsOf: renderSummary(commit: commit, stats: commitInfo.stats))
         views.append(EmptyLine())
 
         views.append(contentsOf:
@@ -38,26 +39,26 @@ func renderDiff(diff: DiffModel) -> [View<Message>] {
     }
 }
 
-func renderFile(_ file: GitFile) -> [TextView<Message>] {
-    return [TextView("\(file.mode.padding(toLength: 11, withPad: " ", startingAt: 0)) \(file.source)")]
+func renderFile(_ file: GitFile) -> [Line<Message>] {
+    return [Line("\(file.mode.padding(toLength: 11, withPad: " ", startingAt: 0)) \(file.source)")]
         + file.hunks.flatMap { hunk in renderHunk(hunk, []) }
 }
 
-func renderSummary(commit: GitCommit, stats: Stats) -> View<Message> {
+func renderSummary(commit: GitCommit, stats: Stats) -> [Line<Message>] {
     let insertions = stats.stats.map { $0.added }.combineAll()
     let deletions = stats.stats.map { $0.removed }.combineAll()
-    var views: [View<Message>] = [
-        TextView(Text(commit.message, .White, .Magenta)),
+    var views: [Line<Message>] = [
+        Line(Text(commit.message, .White, .Magenta)),
         EmptyLine(),
-        TextView("\(stats.stats.count) files changed, \(insertions) insertions(+), \(deletions) deletions(-)")
+        Line("\(stats.stats.count) files changed, \(insertions) insertions(+), \(deletions) deletions(-)")
     ]
     let maxWidth = stats.stats.map { $0.file.count }.max() ?? 0
     views.append(contentsOf: stats.stats.map { renderStat($0, maxWidth) })
-    return CollapseView(content: views, open: true)
+    return views
 }
 
-func renderStat(_ stat: Stat, _ width: Int) -> View<Message> {
-    TextView(
+func renderStat(_ stat: Stat, _ width: Int) -> Line<Message> {
+    Line(
         Text(stat.file.padding(toLength: width, withPad: " ", startingAt: 0), .Magenta)
             + " | "
             + "\(stat.total()) "

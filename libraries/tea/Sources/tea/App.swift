@@ -2,127 +2,104 @@ import Darwin
 import Foundation
 import os.log
 import ReactiveSwift
-import Termbox
+import TermSwift
 
 public enum Sub<Message> {
-    case Cursor((ScrollMessage) -> Message)
     case Keyboard((KeyEvent) -> Message)
+    case Cursor((Cursor) -> Message)
+    case TerminalSize((Size) -> Message)
     case None
 }
 
-public func cursor<Message>(_ callback: @escaping (ScrollMessage) -> Message) -> Sub<Message> {
-    Sub.Cursor(callback)
+public struct App<Model: Equatable, Message, Meta> {
+    public let initialize: () -> (Model, Cmd<Message>)
+    public let render: (Model, Size) -> ViewModel<Message, Meta>
+    public let update: (Message, Model, ViewModel<Message, Meta>) -> (Model, Cmd<Message>)
+    public let subscriptions: [Sub<Message>]
+    
+    public init(initialize: @escaping () -> (Model, Cmd<Message>),
+                  render: @escaping (Model, Size) -> ViewModel<Message, Meta>,
+                  update: @escaping (Message, Model, ViewModel<Message, Meta>) -> (Model, Cmd<Message>),
+                  subscriptions: [Sub<Message>]) {
+        self.initialize = initialize
+        self.render = render
+        self.update = update
+        self.subscriptions = subscriptions
+    }
 }
 
-public func keyboard<Message>(_ callback: @escaping (KeyEvent) -> Message) -> Sub<Message> {
-    Sub.Keyboard(callback)
+public struct TerminalInfo {
+    public let cursor: Cursor
+    public let size: Size
 }
 
-public func run<Model: Equatable, Message>(
-    initialize: () -> (Model, Cmd<Message>),
-    render: @escaping (Model) -> Window<Message>,
-    update: @escaping (Message, Model) -> (Model, Cmd<Message>),
-    subscriptions: [Sub<Message>]
+public func run<Model: Equatable, Message, Meta>(initFunc: (TerminalInfo) -> App<Model, Message, Meta>) {
+    let terminal = Terminal(screen: .Alternate)
+    let app = initFunc(TerminalInfo(cursor: terminal.cursor, size: terminal.terminalSize()))
+    runApp(terminal, app)
+}
+
+func runApp<Model: Equatable, Message, Meta>(
+    _ aTerminal: Terminal,
+    _ app: App<Model, Message, Meta>
 ) {
-    let termboxDispatchQueue = DispatchQueue(label: "termbox.queue.producer", qos: .background)
-    let taskDispatchQueue = DispatchQueue(label: "tea.task.queue", qos: .userInitiated)
+    let termQueue = DispatchQueue(label: "term.queue", qos: .background)
+    let taskQueue = DispatchQueue(label: "task.queue", qos: .userInitiated)
 
-    let app = TermboxScreen()
-    try! app.setup()
-    let buffer = Buffer<Message>(size: app.size)
+    var terminal = aTerminal
     var polling = true
 
-    let (initialModel, initialCommand) = initialize()
+    let (initialModel, initialCommand) = app.initialize()
     var model = initialModel
-    let window = render(model)
-    renderToScreen(buffer, app, window)
+    var viewModel = app.render(model, terminal.terminalSize())
+    async {
+        terminal.draw(viewModel.view) { $0.description }
+    }
 
-    let keyboardSubscription = getKeyboardSubscription(subscriptions: subscriptions)
-    let cursorSubscription = getCursorSubscription(subscriptions: subscriptions)
+    let keyboardSubscription = getKeyboardSubscription(subscriptions: app.subscriptions)
+    let terminalSizeSubscription = getTerminalResizeSubscription(subscriptions: app.subscriptions)
+    let cursorSubscription = getCursorSubscription(subscriptions: app.subscriptions)
 
     let (messageConsumer, messageProducer) = Signal<Message, Never>.pipe()
     let (commandConsumer, commandProducer) = Signal<Cmd<Message>, Never>.pipe()
 
     func startEventPolling() {
-        termboxDispatchQueue.async {
+        termQueue.async {
             while polling {
-                if let event = app.nextEvent() {
+                if let event = terminal.poll() {
                     switch event {
                     case let .Key(key):
-                        switch key {
-                        case let .char(char):
-                            switch char {
-                            case .j:
-                                if let sub = cursorSubscription {
-                                    let msg = sub(.Move(1))
-                                    async { messageProducer.send(value: msg) }
+                        // special case Ctrl-C to ensure we can always quit programs
+                        if key == .CtrlC {
+                            polling = false
+                            messageProducer.sendCompleted()
+                            commandProducer.sendCompleted()
+                        } else {
+                            let cursor = terminal.cursor
+                            let line = viewModel.view[cursor.y]
+                            var swallowed = false
+                            line?.events.forEach { evChar, message in
+                                if evChar == key {
+                                    swallowed = true
+                                    async { messageProducer.send(value: message) }
                                 }
-
-                            case .k:
-                                if let sub = cursorSubscription {
-                                    let msg = sub(.Move(-1))
-                                    messageProducer.send(value: msg)
-                                }
-
-                            default:
-                                buffer.cursors.forEach { cursor in
-                                    if let events = buffer.cell(cursor: cursor)?.events {
-                                        events.forEach { evChar, message in
-                                            if evChar == key {
-                                                async { messageProducer.send(value: message) }
-                                            }
-                                        }
+                            }
+                            if !swallowed {
+                                if let msg = keyboardSubscription?(key) {
+                                    async {
+                                        messageProducer.send(value: msg)
                                     }
                                 }
                             }
-
-                        case .fn:
-                            buffer.cursors.forEach { cursor in
-                                if let events = buffer.cell(cursor: cursor)?.events {
-                                    events.forEach { evChar, message in
-                                        if evChar == key {
-                                            async { messageProducer.send(value: message) }
-                                        }
-                                    }
-                                }
-                            }
-
-                        case let .ctrl(char):
-                            switch char {
-                            case .c:
-                                polling = false
-                                messageProducer.sendCompleted()
-                                commandProducer.sendCompleted()
-
-                            case .d:
-                                if let sub = cursorSubscription {
-                                    let msg = sub(.Move(10))
-                                    async { messageProducer.send(value: msg) }
-                                }
-
-                            case .u:
-                                if let sub = cursorSubscription {
-                                    let msg = sub(.Move(-10))
-                                    async { messageProducer.send(value: msg) }
-                                }
-
-                            default:
-                                break
-                            }
-
-                        default:
-                            break
                         }
-
-                        if let message = keyboardSubscription?(key) {
-                            async { messageProducer.send(value: message) }
+                    case let .Resize(size):
+                        viewModel = app.render(model, terminal.terminalSize())
+                        async {
+                            terminal.draw(viewModel.view, { $0.description })
+                            if let msg = terminalSizeSubscription?(size) {
+                                messageProducer.send(value: msg)
+                            }
                         }
-
-                    case let .Window(width, height):
-                        let newSize = Size(width: width, height: height)
-                        buffer.resize(to: newSize)
-                        let window = render(model)
-                        renderToScreen(buffer, app, window)
                     }
                 }
             }
@@ -130,11 +107,16 @@ public func run<Model: Equatable, Message>(
     }
 
     messageConsumer.observeValues { message in
-        let (updatedModel, command) = update(message, model)
+        let (updatedModel, command) = app.update(message, model, viewModel)
+        let modelChanged = !(updatedModel == model)
         model = updatedModel
         async { commandProducer.send(value: command) }
-        let window = render(model)
-        renderToScreen(buffer, app, window)
+        if modelChanged {
+            viewModel = app.render(model, terminal.terminalSize())
+            async {
+                terminal.draw(viewModel.view, { $0.description })
+            }
+        }
     }
 
     commandConsumer.observeValues { command in
@@ -151,26 +133,26 @@ public func run<Model: Equatable, Message>(
             }
 
         case let .Task(task):
-            taskDispatchQueue.async {
+            taskQueue.async {
                 messageProducer.send(value: task())
             }
             
         case let .AsyncTask(delay, task):
-            taskDispatchQueue.asyncAfter(deadline: .now() + delay) {
+            taskQueue.asyncAfter(deadline: .now() + delay) {
                 messageProducer.send(value: task())
             }
 
         case let .Process(process):
             polling = false
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
-                app.teardown()
+                terminal.restore()
                 let message = process()
                 polling = true
 
                 async {
-                    try! app.setup()
-                    let window = render(model)
-                    renderToScreen(buffer, app, window)
+                    terminal = Terminal(screen: .Main)
+                    viewModel = app.render(model, terminal.terminalSize())
+                    terminal.draw(viewModel.view, { $0.description })
                     startEventPolling()
                 }
 
@@ -180,6 +162,16 @@ public func run<Model: Equatable, Message>(
         case .Quit:
             messageProducer.sendCompleted()
             commandProducer.sendCompleted()
+            
+        case let .Terminal(terminalCommand):
+            switch terminalCommand {
+            case let .MoveCursor(xDelta, yDelta):
+                let currentCursor = terminal.cursor
+                terminal.moveCursor(currentCursor.x + xDelta, currentCursor.y + yDelta)
+                if let msg = cursorSubscription?(terminal.cursor) {
+                    messageProducer.send(value: msg)
+                }
+            }
         }
     }
 
@@ -192,18 +184,7 @@ public func run<Model: Equatable, Message>(
     }
     CFRunLoopRun()
 
-    app.teardown()
-}
-
-func renderToScreen<Message>(_ buffer: Buffer<Message>, _ screen: TermboxScreen, _ window: Window<Message>) {
-    buffer.clear()
-    window.measureIn(buffer)
-    window.renderTo(buffer)
-    let chars = map(buffer.chars) { $0?.content ?? Char(" ") }
-
-    DispatchQueue.main.async {
-        screen.render(buffer: chars)
-    }
+    terminal.restore()
 }
 
 func getKeyboardSubscription<Message>(subscriptions: [Sub<Message>]) -> ((KeyEvent) -> Message)? {
@@ -219,7 +200,20 @@ func getKeyboardSubscription<Message>(subscriptions: [Sub<Message>]) -> ((KeyEve
     return nil
 }
 
-func getCursorSubscription<Message>(subscriptions: [Sub<Message>]) -> ((ScrollMessage) -> Message)? {
+func getTerminalResizeSubscription<Message>(subscriptions: [Sub<Message>]) -> ((Size) -> Message)? {
+    for subscription in subscriptions {
+        switch subscription {
+        case let .TerminalSize(fn):
+            return fn
+        default:
+            break
+        }
+    }
+    
+    return nil
+}
+
+func getCursorSubscription<Message>(subscriptions: [Sub<Message>]) -> ((Cursor) -> Message)? {
     for subscription in subscriptions {
         switch subscription {
         case let .Cursor(fn):
@@ -228,10 +222,10 @@ func getCursorSubscription<Message>(subscriptions: [Sub<Message>]) -> ((ScrollMe
             break
         }
     }
-
+    
     return nil
 }
 
 func async(_ block: @escaping () -> Void) {
-    DispatchQueue.main.async { block() }
+    DispatchQueue.main.async(qos: .userInteractive) { block() }
 }

@@ -1,13 +1,16 @@
 import Foundation
 import ArgumentParser
 import tea
+import TermSwift
 
 func teaRun(
-    _ initialize: () -> (Model, Cmd<Message>),
-    _ render: @escaping (Model) -> Window<Message>,
-    _ update: @escaping (Message, Model) -> (Model, Cmd<Message>),
+    _ initialize: @escaping (TerminalInfo) -> () -> (Model, Cmd<Message>),
+    _ render: @escaping (Model, Size) -> ViewModel<Message, ViewData>,
+    _ update: @escaping (Message, Model, ViewModel<Message, ViewData>) -> (Model, Cmd<Message>),
     _ subscriptions: [Sub<Message>]) {
-    run(initialize: initialize, render: render, update: update, subscriptions: subscriptions)
+    run { terminalInfo in
+        App(initialize: initialize(terminalInfo), render: render, update: update, subscriptions: subscriptions)
+    }
 }
 
 struct Goose: ParsableCommand {

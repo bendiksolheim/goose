@@ -1,14 +1,15 @@
 import Foundation
 import GitLib
 import tea
+import TermSwift
 
-func renderHunk(_ hunk: GitHunk, _ events: [ViewEvent<Message>]) -> [TextView<Message>] {
+func renderHunk(_ hunk: GitHunk, _ events: [ViewEvent<Message>]) -> [Line<Message>] {
     hunk.lines.map { renderDiffLine($0, events) }
 }
 
-func renderDiffLine(_ line: GitHunkLine, _ events: [ViewEvent<Message>]) -> TextView<Message> {
-    var foreground = Color.Normal
-    var background = Color.Normal
+func renderDiffLine(_ line: GitHunkLine, _ events: [ViewEvent<Message>]) -> Line<Message> {
+    var foreground = Color.Default
+    var background = Color.Default
     switch line.annotation {
     case .Summary:
         background = Color.Magenta
@@ -23,5 +24,5 @@ func renderDiffLine(_ line: GitHunkLine, _ events: [ViewEvent<Message>]) -> Text
         break
     }
     
-    return TextView(Text(line.content, foreground, background), events: events)
+    return Line(Text(line.content, foreground, background), events: events)
 }
