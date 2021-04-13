@@ -3,16 +3,42 @@ import GitLib
 
 public struct StatusModel: Equatable {
     let info: AsyncData<StatusInfo>
-    let visibility: [String: Bool]
+    let visibility: Visibility
 
     func with(info: AsyncData<StatusInfo>? = nil,
-              visibility: [String: Bool]? = nil) -> StatusModel {
+              visibility: Visibility? = nil) -> StatusModel {
         StatusModel(info: info ?? self.info,
                     visibility: visibility ?? self.visibility)
     }
     
     func toggle(file: String) -> StatusModel {
-        return with(visibility: visibility.merging([file: !visibility[file, default: false]], uniquingKeysWith: { $1 }))
+        return with(visibility: visibility.toggle(file: file))
+    }
+}
+
+public struct Visibility: Equatable {
+    let visibility: [String: Bool]
+    
+    init() {
+        visibility = [
+            "untracked": true,
+            "unstaged": true,
+            "staged": true,
+            "recent": true
+        ]
+    }
+    
+    private init(visibility: [String : Bool]) {
+        self.visibility = visibility
+    }
+    
+    subscript(key: String, default defaultValue: Bool) -> Bool {
+        return visibility[key] ?? defaultValue
+    }
+    
+    func toggle(file: String) -> Visibility {
+        let existing = visibility[file, default: false]
+        return Visibility(visibility: visibility.merging([file: !existing], uniquingKeysWith: { $1 }))
     }
 }
 

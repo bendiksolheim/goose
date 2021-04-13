@@ -1,5 +1,5 @@
 import tea
 
-func EmptyLine<Message>() -> TextView<Message> {
-    TextView("")
+func EmptyLine<Message>() -> Line<Message> {
+    Line("")
 }

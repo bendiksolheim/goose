@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(path: "../Termbox"),
+        .package(url: "https://github.com/bendiksolheim/TermSwift.git", .branch("master")),
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.1.0"),
     ],
     targets: [
@@ -24,7 +24,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "tea",
-            dependencies: ["Termbox", "ReactiveSwift"]
+            dependencies: ["ReactiveSwift", "TermSwift"]
         ),
         .testTarget(
             name: "teaTests",

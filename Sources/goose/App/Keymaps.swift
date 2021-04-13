@@ -1,5 +1,5 @@
 import Foundation
-import tea
+import TermSwift
 
 struct KeyMap: Equatable {
     let map: [KeyEvent: Message]

@@ -1,179 +1,179 @@
-public enum KeyEvent: Hashable {
-    case ctrl(CtrlKeyEvent)
-    case alt(AltKeyEvent)
-    case shift(ShiftKeyEvent)
-    case char(CharKeyEvent)
-    case fn(FnKeyEvent)
+public enum Key_Event: Hashable {
+    case ctrl(CtrlKey_Event)
+    case alt(AltKey_Event)
+    case shift(ShiftKey_Event)
+    case char(CharKey_Event)
+    case fn(FnKey_Event)
 
     // any signals that have common unix meaning are
     // named after that signal
     // (eg C-c int, C-t info, C-z suspend, C-\ quit)
     //
     // the rest are named after ASCII codes from http://www.ascii-code.com
-    public static let signalNul: KeyEvent = .ctrl(.two)
-    public static let signalSoh: KeyEvent = .ctrl(.a)
-    public static let signalStx: KeyEvent = .ctrl(.b)
-    public static let signalInt: KeyEvent = .ctrl(.c)
-    public static let signalEot: KeyEvent = .ctrl(.d)
-    public static let signalEnq: KeyEvent = .ctrl(.e)
-    public static let signalAck: KeyEvent = .ctrl(.f)
-    public static let signalBel: KeyEvent = .ctrl(.g)
-    // public static let signalBs: KeyEvent = .ctrl(.backspace)
-    public static let signalLf: KeyEvent = .ctrl(.j)
-    public static let signalVt: KeyEvent = .ctrl(.k)
-    public static let signalFf: KeyEvent = .ctrl(.l)
-    public static let signalSo: KeyEvent = .ctrl(.n)
-    public static let signalDiscard: KeyEvent = .ctrl(.o)
-    public static let signalDle: KeyEvent = .ctrl(.p)
-    public static let signalStart: KeyEvent = .ctrl(.q)
-    public static let signalReprint: KeyEvent = .ctrl(.r)
-    public static let signalStop: KeyEvent = .ctrl(.s)
-    public static let signalInfo: KeyEvent = .ctrl(.t)
-    public static let signalKill: KeyEvent = .ctrl(.u)
-    public static let signalNext: KeyEvent = .ctrl(.v)
-    public static let signalEtb: KeyEvent = .ctrl(.w)
-    public static let signalCancel: KeyEvent = .ctrl(.x)
-    public static let signalDsusp: KeyEvent = .ctrl(.y)
-    public static let signalSuspend: KeyEvent = .ctrl(.z)
-    public static let signalQuit: KeyEvent = .ctrl(.backslash)
-    public static let signalGs: KeyEvent = .ctrl(.rightBracket)
-    public static let signalRs: KeyEvent = .ctrl(.caret)
-    public static let signalUs: KeyEvent = .ctrl(.underscore)
-    public static let signalH: KeyEvent = .ctrl(.h)
+    public static let signalNul: Key_Event = .ctrl(.two)
+    public static let signalSoh: Key_Event = .ctrl(.a)
+    public static let signalStx: Key_Event = .ctrl(.b)
+    public static let signalInt: Key_Event = .ctrl(.c)
+    public static let signalEot: Key_Event = .ctrl(.d)
+    public static let signalEnq: Key_Event = .ctrl(.e)
+    public static let signalAck: Key_Event = .ctrl(.f)
+    public static let signalBel: Key_Event = .ctrl(.g)
+    // public static let signalBs: Key_Event = .ctrl(.backspace)
+    public static let signalLf: Key_Event = .ctrl(.j)
+    public static let signalVt: Key_Event = .ctrl(.k)
+    public static let signalFf: Key_Event = .ctrl(.l)
+    public static let signalSo: Key_Event = .ctrl(.n)
+    public static let signalDiscard: Key_Event = .ctrl(.o)
+    public static let signalDle: Key_Event = .ctrl(.p)
+    public static let signalStart: Key_Event = .ctrl(.q)
+    public static let signalReprint: Key_Event = .ctrl(.r)
+    public static let signalStop: Key_Event = .ctrl(.s)
+    public static let signalInfo: Key_Event = .ctrl(.t)
+    public static let signalKill: Key_Event = .ctrl(.u)
+    public static let signalNext: Key_Event = .ctrl(.v)
+    public static let signalEtb: Key_Event = .ctrl(.w)
+    public static let signalCancel: Key_Event = .ctrl(.x)
+    public static let signalDsusp: Key_Event = .ctrl(.y)
+    public static let signalSuspend: Key_Event = .ctrl(.z)
+    public static let signalQuit: Key_Event = .ctrl(.backslash)
+    public static let signalGs: Key_Event = .ctrl(.rightBracket)
+    public static let signalRs: Key_Event = .ctrl(.caret)
+    public static let signalUs: Key_Event = .ctrl(.underscore)
+    public static let signalH: Key_Event = .ctrl(.h)
 
     // shorthand for meta/function keys
-    public static let tab: KeyEvent = .fn(.tab)
-    public static let enter: KeyEvent = .fn(.enter)
-    public static let esc: KeyEvent = .fn(.esc)
-    public static let backspace: KeyEvent = .fn(.backspace)
-    public static let backtab: KeyEvent = .fn(.backtab)
-    public static let down: KeyEvent = .fn(.down)
-    public static let up: KeyEvent = .fn(.up)
-    public static let left: KeyEvent = .fn(.left)
-    public static let right: KeyEvent = .fn(.right)
-    public static let home: KeyEvent = .fn(.home)
-    public static let f1: KeyEvent = .fn(.f1)
-    public static let f2: KeyEvent = .fn(.f2)
-    public static let f3: KeyEvent = .fn(.f3)
-    public static let f4: KeyEvent = .fn(.f4)
-    public static let f5: KeyEvent = .fn(.f5)
-    public static let f6: KeyEvent = .fn(.f6)
-    public static let f7: KeyEvent = .fn(.f7)
-    public static let f8: KeyEvent = .fn(.f8)
-    public static let f9: KeyEvent = .fn(.f9)
-    public static let f10: KeyEvent = .fn(.f10)
-    public static let f11: KeyEvent = .fn(.f11)
-    public static let f12: KeyEvent = .fn(.f12)
-    public static let pageDown: KeyEvent = .fn(.pageDown)
-    public static let pageUp: KeyEvent = .fn(.pageUp)
-    public static let end: KeyEvent = .fn(.end)
-    public static let delete: KeyEvent = .fn(.delete)
-    public static let insert: KeyEvent = .fn(.insert)
+    public static let tab: Key_Event = .fn(.tab)
+    public static let enter: Key_Event = .fn(.enter)
+    public static let esc: Key_Event = .fn(.esc)
+    public static let backspace: Key_Event = .fn(.backspace)
+    public static let backtab: Key_Event = .fn(.backtab)
+    public static let down: Key_Event = .fn(.down)
+    public static let up: Key_Event = .fn(.up)
+    public static let left: Key_Event = .fn(.left)
+    public static let right: Key_Event = .fn(.right)
+    public static let home: Key_Event = .fn(.home)
+    public static let f1: Key_Event = .fn(.f1)
+    public static let f2: Key_Event = .fn(.f2)
+    public static let f3: Key_Event = .fn(.f3)
+    public static let f4: Key_Event = .fn(.f4)
+    public static let f5: Key_Event = .fn(.f5)
+    public static let f6: Key_Event = .fn(.f6)
+    public static let f7: Key_Event = .fn(.f7)
+    public static let f8: Key_Event = .fn(.f8)
+    public static let f9: Key_Event = .fn(.f9)
+    public static let f10: Key_Event = .fn(.f10)
+    public static let f11: Key_Event = .fn(.f11)
+    public static let f12: Key_Event = .fn(.f12)
+    public static let pageDown: Key_Event = .fn(.pageDown)
+    public static let pageUp: Key_Event = .fn(.pageUp)
+    public static let end: Key_Event = .fn(.end)
+    public static let delete: Key_Event = .fn(.delete)
+    public static let insert: Key_Event = .fn(.insert)
 
     // shorthand for printables
-    public static let space: KeyEvent = .char(.space)
-    public static let bang: KeyEvent = .char(.bang)
-    public static let doubleQuote: KeyEvent = .char(.doubleQuote)
-    public static let hash: KeyEvent = .char(.hash)
-    public static let dollar: KeyEvent = .char(.dollar)
-    public static let percent: KeyEvent = .char(.percent)
-    public static let amp: KeyEvent = .char(.amp)
-    public static let singleQuote: KeyEvent = .char(.singleQuote)
-    public static let leftParen: KeyEvent = .char(.leftParen)
-    public static let rightParen: KeyEvent = .char(.rightParen)
-    public static let star: KeyEvent = .char(.star)
-    public static let plus: KeyEvent = .char(.plus)
-    public static let comma: KeyEvent = .char(.comma)
-    public static let dash: KeyEvent = .char(.dash)
-    public static let dot: KeyEvent = .char(.dot)
-    public static let number0: KeyEvent = .char(.number0)
-    public static let number1: KeyEvent = .char(.number1)
-    public static let number2: KeyEvent = .char(.number2)
-    public static let number3: KeyEvent = .char(.number3)
-    public static let number4: KeyEvent = .char(.number4)
-    public static let number5: KeyEvent = .char(.number5)
-    public static let number6: KeyEvent = .char(.number6)
-    public static let number7: KeyEvent = .char(.number7)
-    public static let number8: KeyEvent = .char(.number8)
-    public static let number9: KeyEvent = .char(.number9)
-    public static let colon: KeyEvent = .char(.colon)
-    public static let semicolon: KeyEvent = .char(.semicolon)
-    public static let lt: KeyEvent = .char(.lt)
-    public static let eq: KeyEvent = .char(.eq)
-    public static let gt: KeyEvent = .char(.gt)
-    public static let question: KeyEvent = .char(.question)
-    public static let at: KeyEvent = .char(.at)
-    public static let A: KeyEvent = .char(.A)
-    public static let B: KeyEvent = .char(.B)
-    public static let C: KeyEvent = .char(.C)
-    public static let D: KeyEvent = .char(.D)
-    public static let E: KeyEvent = .char(.E)
-    public static let F: KeyEvent = .char(.F)
-    public static let G: KeyEvent = .char(.G)
-    public static let H: KeyEvent = .char(.H)
-    public static let I: KeyEvent = .char(.I)
-    public static let J: KeyEvent = .char(.J)
-    public static let K: KeyEvent = .char(.K)
-    public static let L: KeyEvent = .char(.L)
-    public static let M: KeyEvent = .char(.M)
-    public static let N: KeyEvent = .char(.N)
-    public static let O: KeyEvent = .char(.O)
-    public static let P: KeyEvent = .char(.P)
-    public static let Q: KeyEvent = .char(.Q)
-    public static let R: KeyEvent = .char(.R)
-    public static let S: KeyEvent = .char(.S)
-    public static let T: KeyEvent = .char(.T)
-    public static let U: KeyEvent = .char(.U)
-    public static let V: KeyEvent = .char(.V)
-    public static let W: KeyEvent = .char(.W)
-    public static let X: KeyEvent = .char(.X)
-    public static let Y: KeyEvent = .char(.Y)
-    public static let Z: KeyEvent = .char(.Z)
-    public static let leftBracket: KeyEvent = .char(.leftBracket)
-    public static let backslash: KeyEvent = .char(.backslash)
-    public static let rightBracket: KeyEvent = .char(.rightBracket)
-    public static let caret: KeyEvent = .char(.caret)
-    public static let underscore: KeyEvent = .char(.underscore)
-    public static let backtick: KeyEvent = .char(.backtick)
-    public static let a: KeyEvent = .char(.a)
-    public static let b: KeyEvent = .char(.b)
-    public static let c: KeyEvent = .char(.c)
-    public static let d: KeyEvent = .char(.d)
-    public static let e: KeyEvent = .char(.e)
-    public static let f: KeyEvent = .char(.f)
-    public static let g: KeyEvent = .char(.g)
-    public static let h: KeyEvent = .char(.h)
-    public static let i: KeyEvent = .char(.i)
-    public static let j: KeyEvent = .char(.j)
-    public static let k: KeyEvent = .char(.k)
-    public static let l: KeyEvent = .char(.l)
-    public static let m: KeyEvent = .char(.m)
-    public static let n: KeyEvent = .char(.n)
-    public static let o: KeyEvent = .char(.o)
-    public static let p: KeyEvent = .char(.p)
-    public static let q: KeyEvent = .char(.q)
-    public static let r: KeyEvent = .char(.r)
-    public static let s: KeyEvent = .char(.s)
-    public static let t: KeyEvent = .char(.t)
-    public static let u: KeyEvent = .char(.u)
-    public static let v: KeyEvent = .char(.v)
-    public static let w: KeyEvent = .char(.w)
-    public static let x: KeyEvent = .char(.x)
-    public static let y: KeyEvent = .char(.y)
-    public static let z: KeyEvent = .char(.z)
-    public static let leftCurly: KeyEvent = .char(.leftCurly)
-    public static let pipe: KeyEvent = .char(.pipe)
-    public static let rightCurly: KeyEvent = .char(.rightCurly)
-    public static let tilde: KeyEvent = .char(.tilde)
+    public static let space: Key_Event = .char(.space)
+    public static let bang: Key_Event = .char(.bang)
+    public static let doubleQuote: Key_Event = .char(.doubleQuote)
+    public static let hash: Key_Event = .char(.hash)
+    public static let dollar: Key_Event = .char(.dollar)
+    public static let percent: Key_Event = .char(.percent)
+    public static let amp: Key_Event = .char(.amp)
+    public static let singleQuote: Key_Event = .char(.singleQuote)
+    public static let leftParen: Key_Event = .char(.leftParen)
+    public static let rightParen: Key_Event = .char(.rightParen)
+    public static let star: Key_Event = .char(.star)
+    public static let plus: Key_Event = .char(.plus)
+    public static let comma: Key_Event = .char(.comma)
+    public static let dash: Key_Event = .char(.dash)
+    public static let dot: Key_Event = .char(.dot)
+    public static let number0: Key_Event = .char(.number0)
+    public static let number1: Key_Event = .char(.number1)
+    public static let number2: Key_Event = .char(.number2)
+    public static let number3: Key_Event = .char(.number3)
+    public static let number4: Key_Event = .char(.number4)
+    public static let number5: Key_Event = .char(.number5)
+    public static let number6: Key_Event = .char(.number6)
+    public static let number7: Key_Event = .char(.number7)
+    public static let number8: Key_Event = .char(.number8)
+    public static let number9: Key_Event = .char(.number9)
+    public static let colon: Key_Event = .char(.colon)
+    public static let semicolon: Key_Event = .char(.semicolon)
+    public static let lt: Key_Event = .char(.lt)
+    public static let eq: Key_Event = .char(.eq)
+    public static let gt: Key_Event = .char(.gt)
+    public static let question: Key_Event = .char(.question)
+    public static let at: Key_Event = .char(.at)
+    public static let A: Key_Event = .char(.A)
+    public static let B: Key_Event = .char(.B)
+    public static let C: Key_Event = .char(.C)
+    public static let D: Key_Event = .char(.D)
+    public static let E: Key_Event = .char(.E)
+    public static let F: Key_Event = .char(.F)
+    public static let G: Key_Event = .char(.G)
+    public static let H: Key_Event = .char(.H)
+    public static let I: Key_Event = .char(.I)
+    public static let J: Key_Event = .char(.J)
+    public static let K: Key_Event = .char(.K)
+    public static let L: Key_Event = .char(.L)
+    public static let M: Key_Event = .char(.M)
+    public static let N: Key_Event = .char(.N)
+    public static let O: Key_Event = .char(.O)
+    public static let P: Key_Event = .char(.P)
+    public static let Q: Key_Event = .char(.Q)
+    public static let R: Key_Event = .char(.R)
+    public static let S: Key_Event = .char(.S)
+    public static let T: Key_Event = .char(.T)
+    public static let U: Key_Event = .char(.U)
+    public static let V: Key_Event = .char(.V)
+    public static let W: Key_Event = .char(.W)
+    public static let X: Key_Event = .char(.X)
+    public static let Y: Key_Event = .char(.Y)
+    public static let Z: Key_Event = .char(.Z)
+    public static let leftBracket: Key_Event = .char(.leftBracket)
+    public static let backslash: Key_Event = .char(.backslash)
+    public static let rightBracket: Key_Event = .char(.rightBracket)
+    public static let caret: Key_Event = .char(.caret)
+    public static let underscore: Key_Event = .char(.underscore)
+    public static let backtick: Key_Event = .char(.backtick)
+    public static let a: Key_Event = .char(.a)
+    public static let b: Key_Event = .char(.b)
+    public static let c: Key_Event = .char(.c)
+    public static let d: Key_Event = .char(.d)
+    public static let e: Key_Event = .char(.e)
+    public static let f: Key_Event = .char(.f)
+    public static let g: Key_Event = .char(.g)
+    public static let h: Key_Event = .char(.h)
+    public static let i: Key_Event = .char(.i)
+    public static let j: Key_Event = .char(.j)
+    public static let k: Key_Event = .char(.k)
+    public static let l: Key_Event = .char(.l)
+    public static let m: Key_Event = .char(.m)
+    public static let n: Key_Event = .char(.n)
+    public static let o: Key_Event = .char(.o)
+    public static let p: Key_Event = .char(.p)
+    public static let q: Key_Event = .char(.q)
+    public static let r: Key_Event = .char(.r)
+    public static let s: Key_Event = .char(.s)
+    public static let t: Key_Event = .char(.t)
+    public static let u: Key_Event = .char(.u)
+    public static let v: Key_Event = .char(.v)
+    public static let w: Key_Event = .char(.w)
+    public static let x: Key_Event = .char(.x)
+    public static let y: Key_Event = .char(.y)
+    public static let z: Key_Event = .char(.z)
+    public static let leftCurly: Key_Event = .char(.leftCurly)
+    public static let pipe: Key_Event = .char(.pipe)
+    public static let rightCurly: Key_Event = .char(.rightCurly)
+    public static let tilde: Key_Event = .char(.tilde)
 }
 
-extension KeyEvent: Equatable {
-    public static func == (lhs: KeyEvent, rhs: KeyEvent) -> Bool {
+extension Key_Event: Equatable {
+    public static func == (lhs: Key_Event, rhs: Key_Event) -> Bool {
         lhs.toString == rhs.toString
     }
 }
 
-public extension KeyEvent {
+public extension Key_Event {
     var isPrintable: Bool {
         switch self {
         case let .alt(key):
@@ -206,8 +206,8 @@ public extension KeyEvent {
     }
 }
 
-public enum CtrlKeyEvent: Hashable {
-    case alt(AltKeyEvent)
+public enum CtrlKey_Event: Hashable {
+    case alt(AltKey_Event)
     case two
     case a
     case b
@@ -242,7 +242,7 @@ public enum CtrlKeyEvent: Hashable {
     case end
 }
 
-public extension CtrlKeyEvent {
+public extension CtrlKey_Event {
     var toString: String {
         switch self {
         case let .alt(key): return "⌥\(key.toString)"
@@ -282,144 +282,144 @@ public extension CtrlKeyEvent {
     }
 }
 
-extension CtrlKeyEvent: Equatable {
-    public static func == (lhs: CtrlKeyEvent, rhs: CtrlKeyEvent) -> Bool {
+extension CtrlKey_Event: Equatable {
+    public static func == (lhs: CtrlKey_Event, rhs: CtrlKey_Event) -> Bool {
         lhs.toString == rhs.toString
     }
 }
 
-public enum AltKeyEvent: Hashable {
-    case shift(ShiftKeyEvent)
-    case char(CharKeyEvent)
-    case fn(FnKeyEvent)
+public enum AltKey_Event: Hashable {
+    case shift(ShiftKey_Event)
+    case char(CharKey_Event)
+    case fn(FnKey_Event)
 
     // shorthand for meta/function keys
-    public static let tab: AltKeyEvent = .fn(.tab)
-    public static let enter: AltKeyEvent = .fn(.enter)
-    public static let esc: AltKeyEvent = .fn(.esc)
-    public static let backspace: AltKeyEvent = .fn(.backspace)
-    public static let backtab: AltKeyEvent = .fn(.backtab)
-    public static let down: AltKeyEvent = .fn(.down)
-    public static let up: AltKeyEvent = .fn(.up)
-    public static let left: AltKeyEvent = .fn(.left)
-    public static let right: AltKeyEvent = .fn(.right)
-    public static let home: AltKeyEvent = .fn(.home)
-    public static let f1: AltKeyEvent = .fn(.f1)
-    public static let f2: AltKeyEvent = .fn(.f2)
-    public static let f3: AltKeyEvent = .fn(.f3)
-    public static let f4: AltKeyEvent = .fn(.f4)
-    public static let f5: AltKeyEvent = .fn(.f5)
-    public static let f6: AltKeyEvent = .fn(.f6)
-    public static let f7: AltKeyEvent = .fn(.f7)
-    public static let f8: AltKeyEvent = .fn(.f8)
-    public static let f9: AltKeyEvent = .fn(.f9)
-    public static let f10: AltKeyEvent = .fn(.f10)
-    public static let f11: AltKeyEvent = .fn(.f11)
-    public static let f12: AltKeyEvent = .fn(.f12)
-    public static let pageDown: AltKeyEvent = .fn(.pageDown)
-    public static let pageUp: AltKeyEvent = .fn(.pageUp)
-    public static let end: AltKeyEvent = .fn(.end)
-    public static let delete: AltKeyEvent = .fn(.delete)
-    public static let insert: AltKeyEvent = .fn(.insert)
+    public static let tab: AltKey_Event = .fn(.tab)
+    public static let enter: AltKey_Event = .fn(.enter)
+    public static let esc: AltKey_Event = .fn(.esc)
+    public static let backspace: AltKey_Event = .fn(.backspace)
+    public static let backtab: AltKey_Event = .fn(.backtab)
+    public static let down: AltKey_Event = .fn(.down)
+    public static let up: AltKey_Event = .fn(.up)
+    public static let left: AltKey_Event = .fn(.left)
+    public static let right: AltKey_Event = .fn(.right)
+    public static let home: AltKey_Event = .fn(.home)
+    public static let f1: AltKey_Event = .fn(.f1)
+    public static let f2: AltKey_Event = .fn(.f2)
+    public static let f3: AltKey_Event = .fn(.f3)
+    public static let f4: AltKey_Event = .fn(.f4)
+    public static let f5: AltKey_Event = .fn(.f5)
+    public static let f6: AltKey_Event = .fn(.f6)
+    public static let f7: AltKey_Event = .fn(.f7)
+    public static let f8: AltKey_Event = .fn(.f8)
+    public static let f9: AltKey_Event = .fn(.f9)
+    public static let f10: AltKey_Event = .fn(.f10)
+    public static let f11: AltKey_Event = .fn(.f11)
+    public static let f12: AltKey_Event = .fn(.f12)
+    public static let pageDown: AltKey_Event = .fn(.pageDown)
+    public static let pageUp: AltKey_Event = .fn(.pageUp)
+    public static let end: AltKey_Event = .fn(.end)
+    public static let delete: AltKey_Event = .fn(.delete)
+    public static let insert: AltKey_Event = .fn(.insert)
 
     // shorthand for printables
-    public static let space: AltKeyEvent = .char(.space)
-    public static let bang: AltKeyEvent = .char(.bang)
-    public static let doubleQuote: AltKeyEvent = .char(.doubleQuote)
-    public static let hash: AltKeyEvent = .char(.hash)
-    public static let dollar: AltKeyEvent = .char(.dollar)
-    public static let percent: AltKeyEvent = .char(.percent)
-    public static let amp: AltKeyEvent = .char(.amp)
-    public static let singleQuote: AltKeyEvent = .char(.singleQuote)
-    public static let leftParen: AltKeyEvent = .char(.leftParen)
-    public static let rightParen: AltKeyEvent = .char(.rightParen)
-    public static let star: AltKeyEvent = .char(.star)
-    public static let plus: AltKeyEvent = .char(.plus)
-    public static let comma: AltKeyEvent = .char(.comma)
-    public static let dash: AltKeyEvent = .char(.dash)
-    public static let dot: AltKeyEvent = .char(.dot)
-    public static let number0: AltKeyEvent = .char(.number0)
-    public static let number1: AltKeyEvent = .char(.number1)
-    public static let number2: AltKeyEvent = .char(.number2)
-    public static let number3: AltKeyEvent = .char(.number3)
-    public static let number4: AltKeyEvent = .char(.number4)
-    public static let number5: AltKeyEvent = .char(.number5)
-    public static let number6: AltKeyEvent = .char(.number6)
-    public static let number7: AltKeyEvent = .char(.number7)
-    public static let number8: AltKeyEvent = .char(.number8)
-    public static let number9: AltKeyEvent = .char(.number9)
-    public static let colon: AltKeyEvent = .char(.colon)
-    public static let semicolon: AltKeyEvent = .char(.semicolon)
-    public static let lt: AltKeyEvent = .char(.lt)
-    public static let eq: AltKeyEvent = .char(.eq)
-    public static let gt: AltKeyEvent = .char(.gt)
-    public static let question: AltKeyEvent = .char(.question)
-    public static let at: AltKeyEvent = .char(.at)
-    public static let A: AltKeyEvent = .char(.A)
-    public static let B: AltKeyEvent = .char(.B)
-    public static let C: AltKeyEvent = .char(.C)
-    public static let D: AltKeyEvent = .char(.D)
-    public static let E: AltKeyEvent = .char(.E)
-    public static let F: AltKeyEvent = .char(.F)
-    public static let G: AltKeyEvent = .char(.G)
-    public static let H: AltKeyEvent = .char(.H)
-    public static let I: AltKeyEvent = .char(.I)
-    public static let J: AltKeyEvent = .char(.J)
-    public static let K: AltKeyEvent = .char(.K)
-    public static let L: AltKeyEvent = .char(.L)
-    public static let M: AltKeyEvent = .char(.M)
-    public static let N: AltKeyEvent = .char(.N)
-    public static let O: AltKeyEvent = .char(.O)
-    public static let P: AltKeyEvent = .char(.P)
-    public static let Q: AltKeyEvent = .char(.Q)
-    public static let R: AltKeyEvent = .char(.R)
-    public static let S: AltKeyEvent = .char(.S)
-    public static let T: AltKeyEvent = .char(.T)
-    public static let U: AltKeyEvent = .char(.U)
-    public static let V: AltKeyEvent = .char(.V)
-    public static let W: AltKeyEvent = .char(.W)
-    public static let X: AltKeyEvent = .char(.X)
-    public static let Y: AltKeyEvent = .char(.Y)
-    public static let Z: AltKeyEvent = .char(.Z)
-    public static let leftBracket: AltKeyEvent = .char(.leftBracket)
-    public static let backslash: AltKeyEvent = .char(.backslash)
-    public static let rightBracket: AltKeyEvent = .char(.rightBracket)
-    public static let caret: AltKeyEvent = .char(.caret)
-    public static let underscore: AltKeyEvent = .char(.underscore)
-    public static let backtick: AltKeyEvent = .char(.backtick)
-    public static let a: AltKeyEvent = .char(.a)
-    public static let b: AltKeyEvent = .char(.b)
-    public static let c: AltKeyEvent = .char(.c)
-    public static let d: AltKeyEvent = .char(.d)
-    public static let e: AltKeyEvent = .char(.e)
-    public static let f: AltKeyEvent = .char(.f)
-    public static let g: AltKeyEvent = .char(.g)
-    public static let h: AltKeyEvent = .char(.h)
-    public static let i: AltKeyEvent = .char(.i)
-    public static let j: AltKeyEvent = .char(.j)
-    public static let k: AltKeyEvent = .char(.k)
-    public static let l: AltKeyEvent = .char(.l)
-    public static let m: AltKeyEvent = .char(.m)
-    public static let n: AltKeyEvent = .char(.n)
-    public static let o: AltKeyEvent = .char(.o)
-    public static let p: AltKeyEvent = .char(.p)
-    public static let q: AltKeyEvent = .char(.q)
-    public static let r: AltKeyEvent = .char(.r)
-    public static let s: AltKeyEvent = .char(.s)
-    public static let t: AltKeyEvent = .char(.t)
-    public static let u: AltKeyEvent = .char(.u)
-    public static let v: AltKeyEvent = .char(.v)
-    public static let w: AltKeyEvent = .char(.w)
-    public static let x: AltKeyEvent = .char(.x)
-    public static let y: AltKeyEvent = .char(.y)
-    public static let z: AltKeyEvent = .char(.z)
-    public static let leftCurly: AltKeyEvent = .char(.leftCurly)
-    public static let pipe: AltKeyEvent = .char(.pipe)
-    public static let rightCurly: AltKeyEvent = .char(.rightCurly)
-    public static let tilde: AltKeyEvent = .char(.tilde)
+    public static let space: AltKey_Event = .char(.space)
+    public static let bang: AltKey_Event = .char(.bang)
+    public static let doubleQuote: AltKey_Event = .char(.doubleQuote)
+    public static let hash: AltKey_Event = .char(.hash)
+    public static let dollar: AltKey_Event = .char(.dollar)
+    public static let percent: AltKey_Event = .char(.percent)
+    public static let amp: AltKey_Event = .char(.amp)
+    public static let singleQuote: AltKey_Event = .char(.singleQuote)
+    public static let leftParen: AltKey_Event = .char(.leftParen)
+    public static let rightParen: AltKey_Event = .char(.rightParen)
+    public static let star: AltKey_Event = .char(.star)
+    public static let plus: AltKey_Event = .char(.plus)
+    public static let comma: AltKey_Event = .char(.comma)
+    public static let dash: AltKey_Event = .char(.dash)
+    public static let dot: AltKey_Event = .char(.dot)
+    public static let number0: AltKey_Event = .char(.number0)
+    public static let number1: AltKey_Event = .char(.number1)
+    public static let number2: AltKey_Event = .char(.number2)
+    public static let number3: AltKey_Event = .char(.number3)
+    public static let number4: AltKey_Event = .char(.number4)
+    public static let number5: AltKey_Event = .char(.number5)
+    public static let number6: AltKey_Event = .char(.number6)
+    public static let number7: AltKey_Event = .char(.number7)
+    public static let number8: AltKey_Event = .char(.number8)
+    public static let number9: AltKey_Event = .char(.number9)
+    public static let colon: AltKey_Event = .char(.colon)
+    public static let semicolon: AltKey_Event = .char(.semicolon)
+    public static let lt: AltKey_Event = .char(.lt)
+    public static let eq: AltKey_Event = .char(.eq)
+    public static let gt: AltKey_Event = .char(.gt)
+    public static let question: AltKey_Event = .char(.question)
+    public static let at: AltKey_Event = .char(.at)
+    public static let A: AltKey_Event = .char(.A)
+    public static let B: AltKey_Event = .char(.B)
+    public static let C: AltKey_Event = .char(.C)
+    public static let D: AltKey_Event = .char(.D)
+    public static let E: AltKey_Event = .char(.E)
+    public static let F: AltKey_Event = .char(.F)
+    public static let G: AltKey_Event = .char(.G)
+    public static let H: AltKey_Event = .char(.H)
+    public static let I: AltKey_Event = .char(.I)
+    public static let J: AltKey_Event = .char(.J)
+    public static let K: AltKey_Event = .char(.K)
+    public static let L: AltKey_Event = .char(.L)
+    public static let M: AltKey_Event = .char(.M)
+    public static let N: AltKey_Event = .char(.N)
+    public static let O: AltKey_Event = .char(.O)
+    public static let P: AltKey_Event = .char(.P)
+    public static let Q: AltKey_Event = .char(.Q)
+    public static let R: AltKey_Event = .char(.R)
+    public static let S: AltKey_Event = .char(.S)
+    public static let T: AltKey_Event = .char(.T)
+    public static let U: AltKey_Event = .char(.U)
+    public static let V: AltKey_Event = .char(.V)
+    public static let W: AltKey_Event = .char(.W)
+    public static let X: AltKey_Event = .char(.X)
+    public static let Y: AltKey_Event = .char(.Y)
+    public static let Z: AltKey_Event = .char(.Z)
+    public static let leftBracket: AltKey_Event = .char(.leftBracket)
+    public static let backslash: AltKey_Event = .char(.backslash)
+    public static let rightBracket: AltKey_Event = .char(.rightBracket)
+    public static let caret: AltKey_Event = .char(.caret)
+    public static let underscore: AltKey_Event = .char(.underscore)
+    public static let backtick: AltKey_Event = .char(.backtick)
+    public static let a: AltKey_Event = .char(.a)
+    public static let b: AltKey_Event = .char(.b)
+    public static let c: AltKey_Event = .char(.c)
+    public static let d: AltKey_Event = .char(.d)
+    public static let e: AltKey_Event = .char(.e)
+    public static let f: AltKey_Event = .char(.f)
+    public static let g: AltKey_Event = .char(.g)
+    public static let h: AltKey_Event = .char(.h)
+    public static let i: AltKey_Event = .char(.i)
+    public static let j: AltKey_Event = .char(.j)
+    public static let k: AltKey_Event = .char(.k)
+    public static let l: AltKey_Event = .char(.l)
+    public static let m: AltKey_Event = .char(.m)
+    public static let n: AltKey_Event = .char(.n)
+    public static let o: AltKey_Event = .char(.o)
+    public static let p: AltKey_Event = .char(.p)
+    public static let q: AltKey_Event = .char(.q)
+    public static let r: AltKey_Event = .char(.r)
+    public static let s: AltKey_Event = .char(.s)
+    public static let t: AltKey_Event = .char(.t)
+    public static let u: AltKey_Event = .char(.u)
+    public static let v: AltKey_Event = .char(.v)
+    public static let w: AltKey_Event = .char(.w)
+    public static let x: AltKey_Event = .char(.x)
+    public static let y: AltKey_Event = .char(.y)
+    public static let z: AltKey_Event = .char(.z)
+    public static let leftCurly: AltKey_Event = .char(.leftCurly)
+    public static let pipe: AltKey_Event = .char(.pipe)
+    public static let rightCurly: AltKey_Event = .char(.rightCurly)
+    public static let tilde: AltKey_Event = .char(.tilde)
 }
 
-public extension AltKeyEvent {
+public extension AltKey_Event {
     var isPrintable: Bool {
         toPrintable != ""
     }
@@ -535,13 +535,13 @@ public extension AltKeyEvent {
     }
 }
 
-extension AltKeyEvent: Equatable {
-    public static func == (lhs: AltKeyEvent, rhs: AltKeyEvent) -> Bool {
+extension AltKey_Event: Equatable {
+    public static func == (lhs: AltKey_Event, rhs: AltKey_Event) -> Bool {
         lhs.toString == rhs.toString
     }
 }
 
-public enum ShiftKeyEvent: Hashable {
+public enum ShiftKey_Event: Hashable {
     case down
     case up
     case left
@@ -550,7 +550,7 @@ public enum ShiftKeyEvent: Hashable {
     case end
 }
 
-public extension ShiftKeyEvent {
+public extension ShiftKey_Event {
     var toString: String {
         switch self {
         case .down: return "↓"
@@ -563,13 +563,13 @@ public extension ShiftKeyEvent {
     }
 }
 
-extension ShiftKeyEvent: Equatable {
-    public static func == (lhs: ShiftKeyEvent, rhs: ShiftKeyEvent) -> Bool {
+extension ShiftKey_Event: Equatable {
+    public static func == (lhs: ShiftKey_Event, rhs: ShiftKey_Event) -> Bool {
         lhs.toString == rhs.toString
     }
 }
 
-public enum CharKeyEvent: UInt16, Hashable {
+public enum CharKey_Event: UInt16, Hashable {
     case space = 32
     case bang
     case doubleQuote
@@ -673,7 +673,7 @@ public enum CharKeyEvent: UInt16, Hashable {
     case tilde
 }
 
-public extension CharKeyEvent {
+public extension CharKey_Event {
     var toPrintable: String {
         if case .space = self {
             return " "
@@ -789,7 +789,7 @@ public extension CharKeyEvent {
     }
 }
 
-public enum FnKeyEvent: Hashable {
+public enum FnKey_Event: Hashable {
     case tab
     case enter
     case esc
@@ -822,7 +822,7 @@ public enum FnKeyEvent: Hashable {
     case insert
 }
 
-public extension FnKeyEvent {
+public extension FnKey_Event {
     var toPrintable: String {
         switch self {
         case .enter:
@@ -868,26 +868,26 @@ public extension FnKeyEvent {
     }
 }
 
-extension KeyEvent: CustomStringConvertible {
+extension Key_Event: CustomStringConvertible {
     public var description: String { toString }
 }
 
-extension CtrlKeyEvent: CustomStringConvertible {
+extension CtrlKey_Event: CustomStringConvertible {
     public var description: String { toString }
 }
 
-extension AltKeyEvent: CustomStringConvertible {
+extension AltKey_Event: CustomStringConvertible {
     public var description: String { toString }
 }
 
-extension ShiftKeyEvent: CustomStringConvertible {
+extension ShiftKey_Event: CustomStringConvertible {
     public var description: String { toString }
 }
 
-extension CharKeyEvent: CustomStringConvertible {
+extension CharKey_Event: CustomStringConvertible {
     public var description: String { toString }
 }
 
-extension FnKeyEvent: CustomStringConvertible {
+extension FnKey_Event: CustomStringConvertible {
     public var description: String { toString }
 }

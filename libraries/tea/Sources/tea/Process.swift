@@ -1,8 +1,15 @@
 import Foundation
 
-public class TProcess {
+public typealias XDelta = Int
+public typealias YDelta = Int
+
+public class Tea {
     public static func quit<Msg>() -> Cmd<Msg> {
         Cmd(.Quit)
+    }
+    
+    public static func moveCursor<Msg>(_ dx: XDelta, _ dy: YDelta) -> Cmd<Msg> {
+        Cmd(.Terminal(.MoveCursor(dx, dy)))
     }
 
     public static func sleep(_ interval: TimeInterval) -> Task<Void> {

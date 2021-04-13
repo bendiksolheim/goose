@@ -2,9 +2,11 @@ import Foundation
 import Bow
 import GitLib
 import tea
+import TermSwift
+import os.log
 
 indirect enum Message {
-    case Keyboard(KeyEvent)
+    case TerminalEvent(TerminalEvent)
     case Action(Action)
     case GitCommand(GitCmd)
     case GitResult([GitLogEntry], GitResult)
@@ -16,8 +18,13 @@ indirect enum Message {
     case ClearInfo
     case QueryResult(QueryResult)
     case ViewFile(String)
-    case Container(ScrollMessage)
     case DropBuffer
+}
+
+enum TerminalEvent {
+    case Keyboard(KeyEvent)
+    case Cursor(Cursor)
+    case TerminalResize(Size)
 }
 
 enum GitCmd {
@@ -62,23 +69,25 @@ enum Action {
     case Pull
 }
 
-func initialize(basePath: String) -> () -> (Model, Cmd<Message>) {
-    return {
-        let git = Git(path: basePath)
-        return (Model(git: git,
-                      buffer: [.StatusBuffer(StatusModel(info: .Loading, visibility: [:]))],
-                      info: .None,
-                      scrollState: ScrollView<Message>.initialState(),
-                      keyMap: statusMap,
-                      gitLog: GitLogModel()),
-                Task { getStatus(git: git) }.perform())
+func initialize(basePath: String) -> (TerminalInfo) -> () -> (Model, Cmd<Message>) {
+    return { terminalInfo in
+        return {
+            let git = Git(path: basePath)
+            return (Model(git: git,
+                          views: [View(buffer: .StatusBuffer(StatusModel(info: .Loading, visibility: Visibility())), viewModel: UIModel(scroll: 0))],
+                          info: .None,
+                          keyMap: statusMap,
+                          gitLog: GitLogModel(),
+                          terminal: TerminalModel(cursor: terminalInfo.cursor, size: terminalInfo.size)),
+                    Task { getStatus(git: git) }.perform())
+        }
     }
 }
 
-func render(model: Model) -> Window<Message> {
-    let buffer = model.buffer.last!
-    let content: [View<Message>]
-    switch buffer {
+func render(model: Model, size: Size) -> ViewModel<Message, ViewData> {
+    let view = model.views.last!
+    let content: [Line<Message>]
+    switch view.buffer {
     case let .StatusBuffer(statusModel):
         content = renderStatus(model: statusModel)
     case let .LogBuffer(log):
@@ -88,22 +97,20 @@ func render(model: Model) -> Window<Message> {
     case let .CommitBuffer(commitModel):
         content = renderDiff(diff: commitModel)
     }
-
-    return Window(content:
-        [ScrollView(content, layoutPolicy: LayoutPolicy(width: .Flexible, height: .Flexible), model.scrollState), renderInfoLine(info: model.info)]
+    
+    let scroll = model.views.last!.viewModel.scroll
+    return ViewModel(
+        Array(content[scroll..<min(content.count, scroll + size.height)]),
+        ViewData(size: Size(width: size.width, height: content.count))
     )
 }
 
-func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
+func update(message: Message, model: Model, viewModel: ViewModel<Message, ViewData>) -> (Model, Cmd<Message>) {
     Logger.log("Message: \(message)")
     switch message {
-    case let .Keyboard(event):
-        if let message = model.keyMap[event] {
-            return (model, Cmd.message(message))
-        } else {
-            return (model, Cmd.none())
-        }
-
+    case let .TerminalEvent(event):
+        return terminalEventUpdate(model, event, viewModel.data)
+        
     case let .Action(action):
         return performAction(action, model)
 
@@ -141,7 +148,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .Info(info):
         switch info {
         case .Message:
-            return (model.with(info: info), TProcess.sleep(5.0).perform { Message.ClearInfo })
+            return (model.with(info: info), Tea.sleep(5.0).perform { Message.ClearInfo })
         case let .Query(_, cmd):
             return (model.with(info: info, keyMap: queryMap(cmd)), Cmd.none())
         default:
@@ -160,20 +167,52 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         }
 
     case let .ViewFile(file):
-        return (model, TProcess.spawn { view(file: file) }.perform { $0 })
-
-    case let .Container(containerMsg):
-        return (model.with(scrollState: ScrollView<Message>.update(containerMsg, model.scrollState)), Cmd.none())
+        return (model, Tea.spawn { view(file: file) }.perform { $0 })
 
     case .DropBuffer:
-        return model.buffer.count > 1 ? (model.back(), Cmd.none()) : (model, TProcess.quit())
+        return model.views.count > 1 ? (model.back(), Cmd.none()) : (model, Tea.quit())
     }
+}
+
+func terminalEventUpdate(_ model: Model, _ event: TerminalEvent, _ viewData: ViewData) -> (Model, Cmd<Message>) {
+    switch event {
+    case let .Keyboard(keyEvent):
+        return performKeyboardEvent(model, keyEvent, viewData)
+    case let .Cursor(cursor):
+        return (model.with(terminal: model.terminal.with(cursor: cursor)), Cmd.none())
+    case let .TerminalResize(size):
+        return (model.with(terminal: model.terminal.with(size: size)), Cmd.none())
+    }
+}
+
+func performKeyboardEvent(_ model: Model, _ event: KeyEvent, _ viewData: ViewData) -> (Model, Cmd<Message>) {
+    if let message = model.keyMap[event] {
+        return (model, Cmd.message(message))
+    } else {
+        if let yDiff = getYMovement(event: event) {
+            let nextCursorLocation = model.terminal.cursor.y + yDiff
+            let view = model.views.last!
+            os_log("NextLocation: %{public}@", "\(nextCursorLocation)")
+            if nextCursorLocation + view.viewModel.scroll >= viewData.size.height {
+                return (model, Cmd.none())
+            }
+            if nextCursorLocation >= model.terminal.size.height || (nextCursorLocation < 0 && view.viewModel.scroll > 0) {
+                let nextModel = model.replace(buffer: view.with(viewModel: UIModel(scroll: view.viewModel.scroll + yDiff)))
+                return (nextModel, Cmd.none())
+            } else {
+                return (model, Tea.moveCursor(0, yDiff))
+            }
+        } else {
+            return (model, Cmd.none())
+        }
+    }
+
 }
 
 func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Message>) {
     switch gitResult {
     case let .GotStatus(newStatus):
-        return (model.replace(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: [:]))), Cmd.none())
+        return (model.replace(buffer: .StatusBuffer(StatusModel(info: newStatus, visibility: Visibility()))), Cmd.none())
 
     case let .GotLog(log):
         return (model.replace(buffer: .LogBuffer(log)), Cmd.none())
@@ -186,7 +225,7 @@ func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Mess
 func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message>) {
     switch gitCommand {
     case .Status:
-        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: [:]))), Task { getStatus(git: model.git) }.perform())
+        return (model.navigate(to: .StatusBuffer(StatusModel(info: .Loading, visibility: Visibility()))), Task { getStatus(git: model.git) }.perform())
 
     case let .GetCommit(ref):
         return (model.navigate(to: .CommitBuffer(DiffModel(hash: ref, commit: .Loading))), Task { getDiff(git: model.git, ref) }.perform())
@@ -286,10 +325,10 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         return (model.with(keyMap: keyMap), Cmd.none())
 
     case .Commit:
-        return (model, TProcess.spawn { commit() }.perform())
+        return (model, Tea.spawn { commit() }.perform())
 
     case .AmendCommit:
-        return (model, TProcess.spawn { commit(amend: true) }.perform())
+        return (model, Tea.spawn { commit(amend: true) }.perform())
 
     case .Log:
         return (model.navigate(to: .LogBuffer(.Loading)), Task { getLog(git: model.git) }.perform())
@@ -311,6 +350,6 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
 }
 
 let subscriptions: [Sub<Message>] = [
-    cursor { .Container($0) },
-    keyboard { event in .Keyboard(event) },
+    .Keyboard { event in .TerminalEvent(.Keyboard(event)) },
+    .Cursor { event in .TerminalEvent(.Cursor(event)) }
 ]

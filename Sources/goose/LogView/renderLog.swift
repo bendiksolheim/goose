@@ -1,16 +1,16 @@
 import Foundation
 import tea
 
-func renderLog(log: AsyncData<LogInfo>) -> [View<Message>] {
+func renderLog(log: AsyncData<LogInfo>) -> [Line<Message>] {
     switch log {
     case .Loading:
-        return [TextView("Loading...")]
+        return [Line("Loading...")]
 
     case let .Error(error):
-        return [TextView("Error: \(error.localizedDescription)")]
+        return [Line("Error: \(error.localizedDescription)")]
 
     case let .Success(log):
-        let title = TextView<Message>("Commits in \(log.branch)")
-        return [CollapseView(content: [title] + log.commits.map(commitMapper), open: true)]
+        let title = Line<Message>("Commits in \(log.branch)")
+        return [title] + log.commits.map(commitMapper)
     }
 }

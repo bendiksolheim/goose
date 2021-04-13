@@ -2,30 +2,21 @@
   "object": {
     "pins": [
       {
-        "package": "Nimble",
-        "repositoryURL": "https://github.com/Quick/Nimble.git",
-        "state": {
-          "branch": null,
-          "revision": "7fd118ec8795888bcbbebc1a41f6984454c4cd6f",
-          "version": "8.0.7"
-        }
-      },
-      {
-        "package": "Quick",
-        "repositoryURL": "https://github.com/Quick/Quick.git",
-        "state": {
-          "branch": null,
-          "revision": "33682c2f6230c60614861dfc61df267e11a1602f",
-          "version": "2.2.0"
-        }
-      },
-      {
         "package": "ReactiveSwift",
         "repositoryURL": "https://github.com/ReactiveCocoa/ReactiveSwift.git",
         "state": {
           "branch": null,
-          "revision": "e27ccdbf4ec36f154b60b91a0d7e0110c4e882cb",
-          "version": "6.2.1"
+          "revision": "4a8e1e4a683e96daf658f68132dae781738bc862",
+          "version": "6.6.0"
+        }
+      },
+      {
+        "package": "TermSwift",
+        "repositoryURL": "https://github.com/bendiksolheim/TermSwift.git",
+        "state": {
+          "branch": "master",
+          "revision": "0aa58f35d79c22c8f3e4b8dcb328664b8ad8ca3f",
+          "version": null
         }
       }
     ]
