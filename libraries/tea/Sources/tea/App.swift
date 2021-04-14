@@ -51,7 +51,7 @@ func runApp<Model: Equatable, Message, Meta>(
 
     let (initialModel, initialCommand) = app.initialize()
     var model = initialModel
-    var viewModel = app.render(model, terminal.terminalSize())
+    var viewModel = measure("Initial render") { app.render(model, terminal.terminalSize()) }
     async {
         terminal.draw(viewModel.view) { $0.description }
     }
@@ -93,7 +93,7 @@ func runApp<Model: Equatable, Message, Meta>(
                             }
                         }
                     case let .Resize(size):
-                        viewModel = app.render(model, terminal.terminalSize())
+                        viewModel = measure("Resize render") { app.render(model, terminal.terminalSize()) }
                         async {
                             terminal.draw(viewModel.view, { $0.description })
                             if let msg = terminalSizeSubscription?(size) {
@@ -112,7 +112,7 @@ func runApp<Model: Equatable, Message, Meta>(
         model = updatedModel
         async { commandProducer.send(value: command) }
         if modelChanged {
-            viewModel = app.render(model, terminal.terminalSize())
+            viewModel = measure("Msg render") { app.render(model, terminal.terminalSize()) }
             async {
                 terminal.draw(viewModel.view, { $0.description })
             }
@@ -150,8 +150,8 @@ func runApp<Model: Equatable, Message, Meta>(
                 polling = true
 
                 async {
-                    terminal = Terminal(screen: .Main)
-                    viewModel = app.render(model, terminal.terminalSize())
+                    terminal = Terminal(screen: .Alternate)
+                    viewModel = measure("Process render") { app.render(model, terminal.terminalSize()) }
                     terminal.draw(viewModel.view, { $0.description })
                     startEventPolling()
                 }
