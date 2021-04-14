@@ -170,7 +170,7 @@ func update(message: Message, model: Model, viewModel: ViewModel<Message, ViewDa
         return (model, Tea.spawn { view(file: file) }.perform { $0 })
 
     case .DropBuffer:
-        return model.views.count > 1 ? (model.back(), Cmd.none()) : (model, Tea.quit())
+        return model.views.count > 1 ? (model.back(), Tea.moveCursor(0, -model.terminal.cursor.y)) : (model, Tea.quit())
     }
 }
 
@@ -192,7 +192,6 @@ func performKeyboardEvent(_ model: Model, _ event: KeyEvent, _ viewData: ViewDat
         if let yDiff = getYMovement(event: event) {
             let nextCursorLocation = model.terminal.cursor.y + yDiff
             let view = model.views.last!
-            os_log("NextLocation: %{public}@", "\(nextCursorLocation)")
             if nextCursorLocation + view.viewModel.scroll >= viewData.size.height {
                 return (model, Cmd.none())
             }
