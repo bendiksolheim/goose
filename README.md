@@ -34,7 +34,6 @@ Working (more or less)
 
 Todo (far from exhaustive, just a short list of possible next tasks..)
 - Better git error handling
-- Rendering optimizations: exploit equality and model/view caching
 - Transient command system (aka the Magit menu system)
 - Search in active buffer to quickly move around
 - Stashes
