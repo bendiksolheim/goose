@@ -44,7 +44,6 @@ Todo (far from exhaustive, just a short list of possible next tasks..)
 
 Bugs
 - Diffs with tab characters (and possibly others) breaks rendering
-- Going from a scrollable view with an offset to a view without offset causes a cash
 
 ## Instructions
 
