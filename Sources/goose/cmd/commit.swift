@@ -6,14 +6,14 @@ import GitLib
 
 func runCommand(_ command: String) -> Int {
     var pid: pid_t = 0
-    let args = ["sh", "-c", command]
-    let envs = ProcessInfo().environment.map { k, v in "\(k)=\(v)" }
+    let args: Array<String> = ["sh", "-c", command]
+    let envs: Array<String> = ProcessInfo().environment.map { k, v in "\(k)=\(v)" }
     let cArgs = args.map { strdup($0) } + [nil]
     let cEnvs = envs.map { strdup($0) } + [nil]
 
     var status = posix_spawn(&pid, "/bin/sh", nil, nil, cArgs, cEnvs)
-    cEnvs.forEach { free($0) }
-    cArgs.forEach { free($0) }
+    cEnvs.forEach { $0.map { free($0) } }
+    cArgs.forEach { $0.map { free($0) } }
 
     Logger.log("posix_spawn return for pid", "pid: \(pid), status: \(status)")
     var returnStatus = -1
