@@ -185,27 +185,141 @@ func terminalEventUpdate(_ model: Model, _ event: TerminalEvent, _ viewData: Vie
     }
 }
 
+func move(_ model: Model, _ steps: Int, _ viewHeight: Int, _ current: Int, _ terminalHeight: Int, _ view: View) -> (Model, Cmd<Message>) {
+    if steps < 0 {
+        // scrolling up
+        if current <= 0 {
+            let newScroll = max(view.viewModel.scroll + steps, 0)
+            return (model.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), Cmd.none())
+        } else {
+            let cappedSteps = current + steps < 0 ? 0 - current : steps
+            return (model, Tea.moveCursor(0, cappedSteps))
+        }
+    } else {
+        // scrolling down
+        if current >= terminalHeight - 1 {
+            let newScroll = min(view.viewModel.scroll + steps, viewHeight - terminalHeight)
+            return (model.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), Cmd.none())
+        } else {
+            let cappedSteps = current + steps > terminalHeight ? (terminalHeight - current - 1) : steps
+            return (model, Tea.moveCursor(0, cappedSteps))
+        }
+    }
+}
+
+func scroll(_ model: Model, _ steps: Int, _ viewHeight: Int, _ current: Int, _ terminalHeight: Int, _ view: View) -> (Model, Cmd<Message>) {
+    let scroll = view.viewModel.scroll
+    if steps < 0 {
+        // scrolling up
+        let newScroll = max(scroll + steps, 0)
+        if newScroll != scroll + steps {
+            // We have reached the top, start moting cursor instead
+            let (movedModel, movedCmd) = move(model, scroll + steps - newScroll, viewHeight, current, terminalHeight, view)
+            return (movedModel.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), movedCmd)
+        } else {
+            return (model.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), Cmd.none())
+        }
+    } else {
+        // scrolling down
+        let newScroll = min(scroll + steps, max(viewHeight - terminalHeight, 0))
+        if newScroll != scroll + steps {
+            // We have reached the bottom, start moving cursor instead
+            let (movedModel, movedCmd) = move(model, scroll + steps - newScroll, viewHeight, current, terminalHeight, view)
+            return (movedModel.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), movedCmd)
+        } else {
+            return (model.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), Cmd.none())
+        }
+    }
+}
+
 func performKeyboardEvent(_ model: Model, _ event: KeyEvent, _ viewData: ViewData) -> (Model, Cmd<Message>) {
     if let message = model.keyMap[event] {
         return (model, Cmd.message(message))
     } else {
-        if let yDiff = getYMovement(event: event) {
-            let nextCursorLocation = model.terminal.cursor.y + yDiff
-            let view = model.views.last!
-            if nextCursorLocation + view.viewModel.scroll >= viewData.size.height {
-                return (model, Cmd.none())
-            }
-            if nextCursorLocation >= model.terminal.size.height || (nextCursorLocation < 0 && view.viewModel.scroll > 0) {
-                let nextModel = model.replace(buffer: view.with(viewModel: UIModel(scroll: view.viewModel.scroll + yDiff)))
-                return (nextModel, Cmd.none())
+        let command = getEditorCommand(event: event)
+        let view = model.views.last!
+        let terminalHeight = model.terminal.size.height
+        let viewHeight = viewData.size.height
+        let current = model.terminal.cursor.y
+        
+        switch command {
+        case .MoveCursor(let n):
+            return move(model, n, viewHeight, current, terminalHeight, view)
+        case .Scroll(let unit):
+            let scrollSteps = calculateUnitValue(unit: unit, terminalHeight: terminalHeight)
+            return scroll(model, scrollSteps, viewHeight, current, terminalHeight, view)
+            /*if scroll + terminalHeight + scrollSteps > viewHeight {
+                return move(model, scrollSteps, viewHeight, current, terminalHeight)
+            } else if scroll - scrollSteps < 0 {
+                return move(model, scrollSteps, viewHeight, current, terminalHeight)
             } else {
-                return (model, Tea.moveCursor(0, yDiff))
-            }
-        } else {
+                let newModel = model.replace(buffer: view.with(viewModel: UIModel(scroll: view.viewModel.scroll + scrollSteps)))
+                return (newModel, Cmd.none())
+            }*/
+        case .MoveScreen(let n):
+            return (model, Cmd.none())
+        case .None:
             return (model, Cmd.none())
         }
+//        if let yDiff = getEditorCommand(event: event) {
+//            let view = model.views.last!
+//            let terminalHeight = model.terminal.size.height
+//            let viewHeight = viewData.size.height
+//            let current = model.terminal.cursor.y
+//            let scroll = view.viewModel.scroll
+//            let next = current + yDiff
+//            if yDiff > 0 {
+//                // down
+//                if next + scroll >= viewHeight {
+//                    // Are we moving too far? Do nothing
+//                    return (model, Cmd.none())
+//                } else if next >= terminalHeight {
+//                    // Going outside window, lets scroll down instead
+//                    return (model.replace(buffer: view.with(viewModel: UIModel(scroll: view.viewModel.scroll + yDiff))), Cmd.none())
+//                } else {
+//                    // Just move cursor down
+//                    return (model, Tea.moveCursor(0, yDiff))
+//                }
+//            } else {
+//                // up
+//                if next < 0 && scroll <= 0 {
+//                    // Too far up? Do nothing
+//                    return (model, Cmd.none())
+//                } else if next < 0 {
+//                    // Going outside window, lets scroll up instead
+//                    return (model.replace(buffer: view.with(viewModel: UIModel(scroll: view.viewModel.scroll + yDiff))), Cmd.none())
+//                } else {
+//                    // Just move cursor up
+//                    return (model, Tea.moveCursor(0, yDiff))
+//                }
+//            }
+////            let nextCursorLocation = model.terminal.cursor.y + yDiff
+////            let view = model.views.last!
+////            if nextCursorLocation + view.viewModel.scroll >= viewData.size.height {
+//                // Cap to view height
+////                return (model, Cmd.none())
+//                //let nextModel = model.replace(buffer: view.with(viewModel: UIModel(scroll: viewData.size.height - model.terminal.size.height)))
+//                //return (nextModel, Tea.moveCursor(0, (nextCursorLocation + view.viewModel.scroll - viewData.size.height)))
+////            }
+////            if nextCursorLocation >= model.terminal.size.height || (nextCursorLocation < 0 && view.viewModel.scroll > 0) {
+////                let nextModel = model.replace(buffer: view.with(viewModel: UIModel(scroll: view.viewModel.scroll + yDiff)))
+////                return (nextModel, Cmd.none())
+////            } else {
+////                return (model, Tea.moveCursor(0, yDiff))
+////            }
+//        } else {
+//            return (model, Cmd.none())
+//        }
     }
+}
 
+func calculateUnitValue(unit: Unit, terminalHeight: Int) -> Int {
+    switch unit {
+    case .Absolute(let n):
+        return n
+    case .Percentage(let n):
+        return Int(floor((Double(n) / 100.0) * Double(terminalHeight)))
+    }
 }
 
 func updateGitResult(_ model: Model, _ gitResult: GitResult) -> (Model, Cmd<Message>) {
