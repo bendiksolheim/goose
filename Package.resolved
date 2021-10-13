@@ -47,15 +47,6 @@
         }
       },
       {
-        "package": "SwiftParsec",
-        "repositoryURL": "https://github.com/davedufresne/SwiftParsec",
-        "state": {
-          "branch": "master",
-          "revision": "7169bfda454a086ea362b0af6d209d5de99743bd",
-          "version": null
-        }
-      },
-      {
         "package": "TermSwift",
         "repositoryURL": "https://github.com/bendiksolheim/TermSwift.git",
         "state": {
