@@ -201,7 +201,7 @@ func move(_ model: Model, _ steps: Int, _ viewHeight: Int, _ current: Int, _ ter
             let newScroll = min(view.viewModel.scroll + steps, viewHeight - terminalHeight)
             return (model.replace(buffer: view.with(viewModel: UIModel(scroll: newScroll))), Cmd.none())
         } else {
-            let cappedSteps = current + steps > terminalHeight ? (terminalHeight - current - 1) : steps
+            let cappedSteps = current + steps > terminalHeight ? (terminalHeight - current - 1) : min(steps, viewHeight - current - 1)
             return (model, Tea.moveCursor(0, cappedSteps))
         }
     }
