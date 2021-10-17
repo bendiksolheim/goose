@@ -1,8 +1,10 @@
-//
-//  KeyMap.swift
-//  goose
-//
-//  Created by Bendik on 14/10/2021.
-//
-
 import Foundation
+import tea
+
+func renderKeyMap(_ keyMap: KeyMap) -> Array<Line<Message>> {
+    return keyMap.map
+        .filter { $0.value.visible }
+        .map { key in
+            Line(Text(key.key.stringValue(), .Magenta) + " \(key.value.command)")
+        }
+}

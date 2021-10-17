@@ -7,18 +7,21 @@ struct Model: Equatable {
     let git: Git
     let views: [View]
     let info: InfoMessage
+    let renderKeyMap: Bool
     let keyMap: KeyMap
     let gitLog: GitLogModel
     let terminal: TerminalModel
 
     func with(buffer: [View]? = nil,
               info: InfoMessage? = nil,
+              renderKeyMap: Bool? = nil,
               keyMap: KeyMap? = nil,
               gitLog: GitLogModel? = nil,
               terminal: TerminalModel? = nil) -> Model {
         Model(git: git,
               views: buffer ?? self.views,
               info: info ?? self.info,
+              renderKeyMap: renderKeyMap ?? self.renderKeyMap,
               keyMap: keyMap ?? self.keyMap,
               gitLog: gitLog ?? self.gitLog,
               terminal: terminal ?? self.terminal)

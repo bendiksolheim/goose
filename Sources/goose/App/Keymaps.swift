@@ -2,18 +2,34 @@ import Foundation
 import TermSwift
 
 struct KeyMap: Equatable {
-    let map: [KeyEvent: Message]
+    let map: [KeyEvent: KeyCommand]
 
-    init(_ map: [KeyEvent: Message]) {
+    init(_ map: [KeyEvent: KeyCommand]) {
         self.map = map
     }
 
     subscript(key: KeyEvent) -> Message? {
-        map[key]
+        map[key]?.message
     }
 
     static func == (lhs: KeyMap, rhs: KeyMap) -> Bool {
         lhs.map.keys == rhs.map.keys
+    }
+}
+
+struct KeyCommand: Equatable {
+    let command: String
+    let message: Message
+    let visible: Bool
+    
+    init(_ command: String, _ message: Message, _ visible: Bool = true) {
+        self.command = command
+        self.message = message
+        self.visible = visible
+    }
+    
+    static func == (lhs: KeyCommand, rhs: KeyCommand) -> Bool {
+        lhs.command == rhs.command
     }
 }
 
@@ -24,48 +40,50 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
 // View maps
 
 let statusMap = KeyMap([
-    .q: .DropBuffer
+    .q: KeyCommand("Back", .DropBuffer)
 ]) + actionsMap
 
 let logMap = KeyMap([
-    .q: .DropBuffer
+    .q: KeyCommand("Back", .DropBuffer)
 ]) + actionsMap
 
 let commitMap = KeyMap([
-    .q: .DropBuffer
+    .q: KeyCommand("Back", .DropBuffer)
 ]) + actionsMap
 
 // Action maps
 
 let actionsMap = KeyMap([
-    .l: .Action(.Log),
-    .g: .Action(.Refresh),
-    .c: .Action(.KeyMap(commitActionsMap)),
-    .p: .Action(.KeyMap(pushActionsMap)),
-    .F: .Action(.KeyMap(pullActionsMap)),
-    .dollar: .Action(.GitLog)
+    .l: KeyCommand("Log", .Action(.Log)),
+    .g: KeyCommand("Refresh current buffer", .Action(.Refresh)),
+    .c: KeyCommand("Commit", .Action(.KeyMap(commitActionsMap))),
+    .p: KeyCommand("Push", .Action(.KeyMap(pushActionsMap))),
+    .F: KeyCommand("Pull", .Action(.KeyMap(pullActionsMap))),
+    .dollar: KeyCommand("Git output", .Action(.GitLog), false),
+    .question: KeyCommand("Show help", .Action(.ToggleKeyMap(true)), false),
+    .esc: KeyCommand("Hide help", .Action(.ToggleKeyMap(false)), false)
 ])
 
 let commitActionsMap = KeyMap([
-    .c: .Action(.Commit),
-    .a: .Action(.AmendCommit)
+    .c: KeyCommand("Commit", .Action(.Commit)),
+    .a: KeyCommand("Amend", .Action(.AmendCommit))
 ])
 
 let pushActionsMap = KeyMap([
-    .u: .Action(.Push)
+    .u: KeyCommand("@{upstream}", .Action(.Push))
 ])
 
 let pullActionsMap = KeyMap([
-    .u: .Action(.Pull)
+    .u: KeyCommand("@{upstrean}", .Action(.Pull))
 ])
 
 // Querying
 
 func queryMap(_ msg: Message) -> KeyMap {
     KeyMap([
-        .y: .QueryResult(.Perform(msg)),
-        .n: .QueryResult(.Abort),
-        .q: .QueryResult(.Abort),
-        .esc: .QueryResult(.Abort)
+        .y: KeyCommand("Yes", .QueryResult(.Perform(msg)), false),
+        .n: KeyCommand("No", .QueryResult(.Abort)),
+        .q: KeyCommand("Abort", .QueryResult(.Abort)),
+        .esc: KeyCommand("Abort", .QueryResult(.Abort))
     ])
 }

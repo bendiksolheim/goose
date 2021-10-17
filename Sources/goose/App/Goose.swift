@@ -59,6 +59,7 @@ enum GitResult {
 }
 
 enum Action {
+    case ToggleKeyMap(Bool)
     case KeyMap(KeyMap)
     case Log
     case GitLog
@@ -76,6 +77,7 @@ func initialize(basePath: String) -> (TerminalInfo) -> () -> (Model, Cmd<Message
             return (Model(git: git,
                           views: [View(buffer: .StatusBuffer(StatusModel(info: .Loading, visibility: Visibility())), viewModel: UIModel(scroll: 0))],
                           info: .None,
+                          renderKeyMap: false,
                           keyMap: statusMap,
                           gitLog: GitLogModel(),
                           terminal: TerminalModel(cursor: terminalInfo.cursor, size: terminalInfo.size)),
@@ -85,24 +87,32 @@ func initialize(basePath: String) -> (TerminalInfo) -> () -> (Model, Cmd<Message
 }
 
 func render(model: Model, size: Size) -> ViewModel<Message, ViewData> {
-    let view = model.views.last!
-    let content: [Line<Message>]
-    switch view.buffer {
-    case let .StatusBuffer(statusModel):
-        content = renderStatus(model: statusModel)
-    case let .LogBuffer(log):
-        content = renderLog(log: log)
-    case .GitLogBuffer:
-        content = renderGitLog(gitLog: model.gitLog)
-    case let .CommitBuffer(commitModel):
-        content = renderDiff(diff: commitModel)
+    if model.renderKeyMap {
+        let keyMapView = renderKeyMap(model.keyMap)
+        return ViewModel(
+            keyMapView,
+            ViewData(size: Size(width: size.width, height: keyMapView.count))
+        )
+    } else {
+        let view = model.views.last!
+        let content: [Line<Message>]
+        switch view.buffer {
+        case let .StatusBuffer(statusModel):
+            content = renderStatus(model: statusModel)
+        case let .LogBuffer(log):
+            content = renderLog(log: log)
+        case .GitLogBuffer:
+            content = renderGitLog(gitLog: model.gitLog)
+        case let .CommitBuffer(commitModel):
+            content = renderDiff(diff: commitModel)
+        }
+        
+        let scroll = model.views.last!.viewModel.scroll
+        return ViewModel(
+            Array(content[scroll..<min(content.count, scroll + size.height)]),
+            ViewData(size: Size(width: size.width, height: content.count))
+        )
     }
-    
-    let scroll = model.views.last!.viewModel.scroll
-    return ViewModel(
-        Array(content[scroll..<min(content.count, scroll + size.height)]),
-        ViewData(size: Size(width: size.width, height: content.count))
-    )
 }
 
 func update(message: Message, model: Model, viewModel: ViewModel<Message, ViewData>) -> (Model, Cmd<Message>) {
@@ -377,6 +387,9 @@ func discard(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> 
 
 func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     switch action {
+    case let .ToggleKeyMap(show):
+        return (model.with(renderKeyMap: show), Cmd.none())
+        
     case let .KeyMap(keyMap):
         return (model.with(keyMap: keyMap), Cmd.none())
 
