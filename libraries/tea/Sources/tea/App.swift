@@ -53,7 +53,7 @@ func runApp<Model: Equatable, Message, Meta>(
     var model = initialModel
     var viewModel = measure("Initial render") { app.render(model, terminal.terminalSize()) }
     async {
-        terminal.draw(viewModel.view) { $0.description }
+        terminal.draw(viewModel.view) { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation }
     }
 
     let keyboardSubscription = getKeyboardSubscription(subscriptions: app.subscriptions)
@@ -95,7 +95,7 @@ func runApp<Model: Equatable, Message, Meta>(
                     case let .Resize(size):
                         viewModel = measure("Resize render") { app.render(model, terminal.terminalSize()) }
                         async {
-                            terminal.draw(viewModel.view, { $0.description })
+                            terminal.draw(viewModel.view, { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation })
                             if let msg = terminalSizeSubscription?(size) {
                                 messageProducer.send(value: msg)
                             }
@@ -114,7 +114,7 @@ func runApp<Model: Equatable, Message, Meta>(
         if modelChanged {
             viewModel = measure("Msg render") { app.render(model, terminal.terminalSize()) }
             async {
-                terminal.draw(viewModel.view, { $0.description })
+                terminal.draw(viewModel.view, { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation })
             }
         }
     }
@@ -152,7 +152,7 @@ func runApp<Model: Equatable, Message, Meta>(
                 async {
                     terminal = Terminal(screen: .Alternate)
                     viewModel = measure("Process render") { app.render(model, terminal.terminalSize()) }
-                    terminal.draw(viewModel.view, { $0.description })
+                    terminal.draw(viewModel.view, { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation })
                     startEventPolling()
                 }
 
