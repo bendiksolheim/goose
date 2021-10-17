@@ -9,7 +9,7 @@ final class TaskTests: XCTestCase {
     }
 
     func test_sleeping_for_point_five_seconds() {
-        let cmd = TProcess.sleep(0.5).andThen { print("done") }.perform { Msg.Dummy }
+        let cmd = Tea.sleep(0.5).andThen { print("done") }.perform { Msg.Dummy }.cmd
         if case let Command.Task(task) = cmd {
             let expectation = self.expectation(description: "Sleeptimer")
             let queue = DispatchQueue(label: "background", qos: .background)
@@ -27,7 +27,7 @@ final class TaskTests: XCTestCase {
     }
 
     func test_task_with_unnecessary_complex_addition() {
-        let cmd = Task { 1 }.andThen { $0 + 1 }.perform { Msg.Number($0) }
+        let cmd = Task { 1 }.andThen { $0 + 1 }.perform { Msg.Number($0) }.cmd
         if case let Command.Task(task) = cmd {
             let expectation = self.expectation(description: "Additiontimer")
             let queue = DispatchQueue(label: "background", qos: .background)
