@@ -245,7 +245,7 @@ func scroll(_ model: Model, _ steps: Int, _ viewHeight: Int, _ current: Int, _ t
 func performKeyboardEvent(_ model: Model, _ event: KeyEvent, _ viewData: ViewData) -> (Model, Cmd<Message>) {
     if let message = model.keyMap[event] {
         return (model, Cmd.message(message))
-    } else {
+    } else if !model.renderKeyMap {
         let command = getEditorCommand(event: event)
         let view = model.views.last!
         let terminalHeight = model.terminal.size.height
@@ -263,6 +263,8 @@ func performKeyboardEvent(_ model: Model, _ event: KeyEvent, _ viewData: ViewDat
         case .None:
             return (model, Cmd.none())
         }
+    } else {
+        return (model, Cmd.none())
     }
 }
 
