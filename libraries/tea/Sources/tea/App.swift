@@ -74,7 +74,7 @@ func runApp<Model: Equatable, Message, Meta>(
                             polling = false
                             messageProducer.sendCompleted()
                             commandProducer.sendCompleted()
-                        } else {
+                        } else if viewModel.view.indices.contains(terminal.cursor.y) {
                             let cursor = terminal.cursor
                             let line = viewModel.view[cursor.y]
                             var swallowed = false
@@ -89,6 +89,12 @@ func runApp<Model: Equatable, Message, Meta>(
                                     async {
                                         messageProducer.send(value: msg)
                                     }
+                                }
+                            }
+                        } else {
+                            if let msg = keyboardSubscription?(key) {
+                                async {
+                                    messageProducer.send(value: msg)
                                 }
                             }
                         }
