@@ -72,62 +72,9 @@ public struct Git: Equatable {
     public func pull() -> GitCommand {
         GitCommand(path, ["pull"])
     }
-}
-
-public struct Config: Equatable {
-    let path: String
     
-    public func all() -> GitCommand {
-        GitCommand(path, ["config", "--list"])
-    }
-    
-    public func parse(_ input: String) -> GitConfig {
-        let lines = input.split(regex: "\n")
-        var configs: [String: String] = [:]
-        for line in lines {
-            let matches = line.match(regex: "(?<key>.*)=(?<value>.*)")
-            if let key = matches["key"], let value = matches["value"] {
-                configs[key] = value
-            }
-        }
-        return GitConfig(configs)
-    }
-}
-
-public struct Show: Equatable {
-    let path: String
-    
-    public func patch(_ ref: [String]) -> GitCommand {
-        GitCommand(path, ["show", "-s", "-z", "--format=\(commitFormat)", "-p"] + ref)
-    }
-    
-    public func plain(_ ref: [String]) -> GitCommand {
-        GitCommand(path, ["show", "-s", "-z", "--format=\(commitFormat)"] + ref)
-    }
-    
-    public func stat(_ ref: String) -> GitCommand {
-        GitCommand(path, ["show", "--format=", "--numstat"] + [ref])
-    }
-}
-
-public struct Diff: Equatable {
-    let path: String
-    
-    public func files() -> GitCommand {
-        GitCommand(path, ["diff-files", "--patch", "--no-color"])
-    }
-
-    public func index() -> GitCommand {
-        GitCommand(path, ["diff-index", "--cached", "--patch", "--no-color", "HEAD"])
-    }
-
-    public func parse(_ input: String) -> GitDiff {
-        let diff = internalParse(input)
-        return GitDiff(diff.files.map { filename, file in
-            GitFile(filename, file.mode, file.hunks.map { _, hunk in
-                GitHunk(hunk.lines, hunk.patch.joined(separator: "\n") + "\n")
-            })
-        })
+    public func stash() -> GitCommand {
+        GitCommand(path, ["stash"])
     }
 }
 
@@ -143,4 +90,4 @@ private let RAW_BODY = "%B"
 private let SUBJECT = "%s"
 private let REF_NAME = "%D"
 
-private let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, SUBJECT, REF_NAME].joined(separator: NEWLINE)
+let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, SUBJECT, REF_NAME].joined(separator: NEWLINE)
