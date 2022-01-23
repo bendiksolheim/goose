@@ -2,7 +2,7 @@ import Foundation
 import Bow
 import GitLib
 import tea
-import TermSwift
+import Slowbox
 import os.log
 
 indirect enum Message {
@@ -33,6 +33,7 @@ enum GitCmd {
     case Stage(Selection)
     case Unstage(Selection)
     case Discard(Selection)
+    case Stash
 }
 
 enum QueryResult {
@@ -349,6 +350,10 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
                 return (model, command)
             }
         }
+        
+    case .Stash:
+        //performGit
+        return (model, Cmd.none())
     }
 }
 

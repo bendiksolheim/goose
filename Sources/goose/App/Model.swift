@@ -1,7 +1,7 @@
 import Foundation
 import GitLib
 import tea
-import TermSwift
+import Slowbox
 
 struct Model: Equatable {
     let git: Git

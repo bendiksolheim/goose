@@ -38,7 +38,7 @@ public struct Git: Equatable {
     }
 
     public func log(num: Int) -> GitCommand {
-        GitCommand(path, ["log", "--format=\(commitFormat)", "-z"])
+        GitCommand(path, ["log", "--format=\(commitFormat)", "-z", "-n", "\(num)"])
     }
 
     public func status() -> GitCommand {

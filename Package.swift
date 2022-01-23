@@ -1,11 +1,11 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "goose",
-    platforms: [ .macOS(.v10_14) ],
+    platforms: [ .macOS(.v11) ],
     dependencies: [
         .package(url: "https://github.com/bow-swift/bow.git", from: "0.8.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
@@ -14,12 +14,22 @@ let package = Package(
     targets: [
         .target(
             name: "goose",
-            dependencies: ["BowEffects", "GitLib", "ArgumentParser", "tea"]),
+            dependencies: [
+                .product(name: "BowEffects", package: "bow"),
+                "GitLib",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "tea"
+            ]),
         .target(
             name: "GitLib",
-            dependencies: ["BowEffects"]),
+            dependencies: [
+                .product(name: "BowEffects", package: "bow")
+            ]),
         .testTarget(
             name: "GitLibTests",
-            dependencies: ["GitLib", "BowEffects"]),
+            dependencies: [
+                "GitLib",
+                .product(name: "BowEffects", package: "bow")
+            ]),
     ]
 )

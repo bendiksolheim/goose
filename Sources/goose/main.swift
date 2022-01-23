@@ -1,7 +1,7 @@
 import Foundation
 import ArgumentParser
 import tea
-import TermSwift
+import Slowbox
 
 func teaRun(
     _ initialize: @escaping (TerminalInfo) -> () -> (Model, Cmd<Message>),

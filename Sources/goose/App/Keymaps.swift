@@ -1,5 +1,5 @@
 import Foundation
-import TermSwift
+import Slowbox
 
 struct KeyMap: Equatable {
     let map: [KeyEvent: KeyCommand]

@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "Slowbox",
+        "repositoryURL": "https://github.com/bendiksolheim/Slowbox.git",
+        "state": {
+          "branch": null,
+          "revision": "a3dcafd3867253eb8f4ad24fafc50a97bd901fdb",
+          "version": "0.1.0"
+        }
+      },
+      {
         "package": "swift-argument-parser",
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {

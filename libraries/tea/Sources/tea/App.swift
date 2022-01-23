@@ -2,7 +2,7 @@ import Darwin
 import Foundation
 import os.log
 import ReactiveSwift
-import TermSwift
+import Slowbox
 
 public enum Sub<Message> {
     case Keyboard((KeyEvent) -> Message)
@@ -34,13 +34,25 @@ public struct TerminalInfo {
 }
 
 public func run<Model: Equatable, Message, Meta>(initFunc: (TerminalInfo) -> App<Model, Message, Meta>) {
-    let terminal = Terminal(screen: .Alternate)
+    let terminal = Slowbox(io: TTY(), screen: .Alternate)
     let app = initFunc(TerminalInfo(cursor: terminal.cursor, size: terminal.terminalSize()))
     runApp(terminal, app)
 }
 
+func render<Message, Data>(_ view: ViewModel<Message, Data>, _ terminal: Slowbox) {
+    view.view.enumerated().forEach { row in
+        if let content = row.element {
+            content.content.terminalContent().enumerated().forEach { column in
+                terminal.put(x: column.offset, y: row.offset, cell: Cell(column.element.1, formatting: column.element.0))
+            }
+        }
+    }
+    terminal.present()
+    terminal.clearBuffer()
+}
+
 func runApp<Model: Equatable, Message, Meta>(
-    _ aTerminal: Terminal,
+    _ aTerminal: Slowbox,
     _ app: App<Model, Message, Meta>
 ) {
     let termQueue = DispatchQueue(label: "term.queue", qos: .background)
@@ -52,9 +64,7 @@ func runApp<Model: Equatable, Message, Meta>(
     let (initialModel, initialCommand) = app.initialize()
     var model = initialModel
     var viewModel = measure("Initial render") { app.render(model, terminal.terminalSize()) }
-    async {
-        terminal.draw(viewModel.view) { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation }
-    }
+    render(viewModel, terminal)
 
     let keyboardSubscription = getKeyboardSubscription(subscriptions: app.subscriptions)
     let terminalSizeSubscription = getTerminalResizeSubscription(subscriptions: app.subscriptions)
@@ -101,7 +111,7 @@ func runApp<Model: Equatable, Message, Meta>(
                     case let .Resize(size):
                         viewModel = measure("Resize render") { app.render(model, terminal.terminalSize()) }
                         async {
-                            terminal.draw(viewModel.view, { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation })
+                            render(viewModel, terminal)
                             if let msg = terminalSizeSubscription?(size) {
                                 messageProducer.send(value: msg)
                             }
@@ -120,7 +130,7 @@ func runApp<Model: Equatable, Message, Meta>(
         if modelChanged {
             viewModel = measure("Msg render") { app.render(model, terminal.terminalSize()) }
             async {
-                terminal.draw(viewModel.view, { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation })
+                render(viewModel, terminal)
             }
         }
     }
@@ -156,9 +166,9 @@ func runApp<Model: Equatable, Message, Meta>(
                 polling = true
 
                 async {
-                    terminal = Terminal(screen: .Alternate)
+                    terminal = Slowbox(io: TTY(), screen: .Alternate)
                     viewModel = measure("Process render") { app.render(model, terminal.terminalSize()) }
-                    terminal.draw(viewModel.view, { $0.content.capTo(terminal.terminalSize().width).terminalRepresentation })
+                    render(viewModel, terminal)
                     startEventPolling()
                 }
 

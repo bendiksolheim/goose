@@ -1,9 +1,9 @@
 import Foundation
-import TermSwift
+import Slowbox
 
 public typealias ViewEvent<Message> = (KeyEvent, Message)
 
-public struct Line<Message>: CustomStringConvertible {
+public struct Line<Message> {
     
     let content: TextType
     let events: [ViewEvent<Message>]
@@ -11,9 +11,5 @@ public struct Line<Message>: CustomStringConvertible {
     public init(_ content: TextType, events: [ViewEvent<Message>] = []) {
         self.content = content
         self.events = events
-    }
-    
-    public var description: String {
-        return content.terminalRepresentation
     }
 }

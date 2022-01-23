@@ -2,7 +2,7 @@ import Bow
 import Foundation
 import GitLib
 import tea
-import TermSwift
+import Slowbox
 
 func renderDiff(diff: DiffModel) -> [Line<Message>] {
     switch diff.commit {

@@ -1,6 +1,6 @@
 import Foundation
 import tea
-import TermSwift
+import Slowbox
 
 func renderInfoLine(info: InfoMessage) -> Line<Message> {
     switch info {

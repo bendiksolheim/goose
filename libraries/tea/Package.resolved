@@ -11,12 +11,12 @@
         }
       },
       {
-        "package": "TermSwift",
-        "repositoryURL": "https://github.com/bendiksolheim/TermSwift.git",
+        "package": "Slowbox",
+        "repositoryURL": "https://github.com/bendiksolheim/Slowbox.git",
         "state": {
-          "branch": "master",
-          "revision": "e88561e6540c6d227262aa1c29ccc4e92f94d968",
-          "version": null
+          "branch": null,
+          "revision": "a3dcafd3867253eb8f4ad24fafc50a97bd901fdb",
+          "version": "0.1.0"
         }
       }
     ]

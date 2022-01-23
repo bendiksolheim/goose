@@ -115,7 +115,7 @@ func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> [Li
     let events: [ViewEvent<Message>] = [
         (.tab, .UpdateStatus("recent", model)),
     ]
-    let logTitle = Line(title, events: events)
+    let logTitle = Line(Text(title, .Blue), events: events)
     if open {
         return [logTitle] + log.map(commitMapper)
     } else {

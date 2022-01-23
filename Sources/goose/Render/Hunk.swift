@@ -1,7 +1,7 @@
 import Foundation
 import GitLib
 import tea
-import TermSwift
+import Slowbox
 
 func renderHunk(_ hunk: GitHunk, _ events: [ViewEvent<Message>]) -> [Line<Message>] {
     hunk.lines.map { renderDiffLine($0, events) }

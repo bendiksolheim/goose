@@ -1,5 +1,5 @@
 import Foundation
-import TermSwift
+import Slowbox
 
 enum Unit {
     case Absolute(Int)
