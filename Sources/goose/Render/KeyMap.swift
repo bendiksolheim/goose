@@ -1,10 +1,10 @@
 import Foundation
-import tea
+import Tea
 
-func renderKeyMap(_ keyMap: KeyMap) -> Array<Line<Message>> {
-    return keyMap.map
+func renderKeyMap(_ keyMap: KeyMap) -> Container {
+    return Container(FlexStyle(direction: .Column), keyMap.map
         .filter { $0.value.visible }
         .map { key in
-            Line(Text(key.key.stringValue(), .Magenta) + " \(key.value.command)")
-        }
+            Content<Message>(Text(key.key.stringValue(), .Magenta) + " \(key.value.command)")
+        })
 }

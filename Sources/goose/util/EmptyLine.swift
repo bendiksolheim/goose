@@ -1,5 +1,5 @@
-import tea
+import Tea
 
-func EmptyLine<Message>() -> Line<Message> {
-    Line("")
+func EmptyLine<Message>() -> Content<Message> {
+    Content("")
 }

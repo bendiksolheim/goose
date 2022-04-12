@@ -1,16 +1,16 @@
-import tea
+import Tea
 
-func renderGitLog(gitLog: GitLogModel) -> [Line<Message>] {
-    let a: [[Line<Message>]] = gitLog.history.map { entry in
+func renderGitLog(gitLog: GitLogModel) -> [Content<Message>] {
+    let a: [[Content<Message>]] = gitLog.history.map { entry in
         let id = entry.identifier()
         let events: [ViewEvent<Message>] = [
             (.tab, .UpdateGitLog(id))
         ]
         let code = Text(String(entry.exitCode), entry.success ? .Green : .Red)
         let command = Text(entry.command, .Blue)
-        let textView = Line(code + " " + command, events: events)
-        let output: [Line<Message>] = entry.result.split(regex: "\n").map { line in
-            Line<Message>(line)
+        let textView = Content(code + " " + command, events: events)
+        let output: [Content<Message>] = entry.result.split(regex: "\n").map { line in
+            Content<Message>(line)
         }
         
         let open = gitLog.visibility[id, default: false]

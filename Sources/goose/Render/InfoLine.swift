@@ -1,16 +1,16 @@
 import Foundation
-import tea
+import Tea
 import Slowbox
 
-func renderInfoLine(info: InfoMessage) -> Line<Message> {
+func renderInfoLine(info: InfoMessage) -> Content<Message> {
     switch info {
     case .None:
-        return Line("")
+        return Content<Message>("Press ? for help")
 
     case let .Message(message):
-        return Line(message)
+        return Content(message)
 
     case let .Query(message, _):
-        return Line(Text(message, .Blue, .Default))
+        return Content(Text(message, .Blue, .Default))
     }
 }

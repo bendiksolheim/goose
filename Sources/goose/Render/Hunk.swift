@@ -1,13 +1,13 @@
 import Foundation
 import GitLib
-import tea
+import Tea
 import Slowbox
 
-func renderHunk(_ hunk: GitHunk, _ events: [ViewEvent<Message>]) -> [Line<Message>] {
+func renderHunk(_ hunk: GitHunk, _ events: [ViewEvent<Message>]) -> [Content<Message>] {
     hunk.lines.map { renderDiffLine($0, events) }
 }
 
-func renderDiffLine(_ line: GitHunkLine, _ events: [ViewEvent<Message>]) -> Line<Message> {
+func renderDiffLine(_ line: GitHunkLine, _ events: [ViewEvent<Message>]) -> Content<Message> {
     var foreground = Color.Default
     var background = Color.Default
     switch line.annotation {
@@ -23,6 +23,6 @@ func renderDiffLine(_ line: GitHunkLine, _ events: [ViewEvent<Message>]) -> Line
     case .Context:
         break
     }
-    
-    return Line(Text(line.content, foreground, background), events: events)
+
+    return Content(Text(line.content, foreground, background), events: events)
 }

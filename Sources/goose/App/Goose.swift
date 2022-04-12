@@ -1,7 +1,7 @@
 import Foundation
 import Bow
 import GitLib
-import tea
+import Tea
 import Slowbox
 import os.log
 
@@ -19,6 +19,7 @@ indirect enum Message {
     case QueryResult(QueryResult)
     case ViewFile(String)
     case DropBuffer
+    case Debug
 }
 
 enum TerminalEvent {
@@ -88,15 +89,15 @@ func initialize(basePath: String) -> (TerminalInfo) -> () -> (Model, Cmd<Message
 }
 
 func render(model: Model, size: Size) -> ViewModel<Message, ViewData> {
-    if model.renderKeyMap {
-        let keyMapView = renderKeyMap(model.keyMap)
-        return ViewModel(
-            keyMapView,
-            ViewData(size: Size(width: size.width, height: keyMapView.count))
-        )
-    } else {
+//    if model.renderKeyMap {
+//        let keyMapView = renderKeyMap(model.keyMap)
+//        return ViewModel(
+//            keyMapView,
+//            ViewData(size: Size(width: size.width, height: 0))//keyMapView.count))
+//        )
+//    } else {
         let view = model.views.last!
-        let content: [Line<Message>]
+        let content: [Content<Message>]
         switch view.buffer {
         case let .StatusBuffer(statusModel):
             content = renderStatus(model: statusModel)
@@ -109,11 +110,21 @@ func render(model: Model, size: Size) -> ViewModel<Message, ViewData> {
         }
         
         let scroll = model.views.last!.viewModel.scroll
-        return ViewModel(
-            Array(content[scroll..<min(content.count, scroll + size.height)]),
-            ViewData(size: Size(width: size.width, height: content.count))
-        )
-    }
+        if model.renderKeyMap {
+            return ViewModel(
+                Container(FlexStyle(direction: .Column), [
+                    renderKeyMap(model.keyMap),
+                    Container(FlexStyle(direction: .Column), Array(content[scroll..<min(content.count, scroll + size.height)]))
+                ]), ViewData(size: Size(width: size.width, height: content.count)))
+        } else {
+            let main = Container(FlexStyle(direction: .Column, grow: 1, shrink: 0), Array(content[scroll..<min(content.count, scroll + size.height)]))
+            let info = renderInfoLine(info: model.info)
+            return ViewModel(
+                Container(FlexStyle(direction: .Column, grow: 1, shrink: 0), [main, info]),
+                ViewData(size: Size(width: size.width, height: content.count))
+            )
+        }
+//    }
 }
 
 func update(message: Message, model: Model, viewModel: ViewModel<Message, ViewData>) -> (Model, Cmd<Message>) {
@@ -182,6 +193,9 @@ func update(message: Message, model: Model, viewModel: ViewModel<Message, ViewDa
 
     case .DropBuffer:
         return model.views.count > 1 ? (model.back(), Tea.moveCursor(0, -model.terminal.cursor.y)) : (model, Tea.quit())
+
+    case .Debug:
+        return (model, Cmd<Message>.debug())
     }
 }
 

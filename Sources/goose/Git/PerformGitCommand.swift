@@ -1,5 +1,5 @@
 import GitLib
-import tea
+import Tea
 import Bow
 
 func performGitCommand(_ cmd: GitCommand, _ input: String? = nil) -> Task<Message> {

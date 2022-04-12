@@ -1,6 +1,6 @@
 import Foundation
 import ArgumentParser
-import tea
+import Tea
 import Slowbox
 
 func teaRun(

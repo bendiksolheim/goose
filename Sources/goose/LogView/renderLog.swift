@@ -1,16 +1,16 @@
 import Foundation
-import tea
+import Tea
 
-func renderLog(log: AsyncData<LogInfo>) -> [Line<Message>] {
+func renderLog(log: AsyncData<LogInfo>) -> [Content<Message>] {
     switch log {
     case .Loading:
-        return [Line("Loading...")]
+        return [Content("Loading...")]
 
     case let .Error(error):
-        return [Line("Error: \(error.localizedDescription)")]
+        return [Content("Error: \(error.localizedDescription)")]
 
     case let .Success(log):
-        let title = Line<Message>("Commits in \(log.branch)")
+        let title = Content<Message>("Commits in \(log.branch)")
         return [title] + log.commits.map(commitMapper)
     }
 }

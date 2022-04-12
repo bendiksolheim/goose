@@ -30,7 +30,7 @@
       },
       {
         "package": "Slowbox",
-        "repositoryURL": "https://github.com/bendiksolheim/Slowbox.git",
+        "repositoryURL": "https://github.com/bendiksolheim/Slowbox",
         "state": {
           "branch": null,
           "revision": "a3dcafd3867253eb8f4ad24fafc50a97bd901fdb",

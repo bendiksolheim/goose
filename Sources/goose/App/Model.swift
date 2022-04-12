@@ -1,6 +1,6 @@
 import Foundation
 import GitLib
-import tea
+import Tea
 import Slowbox
 
 struct Model: Equatable {

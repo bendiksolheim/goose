@@ -40,15 +40,18 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
 // View maps
 
 let statusMap = KeyMap([
-    .q: KeyCommand("Back / Quit", .DropBuffer)
+    .q: KeyCommand("Back / Quit", .DropBuffer),
+    .å: KeyCommand("", .Debug)
 ]) + actionsMap
 
 let logMap = KeyMap([
-    .q: KeyCommand("Back / Quit", .DropBuffer)
+    .q: KeyCommand("Back / Quit", .DropBuffer),
+    .å: KeyCommand("", .Debug)
 ]) + actionsMap
 
 let commitMap = KeyMap([
-    .q: KeyCommand("Back / Quit", .DropBuffer)
+    .q: KeyCommand("Back / Quit", .DropBuffer),
+    .å: KeyCommand("", .Debug)
 ]) + actionsMap
 
 // Action maps
