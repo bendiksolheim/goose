@@ -2,7 +2,7 @@ prefix ?= /usr/local
 bindir = $(prefix)/bin
 
 run:
-	swift run
+	swift run goose --debug
 
 build:
 	swift build -c release --disable-sandbox
