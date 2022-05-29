@@ -32,7 +32,7 @@ struct GitLogEntry: Equatable {
     let result: String
     let success: Bool
     
-    init(_ processResult: ProcessResult) {
+    init(_ processResult: LowLevelProcessResult) {
         exitCode = Int(processResult.exitCode)
         timestamp = processResult.timestamp
         command = processResult.command

@@ -37,32 +37,17 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
     KeyMap(lhs.map.combine(rhs.map))
 }
 
-// View maps
-
-let statusMap = KeyMap([
-    .q: KeyCommand("Back / Quit", .DropBuffer),
-    .å: KeyCommand("", .Debug)
-]) + actionsMap
-
-let logMap = KeyMap([
-    .q: KeyCommand("Back / Quit", .DropBuffer),
-    .å: KeyCommand("", .Debug)
-]) + actionsMap
-
-let commitMap = KeyMap([
-    .q: KeyCommand("Back / Quit", .DropBuffer),
-    .å: KeyCommand("", .Debug)
-]) + actionsMap
-
 // Action maps
 
 let helpKeyMap = KeyMap([
+    .q:  KeyCommand("Bury current buffer", .DropBuffer),
+    .å: KeyCommand("Debug mode", .Debug),
     .question: KeyCommand("Show help", .Action(.ToggleKeyMap(true)), false),
     .esc: KeyCommand("Hide help", .Action(.ToggleKeyMap(false)), false)
 ])
 
-let actionsMap = KeyMap([
-    .l: KeyCommand("Log", .Action(.Log)),
+let commandMap = KeyMap([
+    .l: KeyCommand("Log", .Action(.KeyMap(logActionsMap))),
     .g: KeyCommand("Refresh current buffer", .Action(.Refresh)),
     .c: KeyCommand("Commit", .Action(.KeyMap(commitActionsMap))),
     .p: KeyCommand("Push", .Action(.KeyMap(pushActionsMap))),
@@ -73,6 +58,10 @@ let actionsMap = KeyMap([
 let commitActionsMap = KeyMap([
     .c: KeyCommand("Commit", .Action(.Commit)),
     .a: KeyCommand("Amend", .Action(.AmendCommit))
+]) + helpKeyMap
+
+let logActionsMap = KeyMap([
+    .l: KeyCommand("current", .Action(.Log))
 ]) + helpKeyMap
 
 let pushActionsMap = KeyMap([

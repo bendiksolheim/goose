@@ -1,33 +1,22 @@
 import Foundation
 import Slowbox
+import Tea
 
-enum Unit {
-    case Absolute(Int)
-    case Percentage(Int)
-}
-
-enum EditorCommand {
-    case MoveCursor(Int)
-    case MoveScreen(Int)
-    case Scroll(Unit)
-    case None
-}
-
-func getEditorCommand(event: KeyEvent) -> EditorCommand {
+func getEditorCommand(event: KeyEvent) -> Cmd<Message> {
     switch event {
     case .j:
-        return .MoveCursor(1)
+        return Editor.moveCursor(0, 1)
     case .k:
-        return .MoveCursor(-1)
-    case .CtrlE:
-        return .MoveScreen(1)
-    case .CtrlY:
-        return .MoveScreen(-1)
+        return Editor.moveCursor(0, -1)
+//    case .CtrlE:
+//        return .MoveScreen(1)
+//    case .CtrlY:
+//        return .MoveScreen(-1)
     case .CtrlD:
-        return .Scroll(.Percentage(50))
+        return Editor.scroll(.Percentage(50))
     case .CtrlU:
-        return .Scroll(.Percentage(-50))
+        return Editor.scroll(.Percentage(-50))
     default:
-        return .None
+        return Cmd.none()
     }
 }

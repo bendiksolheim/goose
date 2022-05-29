@@ -10,21 +10,21 @@ struct Model: Equatable {
     let renderKeyMap: Bool
     let keyMap: KeyMap
     let gitLog: GitLogModel
-    let terminal: TerminalModel
+//    let terminal: TerminalModel
 
     func with(buffer: [View]? = nil,
               info: InfoMessage? = nil,
               renderKeyMap: Bool? = nil,
               keyMap: KeyMap? = nil,
-              gitLog: GitLogModel? = nil,
-              terminal: TerminalModel? = nil) -> Model {
+              gitLog: GitLogModel? = nil) -> Model {
+//              terminal: TerminalModel? = nil) -> Model {
         Model(git: git,
               views: buffer ?? self.views,
               info: info ?? self.info,
               renderKeyMap: renderKeyMap ?? self.renderKeyMap,
               keyMap: keyMap ?? self.keyMap,
-              gitLog: gitLog ?? self.gitLog,
-              terminal: terminal ?? self.terminal)
+              gitLog: gitLog ?? self.gitLog)
+//              terminal: terminal ?? self.terminal)
     }
     
     func navigate(to newView: View) -> Model {
@@ -49,21 +49,21 @@ struct Model: Equatable {
     }
 }
 
-struct TerminalModel: Equatable {
-    let cursor: Cursor
-    let size: Size
-    
-    func with(cursor: Cursor? = nil,
-              size: Size? = nil) -> TerminalModel {
-        TerminalModel(cursor: cursor ?? self.cursor,
-                      size: size ?? self.size)
-    }
-    
-    // This model should never trigger rerender, so we cheat a bit and say instances are always equal
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        return true
-    }
-}
+//struct TerminalModel: Equatable {
+//    let cursor: Cursor
+//    let size: Size
+//
+//    func with(cursor: Cursor? = nil,
+//              size: Size? = nil) -> TerminalModel {
+//        TerminalModel(cursor: cursor ?? self.cursor,
+//                      size: size ?? self.size)
+//    }
+//
+//    // This model should never trigger rerender, so we cheat a bit and say instances are always equal
+//    static func == (lhs: Self, rhs: Self) -> Bool {
+//        return true
+//    }
+//}
 
 struct View: Equatable {
     let buffer: Buffer

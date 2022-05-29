@@ -22,7 +22,7 @@ public struct ProcessDescription {
     }
 }
 
-public struct ProcessResult {
+public struct LowLevelProcessResult {
     let timestamp: Int
     let command: String
     let output: String
@@ -30,7 +30,7 @@ public struct ProcessResult {
     let success: Bool
 }
 
-func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessResult> {
+func execute(process: ProcessDescription, input: String? = nil) -> Task<LowLevelProcessResult> {
     Task.invoke {
         logCommand(process: process)
         let task = Process()
@@ -66,7 +66,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<ProcessR
         let output = stdOutput + errOutput
         Logger.log("Process output", output)
         
-        return ProcessResult(
+        return LowLevelProcessResult(
             timestamp: Int(Date().timeIntervalSince1970),
             command: ([process.executable] + process.arguments).joined(separator: " "),
             output: output.trimmingCharacters(in: .whitespacesAndNewlines),

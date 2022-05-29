@@ -24,7 +24,7 @@ public struct Visibility: Equatable {
             "untracked": true,
             "unstaged": true,
             "staged": true,
-            "recent": true
+            "recent": false
         ]
     }
     
