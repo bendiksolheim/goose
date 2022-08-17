@@ -102,12 +102,7 @@ func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> [No
     let events: [ViewEvent<Message>] = [
         (.tab, .UpdateStatus("recent", model)),
     ]
-    let logTitle = Text(FormattedText(title, .Blue), events)
-    if open {
-        return [logTitle] + log.map(commitMapper)
-    } else {
-        return [logTitle]
-    }
+    return collapsible(FormattedText(title, .Blue), events, open, log.map(commitMapper))
 }
 
 func commitMapper(_ commit: GitCommit) -> Text<Message> {
