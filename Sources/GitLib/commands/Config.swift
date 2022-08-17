@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Config: Equatable {
+public struct Config: Equatable, Encodable {
     let path: String
     
     public func all() -> GitCommand {

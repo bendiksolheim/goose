@@ -1,5 +1,5 @@
 import Tea
 
-func EmptyLine<Message>() -> Content<Message> {
-    Content("")
+func EmptyLine() -> Node {
+    Text("")
 }

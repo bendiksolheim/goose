@@ -35,9 +35,6 @@ func getStatus(git: Git) -> Cmd<Message> {
             { error in .GitResult([], .GotStatus(.Error(error))) },
             { success in .GitResult(success.gitLog, .GotStatus(success.result)) }
     )
-
-//    let a = runAndMap(result) { .GotStatus($0) }
-//    return a
 }
 
 func runAndMap<T>(_ task: IO<Error, GitLogAndResult<AsyncData<T>>>, _ mapper: (AsyncData<T>) -> GitResult) -> Message {
@@ -154,7 +151,7 @@ struct GitLogAndResult<T> {
 }
 
 func config(git: Git) -> Task<GitConfig> {
-    return git.config.all().exec()
+    git.config.all().exec()
             .map {
                 git.config.parse($0.output)
             }^

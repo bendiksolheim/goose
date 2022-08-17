@@ -1,38 +1,34 @@
 import Foundation
 import GitLib
 import Tea
-import Slowbox
 
-struct Model: Equatable {
+struct Model: Equatable, Encodable {
     let git: Git
     let views: [View]
     let info: InfoMessage
     let renderKeyMap: Bool
     let keyMap: KeyMap
     let gitLog: GitLogModel
-//    let terminal: TerminalModel
 
     func with(buffer: [View]? = nil,
               info: InfoMessage? = nil,
               renderKeyMap: Bool? = nil,
               keyMap: KeyMap? = nil,
               gitLog: GitLogModel? = nil) -> Model {
-//              terminal: TerminalModel? = nil) -> Model {
         Model(git: git,
               views: buffer ?? self.views,
               info: info ?? self.info,
               renderKeyMap: renderKeyMap ?? self.renderKeyMap,
               keyMap: keyMap ?? self.keyMap,
               gitLog: gitLog ?? self.gitLog)
-//              terminal: terminal ?? self.terminal)
     }
     
     func navigate(to newView: View) -> Model {
-        with(buffer: views + [newView])
+        with(buffer: views + [newView], renderKeyMap: false)
     }
     
     func navigate(to newBuffer: Buffer) -> Model {
-        with(buffer: views + [View(buffer: newBuffer, viewModel: UIModel(scroll: 0))])
+        with(buffer: views + [View(buffer: newBuffer)], renderKeyMap: false)
     }
     
     func replace(buffer newView: View) -> Model {
@@ -45,49 +41,37 @@ struct Model: Equatable {
     }
     
     func back() -> Model {
-        with(buffer: views.dropLast())
+        with(buffer: views.dropLast(), renderKeyMap: false)
     }
 }
 
-//struct TerminalModel: Equatable {
-//    let cursor: Cursor
-//    let size: Size
-//
-//    func with(cursor: Cursor? = nil,
-//              size: Size? = nil) -> TerminalModel {
-//        TerminalModel(cursor: cursor ?? self.cursor,
-//                      size: size ?? self.size)
-//    }
-//
-//    // This model should never trigger rerender, so we cheat a bit and say instances are always equal
-//    static func == (lhs: Self, rhs: Self) -> Bool {
-//        return true
-//    }
-//}
-
-struct View: Equatable {
+struct View: Equatable, Encodable {
     let buffer: Buffer
-    let viewModel: UIModel
-    
-    func with(buffer: Buffer? = nil,
-              viewModel: UIModel? = nil) -> View {
-        View(buffer: buffer ?? self.buffer,
-             viewModel: viewModel ?? self.viewModel)
+    let cursor: Cursor
+
+    init(buffer: Buffer) {
+        self.buffer = buffer
+        cursor = Cursor.initial()
+    }
+
+    private init(buffer: Buffer, cursor: Cursor) {
+        self.buffer = buffer
+        self.cursor = cursor
+    }
+
+    func with(buffer: Buffer? = nil, cursor: Cursor? = nil) -> View {
+        Self(buffer: buffer ?? self.buffer, cursor: cursor ?? self.cursor)
     }
 }
 
-enum Buffer: Equatable {
+enum Buffer: Equatable, Encodable {
     case StatusBuffer(StatusModel)
     case LogBuffer(AsyncData<LogInfo>)
     case GitLogBuffer
     case CommitBuffer(DiffModel)
 }
 
-struct UIModel: Equatable {
-    let scroll: Int
-}
-
-enum InfoMessage: Equatable {
+enum InfoMessage: Equatable, Encodable {
     case None
     case Message(String)
     case Query(String, Message)
@@ -104,8 +88,16 @@ enum InfoMessage: Equatable {
             return false
         }
     }
-}
 
-struct ViewData: Equatable {
-    let size: Size
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        switch self {
+        case .None:
+            try container.encode("None")
+        case let .Message(m):
+            try container.encode("Message(\(m))")
+        case let .Query(m, _):
+            try container.encode("Query(\(m), _)")
+        }
+    }
 }

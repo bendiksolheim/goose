@@ -2,53 +2,52 @@ import Bow
 import Foundation
 import GitLib
 import Tea
-import os.log
+import Slowbox
 
-func renderStatus(model: StatusModel) -> [Content<Message>] {
+func renderStatus(model: StatusModel) -> Node {
     switch model.info {
     case .Loading:
-        return [Content("Loading...")]
+        return Text("Loading...")
 
     case let .Error(error):
-        return [Content(error.localizedDescription)]
+        return Text(error.localizedDescription)
 
     case let .Success(status):
-        var views: [Content<Message>] = [headBranchHeader(status.branch, status.log[0])]
-        
-        if let upstreamBranch = upstreamBranchHeader(status) {
-            views.append(upstreamBranch)
-        }
-        
-        views.append(EmptyLine())
+        let view = Vertical(.Auto, .Auto) {
+            [Text("Head:     " + FormattedText(status.branch, .Cyan) + " " + status.log[0].message)]
 
-        if status.untracked.count > 0 {
-            views.append(contentsOf: renderUntracked(model, status.untracked))
-            views.append(EmptyLine())
+            if let upstreamBranch = upstreamBranchHeader(status) {
+                upstreamBranch
+            }
+
+            [EmptyLine()]
+
+            if status.untracked.count > 0 {
+                renderUntracked(model, status.untracked)
+            }
+
+            if status.unstaged.count > 0 {
+                renderUnstaged(model, status.unstaged)
+            }
+
+            if status.staged.count > 0 {
+                renderStaged(model, status.staged)
+            }
+
+            if !status.ahead.isEmpty {
+                renderLog("Unmerged into \(status.upstream) (\(status.ahead.count))", model, status.ahead)
+            }
+
+            if !status.log.isEmpty && status.ahead.isEmpty {
+                renderLog("Recent commits", model, status.log)
+            }
         }
 
-        if status.unstaged.count > 0 {
-            views.append(contentsOf: renderUnstaged(model, status.unstaged))
-            views.append(EmptyLine())
-        }
-
-        if status.staged.count > 0 {
-            views.append(contentsOf: renderStaged(model, status.staged))
-            views.append(EmptyLine())
-        }
-
-        if !status.ahead.isEmpty {
-            views.append(contentsOf: renderLog("Unmerged into \(status.upstream) (\(status.ahead.count))", model, status.ahead))
-        }
-        
-        if !status.log.isEmpty && status.ahead.isEmpty {
-            views.append(contentsOf: renderLog("Recent commits", model, status.log))
-        }
-
-        return views
+        return view
     }
 }
 
-func upstreamBranchHeader(_ model: StatusInfo) -> Content<Message>? {
+func upstreamBranchHeader(_ model: StatusInfo) -> [ Node ]? {
     let remote = model.config.string("branch.\(model.branch).remote")
     let merge = model.config.string("branch.\(model.branch).merge")
     if (remote == nil && merge == nil) {
@@ -58,64 +57,52 @@ func upstreamBranchHeader(_ model: StatusInfo) -> Content<Message>? {
         let header = isRebase ? "Rebase:   " : "Merge:    "
         let upstreamCommit = model.log.first(where: { $0.refName == Option.some(model.upstream) })?.message
             ?? model.log[0].message
-        return Content(header + Text(model.upstream, .Green) + " " + Text(upstreamCommit))
+        return [Text(header + FormattedText(model.upstream, .Green) + " " + FormattedText(upstreamCommit))]
     }
 }
 
-func renderUntracked(_ model: StatusModel, _ untracked: [Untracked]) -> [Content<Message>] {
+func renderUntracked(_ model: StatusModel, _ untracked: [Untracked]) -> [Node] {
     let open = model.visibility["untracked", default: true]
-    os_log("Open: %{public}@", "\(open)")
+    Tea.debug("Open: \(open)")
     let events: [ViewEvent<Message>] = [
         (.s, .GitCommand(.Stage(.Section(untracked.map { $0.file }, .Untracked)))),
         (.x, .Info(.Query("Trash \(untracked.count) files? (y or n)", .GitCommand(.Discard(.Section(untracked.map { $0.file }, .Untracked)))))),
         (.tab, .UpdateStatus("untracked", model)),
     ]
-    let title = Content<Message>(Text("Untracked files (\(untracked.count))", .Blue), events: events)
-    if open {
-        return [title] + untracked.map(untrackedMapper)
-    } else {
-        return [title]
-    }
+    let content = untracked.map(untrackedMapper)
+    return collapsible(FormattedText("Untracked files (\(untracked.count))", .Blue), events, open, content) + [EmptyLine()]
 }
 
-func renderUnstaged(_ model: StatusModel, _ unstaged: [Unstaged]) -> [Content<Message>] {
+func renderUnstaged(_ model: StatusModel, _ unstaged: [Unstaged]) -> [Node] {
     let open = model.visibility["unstaged", default: true]
     let events: [ViewEvent<Message>] = [
         (.s, .GitCommand(.Stage(.Section(unstaged.map { $0.file }, .Unstaged)))),
         (.x, .Info(.Query("Discard unstaged changes in \(unstaged.count) files? (y or n)", .GitCommand(.Discard(.Section(unstaged.map { $0.file }, .Unstaged)))))),
         (.tab, .UpdateStatus("unstaged", model)),
     ]
-    let title = Content<Message>(Text("Unstaged changes (\(unstaged.count))", .Blue), events: events)
     let mapper = unstagedMapper(model)
-    if open {
-        return [title] + unstaged.flatMap(mapper)
-    } else {
-        return [title]
-    }
+    let content = unstaged.flatMap(mapper)
+    return collapsible(FormattedText("Unstaged changes (\(unstaged.count))", .Blue), events, open, content) + [EmptyLine()]
 }
 
-func renderStaged(_ model: StatusModel, _ staged: [Staged]) -> [Content<Message>] {
+func renderStaged(_ model: StatusModel, _ staged: [Staged]) -> [Node] {
     let open = model.visibility["staged", default: true]
     let events: [ViewEvent<Message>] = [
         (.u, .GitCommand(.Unstage(.Section(staged.map { $0.file }, .Staged)))),
         (.x, .Info(.Query("Discard staged changes in \(staged.count) files? (y or n)", .GitCommand(.Discard(.Section(staged.map { $0.file }, .Staged)))))),
         (.tab, .UpdateStatus("staged", model)),
     ]
-    let title = Content<Message>(Text("Staged changes (\(staged.count))", .Blue), events: events)
     let mapper = stagedMapper(model)
-    if open {
-        return [title] + staged.flatMap(mapper)
-    } else {
-        return [title]
-    }
+    let content = staged.flatMap(mapper)
+    return collapsible(FormattedText("Staged changes \(staged.count)", .Blue), events, open, content) + [EmptyLine()]
 }
 
-func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> [Content<Message>] {
+func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> [Node] {
     let open = model.visibility["recent", default: true]
     let events: [ViewEvent<Message>] = [
         (.tab, .UpdateStatus("recent", model)),
     ]
-    let logTitle = Content(Text(title, .Blue), events: events)
+    let logTitle = Text(FormattedText(title, .Blue), events)
     if open {
         return [logTitle] + log.map(commitMapper)
     } else {
@@ -123,17 +110,13 @@ func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> [Co
     }
 }
 
-func headBranchHeader(_ branch: String, _ commit: GitCommit) -> Content<Message> {
-    return Content<Message>("Head:     " + Text(branch, .Cyan) + " " + commit.message)
-}
-
-func commitMapper(_ commit: GitCommit) -> Content<Message> {
+func commitMapper(_ commit: GitCommit) -> Text<Message> {
     let message = commit.refName
-        .fold(constant(Text(" "))) { name in Text(" \(name) ", .Cyan) } + commit.message
-    return Content<Message>(Text(commit.hash.short, .LightGray) + message, events: [(.enter, .GitCommand(.GetCommit(commit.hash.full)))])
+        .fold(constant(FormattedText(" "))) { name in FormattedText(" \(name) ", .Cyan) } + commit.message
+    return Text(FormattedText(commit.hash.short, .LightGray) + message, [(.enter, .GitCommand(.GetCommit(commit.hash.full)))])
 }
 
-func untrackedMapper(_ untracked: Untracked) -> Content<Message> {
+func untrackedMapper(_ untracked: Untracked) -> Node {
     let events: [ViewEvent<Message>] = [
         (.s, .GitCommand(.Stage(.File(untracked.file, .Untracked)))),
         (.u, .GitCommand(.Unstage(.File(untracked.file, .Untracked)))),
@@ -141,10 +124,10 @@ func untrackedMapper(_ untracked: Untracked) -> Content<Message> {
         (.enter, .ViewFile(untracked.file)),
     ]
 
-    return Content(untracked.file, events: events)
+    return Text(untracked.file, events)
 }
 
-func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [Content<Message>] {
+func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [Node] {
     { unstaged in
         let open = model.visibility["unstaged-\(unstaged.file)", default: false]
         let events: [ViewEvent<Message>] = [
@@ -155,31 +138,31 @@ func unstagedMapper(_ model: StatusModel) -> (Unstaged) -> [Content<Message>] {
             (.enter, .ViewFile(unstaged.file)),
         ]
 
-        let hunks = open ? unstaged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Unstaged)) } : []
+        let hunks = unstaged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Unstaged)) }
 
         switch unstaged.status {
         case .Modified:
-            return [Content("modified  \(unstaged.file)", events: events)] + hunks
+            return collapsible("modified \(unstaged.file)", events, open, hunks)
 
         case .Deleted:
-            return [Content("deleted   \(unstaged.file)", events: events)] + hunks
+            return collapsible("deleted \(unstaged.file)", events, open, hunks)
 
         case .Added:
-            return [Content("new file  \(unstaged.file)", events: events)] + hunks
+            return collapsible("new file \(unstaged.file)", events, open, hunks)
 
         case let .Renamed(target):
-            return [Content("renamed   \(unstaged.file) -> \(target)", events: events)] + hunks
+            return collapsible("renamed \(unstaged.file) -> \(target)", events, open, hunks)
 
         case .Copied:
-            return [Content("copied    \(unstaged.file)", events: events)] + hunks
+            return collapsible("copied \(unstaged.file)", events, open, hunks)
 
         default:
-            return [Content("Unknown status \(unstaged.status) \(unstaged.file)")]
+            return [Text("Unknown status \(unstaged.status): \(unstaged.file)")]
         }
     }
 }
 
-func stagedMapper(_ model: StatusModel) -> (Staged) -> [Content<Message>] {
+func stagedMapper(_ model: StatusModel) -> (Staged) -> [Node] {
     { staged in
         let open = model.visibility["staged-\(staged.file)", default: false]
         let events: [ViewEvent<Message>] = [
@@ -189,25 +172,25 @@ func stagedMapper(_ model: StatusModel) -> (Staged) -> [Content<Message>] {
             (.tab, .UpdateStatus("staged-\(staged.file)", model)),
             (.enter, .ViewFile(staged.file)),
         ]
-        let hunks = open ? staged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Staged)) } : []
+        let hunks = staged.diff.flatMap { renderHunk($0, makeHunkEvents($0.patch, .Staged)) }
         switch staged.status {
         case .Added:
-            return [Content("new file  \(staged.file)", events: events)] + hunks
+            return collapsible("new file \(staged.file)", events, open, hunks)
 
         case .Untracked:
-            return [Content(staged.file, events: events)] + hunks
+            return collapsible(staged.file, events, open, hunks)
 
         case .Modified:
-            return [Content("modified  \(staged.file)", events: events)] + hunks
+            return collapsible("modified \(staged.file)", events, open, hunks)
 
         case .Deleted:
-            return [Content("deleted   \(staged.file)", events: events)] + hunks
+            return collapsible("deleted \(staged.file)", events, open, hunks)
 
         case let .Renamed(target):
-            return [Content("renamed   \(staged.file) -> \(target)", events: events)] + hunks
+            return collapsible("renamed \(staged.file) -> \(target)", events, open, hunks)
 
         case .Copied:
-            return [Content("copied    \(staged.file)", events: events)] + hunks
+            return collapsible("copied    \(staged.file)", events, open, hunks)
         }
     }
 }

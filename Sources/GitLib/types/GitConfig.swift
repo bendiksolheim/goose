@@ -1,4 +1,4 @@
-public struct GitConfig: Equatable {
+public struct GitConfig: Equatable, Encodable {
     let config: [String: String]
     
     init(_ config: [String: String]) {

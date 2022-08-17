@@ -3,21 +3,6 @@ import ArgumentParser
 import Tea
 import Slowbox
 
-////func teaRun(
-//        _ initialize: @escaping () -> (Model, Cmd<Message>),
-//        _ render: @escaping (Model, Size) -> ViewModel<Message, ViewData>,
-//        _ update: @escaping (Message, Model, ViewModel<Message, ViewData>) -> (Model, Cmd<Message>),
-//        _ update: @escaping (Message, Model) -> (Model, Cmd<Message>),
-//        _ subscriptions: [Sub<Message>]) {
-//    var result: QuitResult = .Success(nil)
-//    repeat {
-//        result = run(App(initialize: initialize, render: render, update: update, subscriptions: subscriptions))
-//        result = run { terminalInfo in
-//            App(initialize: initialize, render: render, update: update, subscriptions: subscriptions)
-//        }
-//    } while evaluateResult(result)
-//}
-
 struct Goose: ParsableCommand {
     @Flag(name: .shortAndLong, help: "Enabled debug logging")
     var debug: Bool = false
@@ -25,12 +10,11 @@ struct Goose: ParsableCommand {
     mutating func run() throws {
         Logger.debug = debug
         if let basePath = locateGitDir() {
-            Logger.log("Starting goose")
+            Tea.debug("Starting goose")
             var result: QuitResult = .Success(nil)
             repeat {
                 result = application(App(initialize: initialize(basePath: basePath), render: render, update: update, subscriptions: subscriptions))
             } while evaluateResult(result)
-//            teaRun(initialize(basePath: basePath), render, update, subscriptions)
         } else {
             print("\(FileManager.default.currentDirectoryPath) is not inside a git directory")
         }

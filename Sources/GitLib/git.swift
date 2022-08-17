@@ -12,7 +12,7 @@ public struct GitCommand {
     }
 }
 
-public struct Git: Equatable {
+public struct Git: Equatable, Encodable {
     let path: String
     public let config: Config
     public let show: Show

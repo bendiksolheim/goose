@@ -1,7 +1,7 @@
 import Foundation
 import GitLib
 
-public struct DiffModel: Equatable {
+public struct DiffModel: Equatable, Encodable {
     let hash: String
     let commit: AsyncData<CommitInfo>
 
@@ -10,7 +10,7 @@ public struct DiffModel: Equatable {
     }
 }
 
-public struct CommitInfo: Equatable {
+public struct CommitInfo: Equatable, Encodable {
     let commit: GitCommit
     let stats: Stats
 }

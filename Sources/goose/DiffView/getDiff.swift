@@ -14,15 +14,10 @@ func getDiff(git: Git, _ ref: String) -> Cmd<Message> {
             yield: commitSuccess(git: git, commit.get, stats.get)
     )^
 
-//    return runAndMap(tasks) { .GotCommit(ref, $0) }
     return Effect(tasks).perform(
             { error in .GitResult([], .GotCommit(ref, .Error(error))) },
             { success in .GitResult(success.gitLog, .GotCommit(ref, success.result)) }
     )
-//    return Effect(tasks).perform(
-//            { error in .GitResult([], .GotCommit(ref, .Error(error))) },
-//            { success in .GitResult(success.gitLog, .GotCommit(ref, .Success(success.result))) }
-//    )
 }
 
 private func commitSuccess(git: Git, _ commit: LowLevelProcessResult, _ stats: LowLevelProcessResult) -> GitLogAndResult<AsyncData<CommitInfo>> {

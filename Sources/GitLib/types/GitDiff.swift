@@ -2,14 +2,14 @@ import Bow
 import Foundation
 import os.log
 
-public enum GitAnnotation: Equatable {
+public enum GitAnnotation: Equatable, Encodable {
     case Summary
     case Added
     case Removed
     case Context
 }
 
-public struct GitHunkLine: Equatable {
+public struct GitHunkLine: Equatable, Encodable {
     public let annotation: GitAnnotation
     public let content: String
 
@@ -29,7 +29,7 @@ public struct GitHunkLine: Equatable {
     }
 }
 
-public struct GitHunk: Equatable {
+public struct GitHunk: Equatable, Encodable {
     public let patch: String
     public let lines: [GitHunkLine]
 
@@ -39,7 +39,7 @@ public struct GitHunk: Equatable {
     }
 }
 
-public struct GitFile: Equatable {
+public struct GitFile: Equatable, Encodable {
     public let source: String
     public let mode: String
     public let hunks: [GitHunk]
@@ -51,7 +51,7 @@ public struct GitFile: Equatable {
     }
 }
 
-public struct GitDiff: Equatable {
+public struct GitDiff: Equatable, Encodable {
     public let files: [GitFile]
 
     init(_ files: [GitFile]) {

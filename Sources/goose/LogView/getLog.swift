@@ -4,7 +4,7 @@ import Foundation
 import GitLib
 import Tea
 
-public struct LogInfo: Equatable {
+public struct LogInfo: Equatable, Encodable {
     let branch: String
     let commits: [GitCommit]
 }
@@ -22,7 +22,6 @@ func getLog(git: Git) -> Cmd<Message> {
             { error in .GitResult([], .GotLog(.Error(error)))},
             { success in .GitResult(success.gitLog, .GotLog(success.result))}
     )
-//    return runAndMap(result) { .GotLog($0) }
 }
 
 func logSuccess(git: Git, branch: LowLevelProcessResult, log: LowLevelProcessResult) -> GitLogAndResult<AsyncData<LogInfo>> {

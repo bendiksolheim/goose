@@ -1,4 +1,4 @@
-struct GitLogModel: Equatable {
+struct GitLogModel: Equatable, Encodable {
     let history: [GitLogEntry]
     let visibility: [String: Bool]
     
@@ -25,7 +25,7 @@ struct GitLogModel: Equatable {
     }
 }
 
-struct GitLogEntry: Equatable {
+struct GitLogEntry: Equatable, Encodable {
     let exitCode: Int
     let timestamp: Int
     let command: String

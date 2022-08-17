@@ -1,7 +1,7 @@
 import Foundation
 import Slowbox
 
-struct KeyMap: Equatable {
+struct KeyMap: Equatable, Encodable {
     let map: [KeyEvent: KeyCommand]
 
     init(_ map: [KeyEvent: KeyCommand]) {
@@ -15,9 +15,17 @@ struct KeyMap: Equatable {
     static func == (lhs: KeyMap, rhs: KeyMap) -> Bool {
         lhs.map.keys == rhs.map.keys
     }
+
+    func encode(to encoder: Encoder) throws {
+        let stringDictionary = Dictionary(
+                uniqueKeysWithValues: map.map { ($0.stringValue(), $1) }
+        )
+        var container = encoder.singleValueContainer()
+        try container.encode(stringDictionary)
+    }
 }
 
-struct KeyCommand: Equatable {
+struct KeyCommand: Equatable, Encodable {
     let command: String
     let message: Message
     let visible: Bool
@@ -31,6 +39,19 @@ struct KeyCommand: Equatable {
     static func == (lhs: KeyCommand, rhs: KeyCommand) -> Bool {
         lhs.command == rhs.command
     }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(command, forKey: .command)
+        try container.encode("<message>", forKey: .message)
+        try container.encode(visible, forKey: .visible)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case command
+        case message
+        case visible
+    }
 }
 
 func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
@@ -41,7 +62,6 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
 
 let helpKeyMap = KeyMap([
     .q:  KeyCommand("Bury current buffer", .DropBuffer),
-    .å: KeyCommand("Debug mode", .Debug),
     .question: KeyCommand("Show help", .Action(.ToggleKeyMap(true)), false),
     .esc: KeyCommand("Hide help", .Action(.ToggleKeyMap(false)), false)
 ])

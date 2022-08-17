@@ -1,6 +1,7 @@
 import BowEffects
 import Foundation
 import GitLib
+import Tea
 
 // https://gist.github.com/dduan/d4e967f3fc2801d3736b726cd34446bc
 
@@ -15,33 +16,33 @@ func runCommand(_ command: String) -> Int {
     cEnvs.forEach { $0.map { free($0) } }
     cArgs.forEach { $0.map { free($0) } }
 
-    Logger.log("posix_spawn return for pid", "pid: \(pid), status: \(status)")
+    Tea.debug("posix_spawn return for pid: pid: \(pid), status: \(status)")
     var returnStatus = -1
     let rc = waitpid(pid, &status, 0)
     if rc == -1 {
         let error = POSIXErrorCode(rawValue: errno)
         switch error {
         case .ECHILD:
-            Logger.log("ECHILD")
+            Tea.debug("ECHILD")
         case .EDEADLK:
-            Logger.log("EDEADLK")
+            Tea.debug("EDEADLK")
         default:
             if let _error = error {
-                Logger.log("\(_error.rawValue)")
+                Tea.debug("\(_error.rawValue)")
             } else {
-                Logger.log("Unknown error")
+                Tea.debug("Unknown error")
             }
         }
     } else {
         if rc != pid {
-            Logger.log("waitpid returned wrong pid?")
+            Tea.debug("waitpid returned wrong pid?")
         } else if WIFEXITED(status) { // Normal exit
-            Logger.log("Normal exit with status code", "\(WEXITSTATUS(status))")
+            Tea.debug("Normal exit with status code: \(WEXITSTATUS(status))")
             returnStatus = Int(WEXITSTATUS(status))
         } else if WIFSIGNALED(status) {
-            Logger.log("Terminated due to signal", "\(WTERMSIG(status))")
+            Tea.debug("Terminated due to signal: \(WTERMSIG(status))")
         } else if WIFSTOPPED(status) {
-            Logger.log("Process stopped, can be restarted", "\(WSTOPSIG(status))")
+            Tea.debug("Process stopped, can be restarted: \(WSTOPSIG(status))")
         }
     }
 

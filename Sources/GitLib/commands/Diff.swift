@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Diff: Equatable {
+public struct Diff: Equatable, Encodable {
     let path: String
     
     public func files() -> GitCommand {

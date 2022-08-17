@@ -1,7 +1,7 @@
 import Foundation
 import GitLib
 
-public struct StatusModel: Equatable {
+public struct StatusModel: Equatable, Encodable {
     let info: AsyncData<StatusInfo>
     let visibility: Visibility
 
@@ -12,11 +12,11 @@ public struct StatusModel: Equatable {
     }
     
     func toggle(file: String) -> StatusModel {
-        return with(visibility: visibility.toggle(file: file))
+        with(visibility: visibility.toggle(file: file))
     }
 }
 
-public struct Visibility: Equatable {
+public struct Visibility: Equatable, Encodable {
     let visibility: [String: Bool]
     
     init() {
@@ -33,7 +33,7 @@ public struct Visibility: Equatable {
     }
     
     subscript(key: String, default defaultValue: Bool) -> Bool {
-        return visibility[key] ?? defaultValue
+        visibility[key] ?? defaultValue
     }
     
     func toggle(file: String) -> Visibility {
@@ -42,7 +42,7 @@ public struct Visibility: Equatable {
     }
 }
 
-public struct Untracked: Equatable {
+public struct Untracked: Equatable, Encodable {
     let file: String
 
     init(_ file: String) {
@@ -50,7 +50,7 @@ public struct Untracked: Equatable {
     }
 }
 
-public struct Unstaged: Equatable {
+public struct Unstaged: Equatable, Encodable {
     let file: String
     let status: FileStatus
     let diff: [GitHunk]
@@ -62,7 +62,7 @@ public struct Unstaged: Equatable {
     }
 }
 
-public struct Staged: Equatable {
+public struct Staged: Equatable, Encodable {
     let file: String
     let status: FileStatus
     let diff: [GitHunk]
@@ -74,7 +74,7 @@ public struct Staged: Equatable {
     }
 }
 
-public struct StatusInfo: Equatable {
+public struct StatusInfo: Equatable, Encodable {
     let branch: String
     let upstream: String
     let untracked: [Untracked]

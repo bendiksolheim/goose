@@ -1,6 +1,7 @@
 import BowEffects
 import Foundation
 import GitLib
+import Tea
 
 public struct ProcessDescription {
     let workingDirectory: String
@@ -50,7 +51,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<LowLevel
                 stdinPipe.fileHandleForWriting.write(data)
                 stdinPipe.fileHandleForWriting.closeFile()
             } else {
-                Logger.log("Could not convert string to data", _input)
+                Tea.debug("Could not convert string to data: \(_input)")
             }
         }
 
@@ -64,7 +65,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<LowLevel
         let stdOutput = String(data: stdoutData, encoding: .utf8) ?? ""
         let errOutput = String(data: stderrData, encoding: .utf8) ?? ""
         let output = stdOutput + errOutput
-        Logger.log("Process output", output)
+        Tea.debug("Process output: \(output)")
         
         return LowLevelProcessResult(
             timestamp: Int(Date().timeIntervalSince1970),
@@ -79,7 +80,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<LowLevel
 private func logCommand(process: ProcessDescription) {
     let executedCommand = ([process.executable] + process.arguments).joined(separator: " ")
     let command = "Process(executable=\(process.executable), arguments=\(process.arguments), workingDirectory=\(process.workingDirectory), cmd=\(executedCommand)"
-    Logger.log(command)
+    Tea.debug(command)
 }
 
 private let gitExecutable = "/usr/local/bin/git"

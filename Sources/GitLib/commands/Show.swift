@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Show: Equatable {
+public struct Show: Equatable, Encodable {
     let path: String
     
     public func patch(_ ref: [String]) -> GitCommand {

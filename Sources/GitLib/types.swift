@@ -2,7 +2,7 @@ import Bow
 import Foundation
 import os.log
 
-public struct GitCommit: Equatable {
+public struct GitCommit: Equatable, Encodable {
     public let hash: GitHash
     public let message: String
     public let parents: [String]
@@ -14,7 +14,19 @@ public struct GitCommit: Equatable {
     public let diff: Option<GitDiff>
 }
 
-public struct GitHash: Equatable {
+extension Option: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(self.description)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case value
+    }
+}
+
+public struct GitHash: Equatable, Encodable {
     public let full: String
     public let short: String
 }
@@ -72,11 +84,11 @@ public func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
     GitHash(full: String(input), short: String(input.prefix(7)))
 }
 
-public struct Stats: Equatable {
+public struct Stats: Equatable, Encodable {
     public let stats: [Stat]
 }
 
-public struct Stat: Equatable {
+public struct Stat: Equatable, Encodable {
     public let file: String
     public let added: Int
     public let removed: Int
@@ -86,12 +98,12 @@ public struct Stat: Equatable {
     }
 }
 
-public enum Area {
+public enum Area: Encodable {
     case Worktree
     case Index
 }
 
-public enum FileStatus: Equatable {
+public enum FileStatus: Equatable, Encodable {
     case Untracked
     case Modified
     case Deleted
@@ -100,7 +112,7 @@ public enum FileStatus: Equatable {
     case Copied
 }
 
-public struct GitChange: Equatable {
+public struct GitChange: Equatable, Encodable {
     public let area: Area
     public let status: FileStatus
     public let file: String
