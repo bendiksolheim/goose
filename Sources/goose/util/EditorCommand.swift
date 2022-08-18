@@ -2,8 +2,14 @@ import Foundation
 import Slowbox
 import Tea
 
-func getEditorCommand(event: KeyEvent) -> Cmd<Message> {
+func getGeneralCommand(event: KeyEvent) -> Cmd<Message> {
     switch event {
+    case .q:
+        return Cmd.message(.DropBuffer)
+    case .question:
+        return Cmd.message(.Action(.ToggleKeyMap(true)))
+    case .esc:
+        return Cmd.message(.Action(.ToggleKeyMap(false)))
     case .j:
         return Editor.moveCursor(0, 1)
     case .k:

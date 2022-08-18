@@ -82,7 +82,7 @@ func terminalEventUpdate(_ model: Model, _ event: TerminalEvent) -> (Model, Cmd<
         if let message = model.keyMap[event] {
             return (model, Cmd.message(message))
         } else {
-            return (model, getEditorCommand(event: event))
+            return (model, getGeneralCommand(event: event))
         }
     case let .Cursor(cursor):
         return (model.replace(buffer: model.views.last!.with(cursor: cursor)), Cmd.none())

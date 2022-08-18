@@ -60,12 +60,6 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
 
 // Action maps
 
-let helpKeyMap = KeyMap([
-    .q:  KeyCommand("Bury current buffer", .DropBuffer),
-    .question: KeyCommand("Show help", .Action(.ToggleKeyMap(true)), false),
-    .esc: KeyCommand("Hide help", .Action(.ToggleKeyMap(false)), false)
-])
-
 let commandMap = KeyMap([
     .l: KeyCommand("Log", .Action(.KeyMap(logActionsMap))),
     .g: KeyCommand("Refresh current buffer", .Action(.Refresh)),
@@ -73,24 +67,24 @@ let commandMap = KeyMap([
     .p: KeyCommand("Push", .Action(.KeyMap(pushActionsMap))),
     .F: KeyCommand("Pull", .Action(.KeyMap(pullActionsMap))),
     .dollar: KeyCommand("Git output", .Action(.GitLog), false),
-]) + helpKeyMap
+])
 
 let commitActionsMap = KeyMap([
     .c: KeyCommand("Commit", .Action(.Commit)),
     .a: KeyCommand("Amend", .Action(.AmendCommit))
-]) + helpKeyMap
+])
 
 let logActionsMap = KeyMap([
     .l: KeyCommand("current", .Action(.Log))
-]) + helpKeyMap
+])
 
 let pushActionsMap = KeyMap([
     .u: KeyCommand("@{upstream}", .Action(.Push))
-]) + helpKeyMap
+])
 
 let pullActionsMap = KeyMap([
     .u: KeyCommand("@{upstrean}", .Action(.Pull))
-]) + helpKeyMap
+])
 
 // Querying
 
