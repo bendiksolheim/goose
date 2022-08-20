@@ -197,7 +197,10 @@ func stagedMapper(_ model: StatusModel) -> (Staged) -> [Node] {
 func renderStash(_ model: StatusModel, _ stash: [Stash]) -> [Node] {
     let open = model.visibility["stash", default: false]
     let stashes = stash.map { Text("stash@{\($0.stashIndex)}: \($0.message)")}
-    return collapsible("Stashes (\(stash.count))", [], open, stashes)
+    let events: [ViewEvent<Message>] = [
+        (.tab, .UpdateStatus("stash", model)),
+    ]
+    return collapsible(FormattedText("Stashes (\(stash.count))", .Blue), events, open, stashes) + [EmptyLine()]
 }
 
 func makeHunkEvents(_ patch: String, _ status: Status) -> [ViewEvent<Message>] {
