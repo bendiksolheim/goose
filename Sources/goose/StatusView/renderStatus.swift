@@ -112,7 +112,7 @@ func renderLog(_ title: String, _ model: StatusModel, _ log: [GitCommit]) -> [No
 func commitMapper(_ commit: GitCommit) -> Text<Message> {
     let message = commit.refName
         .fold(constant(FormattedText(" "))) { name in FormattedText(" \(name) ", .Cyan) } + commit.message
-    return Text(FormattedText(commit.hash.short, .LightGray) + message, [(.enter, .GitCommand(.GetCommit(commit.hash.full)))])
+    return Text(FormattedText(commit.hash.short, .DarkGray) + message, [(.enter, .GitCommand(.GetCommit(commit.hash.full)))])
 }
 
 func untrackedMapper(_ untracked: Untracked) -> Node {
@@ -195,8 +195,8 @@ func stagedMapper(_ model: StatusModel) -> (Staged) -> [Node] {
 }
 
 func renderStash(_ model: StatusModel, _ stash: [Stash]) -> [Node] {
-    let open = model.visibility["stash", default: false]
-    let stashes = stash.map { Text("stash@{\($0.stashIndex)}: \($0.message)")}
+    let open = model.visibility["stash", default: true]
+    let stashes = stash.map { Text(FormattedText("stash@{\($0.stashIndex)} ", .DarkGray) + $0.message)}
     let events: [ViewEvent<Message>] = [
         (.tab, .UpdateStatus("stash", model)),
     ]
