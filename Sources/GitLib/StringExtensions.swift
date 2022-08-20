@@ -16,6 +16,14 @@ public extension String {
         let ranges = [startIndex ..< startIndex] + matches.map { Range($0.range, in: self)! } + [endIndex ..< endIndex]
         return (0 ... matches.count).map { String(self[ranges[$0].upperBound ..< ranges[$0 + 1].lowerBound]) }
     }
+
+    func lines() -> [String] {
+        if self == "" {
+            return []
+        } else {
+            return split(regex: "\n")
+        }
+    }
 }
 
 private extension String {
