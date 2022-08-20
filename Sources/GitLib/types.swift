@@ -209,7 +209,7 @@ public struct Stash: Equatable, Encodable {
 
 public func parseStash(_ stashes: String) -> [Stash] {
     stashes.lines().map { line in
-        let matches = line.match(regex: "stash@{(?<stashIndex>.*)}: (?<message>.*$)")
+        let matches = line.match(regex: "stash@\\{(?<stashIndex>.*)\\}: (?<message>.*)")
         return Stash(Int(matches["stashIndex", default: "0"]) ?? 0, matches["message", default: "Error parsing \(line)"])
     }
 }
