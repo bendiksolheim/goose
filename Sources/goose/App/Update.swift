@@ -1,6 +1,7 @@
 import Foundation
 import Tea
 import Bow
+import GitLib
 
 func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     Tea.debug("Message: \(message)")
@@ -246,6 +247,12 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         let gitCmd = model.git.pull()
         let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
         let cmd = Effect(gitCmd.exec()).perform({ Message.UserInitiatedGitComandResultShowStatus($0) })
+        return (model, Cmd.batch(Cmd.message(message), cmd))
+
+    case let .Stash(stash):
+        let gitCmd = model.git.stash.stash(StashConfig())
+        let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
+        let cmd = Effect(gitCmd.exec()).perform { Message.UserInitiatedGitComandResultShowStatus($0) }
         return (model, Cmd.batch(Cmd.message(message), cmd))
     }
 }

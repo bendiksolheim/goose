@@ -66,6 +66,7 @@ let commandMap = KeyMap([
     .c: KeyCommand("Commit", .Action(.KeyMap(commitActionsMap))),
     .p: KeyCommand("Push", .Action(.KeyMap(pushActionsMap))),
     .F: KeyCommand("Pull", .Action(.KeyMap(pullActionsMap))),
+    .Z: KeyCommand("Stash", .Action(.KeyMap(stashActionsMap))),
     .dollar: KeyCommand("Git output", .Action(.GitLog), false),
 ])
 
@@ -84,6 +85,10 @@ let pushActionsMap = KeyMap([
 
 let pullActionsMap = KeyMap([
     .u: KeyCommand("@{upstrean}", .Action(.Pull))
+])
+
+let stashActionsMap = KeyMap([
+    .z: KeyCommand("both", .Action(.Stash(.Both)))
 ])
 
 // Querying

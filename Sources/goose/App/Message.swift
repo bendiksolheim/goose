@@ -68,4 +68,9 @@ enum Action {
     case AmendCommit
     case Push
     case Pull
+    case Stash(StashType)
+}
+
+enum StashType {
+    case Both
 }
