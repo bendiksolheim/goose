@@ -16,6 +16,7 @@ func getStatus(git: Git) -> Cmd<Message> {
     let worktree = Task<LowLevelProcessResult>.var()
     let index = Task<LowLevelProcessResult>.var()
     let gitConfig = Task<GitConfig>.var()
+    let stash = Task<LowLevelProcessResult>.var()
 
     let result = binding(
             branch <- git.symbolicref().exec(),
@@ -24,11 +25,12 @@ func getStatus(git: Git) -> Cmd<Message> {
             ahead <- getAheadOrBehind(git: git, parseAhead(aheadBehind.get)),
             behind <- getAheadOrBehind(git: git, parseBehind(aheadBehind.get)),
             status <- git.status().exec(),
+            stash <- git.stash.list().exec(),
             log <- git.log(num: 10).exec(),
             worktree <- git.diff.files().exec(),
             index <- git.diff.index().exec(),
             gitConfig <- config(git: git),
-            yield: statusSuccess(git: git, branch.get, tracking.get, status.get, log.get, worktree.get, index.get, ahead.get, behind.get, gitConfig.get)
+            yield: statusSuccess(git: git, branch.get, tracking.get, status.get, stash.get, log.get, worktree.get, index.get, ahead.get, behind.get, gitConfig.get)
     )^
 
     return Effect(result).perform(
@@ -97,6 +99,7 @@ func statusSuccess(
         _ branch: LowLevelProcessResult,
         _ tracking: LowLevelProcessResult,
         _ status: LowLevelProcessResult,
+        _ stash: LowLevelProcessResult,
         _ log: LowLevelProcessResult,
         _ worktree: LowLevelProcessResult,
         _ index: LowLevelProcessResult,
@@ -104,6 +107,7 @@ func statusSuccess(
         _ behind: [GitCommit],
         _ gitConfig: GitConfig) -> GitLogAndResult<AsyncData<StatusInfo>> {
     let parsedStatus = parseStatus(status.output)
+    let parsedStash = parseStash(stash.output)
     let commits = parseCommits(git: git, log.output)
     let parsedWorktree = mapDiff(git: git, diff: worktree)
     let parsedIndex = mapDiff(git: git, diff: index)
@@ -124,6 +128,7 @@ func statusSuccess(
                     staged: parsedStatus.changes.filter(isStaged).map {
                         Staged($0.file, $0.status, parsedIndex[$0.file] ?? [])
                     },
+                    stash: parsedStash,
                     log: commits,
                     ahead: ahead,
                     behind: behind,

@@ -80,6 +80,7 @@ public struct StatusInfo: Equatable, Encodable {
     let untracked: [Untracked]
     let unstaged: [Unstaged]
     let staged: [Staged]
+    let stash: [Stash]
     let log: [GitCommit]
     let ahead: [GitCommit]
     let behind: [GitCommit]

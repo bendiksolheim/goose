@@ -34,6 +34,10 @@ func renderStatus(model: StatusModel) -> Node {
                 renderStaged(model, status.staged)
             }
 
+            if status.stash.count > 0 {
+                renderStash(model, status.stash)
+            }
+
             if !status.ahead.isEmpty {
                 renderLog("Unmerged into \(status.upstream) (\(status.ahead.count))", model, status.ahead)
             }
@@ -188,6 +192,12 @@ func stagedMapper(_ model: StatusModel) -> (Staged) -> [Node] {
             return collapsible("copied    \(staged.file)", events, open, hunks)
         }
     }
+}
+
+func renderStash(_ model: StatusModel, _ stash: [Stash]) -> [Node] {
+    let open = model.visibility["stash", default: false]
+    let stashes = stash.map { Text("stash@{\($0.stashIndex)}: \($0.message)")}
+    return collapsible("Stashes (\(stash.count))", [], open, stashes)
 }
 
 func makeHunkEvents(_ patch: String, _ status: Status) -> [ViewEvent<Message>] {
