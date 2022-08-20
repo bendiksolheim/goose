@@ -11,17 +11,17 @@ func getGeneralCommand(event: KeyEvent) -> Cmd<Message> {
     case .esc:
         return Cmd.message(.Action(.ToggleKeyMap(false)))
     case .j:
-        return Editor.moveCursor(0, 1)
+        return Cursor.move(0, 1)
     case .k:
-        return Editor.moveCursor(0, -1)
+        return Cursor.move(0, -1)
 //    case .CtrlE:
 //        return .MoveScreen(1)
 //    case .CtrlY:
 //        return .MoveScreen(-1)
     case .CtrlD:
-        return Editor.scroll(.Percentage(50))
+        return Cursor.scroll(.Percentage(50))
     case .CtrlU:
-        return Editor.scroll(.Percentage(-50))
+        return Cursor.scroll(.Percentage(-50))
     default:
         return Cmd.none()
     }

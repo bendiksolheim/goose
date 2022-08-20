@@ -73,7 +73,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return (model, Tea.quit("view:\(file)"))
 
     case .DropBuffer:
-        return model.views.count > 1 ? (model.back(), Tea.putCursor(0, 0)) : (model, Tea.quit())
+        return model.views.count > 1 ? (model.back(), Cursor.put(0, 0)) : (model, Tea.quit())
     }
 }
 
