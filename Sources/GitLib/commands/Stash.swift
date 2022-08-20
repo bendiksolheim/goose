@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Stash {
+public struct GitStash: Equatable, Encodable {
     let path: String
     
     public func stash(_ config: StashConfig) -> GitCommand {
@@ -9,9 +9,19 @@ public struct Stash {
             (config.all ? ["-u"] : [])
         return GitCommand(path, command)
     }
+
+    public func list() -> GitCommand {
+        let command = ["stash", "list"]
+        return GitCommand(path, command)
+    }
 }
 
 public struct StashConfig {
-    public let includeUntracked = false
-    public let all = false
+    public let includeUntracked: Bool
+    public let all: Bool
+
+    public init(includeUntracked: Bool = false, all: Bool = false) {
+        self.includeUntracked = includeUntracked
+        self.all = all
+    }
 }

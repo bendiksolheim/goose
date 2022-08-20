@@ -196,3 +196,20 @@ func parseUntrackedChange<S: StringProtocol>(_ input: S) -> [GitChange] {
     let output = input.split(separator: " ")
     return [GitChange(area: .Worktree, status: .Untracked, file: String(output[1]))]
 }
+
+public struct Stash: Equatable, Encodable {
+    public let stashIndex: Int
+    public let message: String
+
+    init(_ stashIndex: Int, _ message: String) {
+        self.stashIndex = stashIndex
+        self.message = message
+    }
+}
+
+public func parseStash(_ stashes: String) -> [Stash] {
+    stashes.lines().map { line in
+        let matches = line.match(regex: "stash@{(?<stashIndex>.*)}: (?<message>.*$)")
+        return Stash(Int(matches["stashIndex", default: "0"]) ?? 0, matches["message", default: "Error parsing \(line)"])
+    }
+}

@@ -17,12 +17,14 @@ public struct Git: Equatable, Encodable {
     public let config: Config
     public let show: Show
     public let diff: Diff
+    public let stash: GitStash
     
     public init(path: String) {
         self.path = path
         config = Config(path: path)
         show = Show(path: path)
         diff = Diff(path: path)
+        stash = GitStash(path: path)
     }
     
     public func symbolicref() -> GitCommand {
@@ -71,10 +73,6 @@ public struct Git: Equatable, Encodable {
     
     public func pull() -> GitCommand {
         GitCommand(path, ["pull"])
-    }
-    
-    public func stash() -> GitCommand {
-        GitCommand(path, ["stash"])
     }
 }
 
