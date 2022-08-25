@@ -47,11 +47,11 @@ func renderSummary(commit: GitCommit, stats: Stats) -> Node {
     let insertions = stats.stats.map { $0.added }.combineAll()
     let deletions = stats.stats.map { $0.removed }.combineAll()
     let maxWidth = stats.stats.map { $0.file.count }.max() ?? 0
-    return Horizontal(.Fill, .Auto) {
-        Text(FormattedText(commit.message, .White, .Magenta))
+    return Vertical(.Fill, .Auto) {
+        Text(FormattedText(commit.message, .Black, .Magenta))
         EmptyLine()
         Text("\(stats.stats.count) files changed, \(insertions) insertions(+), \(deletions) deletions(-)")
-        Horizontal(.Fill, .Auto) {
+        Vertical(.Fill, .Auto) {
             stats.stats.map { renderStat($0, maxWidth) }
         }
     }
