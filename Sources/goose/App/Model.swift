@@ -6,29 +6,26 @@ struct Model: Equatable, Encodable {
     let git: Git
     let views: [View]
     let info: InfoMessage
-    let renderKeyMap: Bool
-    let keyMap: KeyMap
+    let menu: Menu
     let gitLog: GitLogModel
 
     func with(buffer: [View]? = nil,
               info: InfoMessage? = nil,
-              renderKeyMap: Bool? = nil,
-              keyMap: KeyMap? = nil,
+              menu: Menu? = nil,
               gitLog: GitLogModel? = nil) -> Model {
         Model(git: git,
               views: buffer ?? self.views,
               info: info ?? self.info,
-              renderKeyMap: renderKeyMap ?? self.renderKeyMap,
-              keyMap: keyMap ?? self.keyMap,
+              menu: menu ?? self.menu,
               gitLog: gitLog ?? self.gitLog)
     }
     
     func navigate(to newView: View) -> Model {
-        with(buffer: views + [newView], renderKeyMap: false)
+        with(buffer: views + [newView], menu: Menu.empty())
     }
     
     func navigate(to newBuffer: Buffer) -> Model {
-        with(buffer: views + [View(buffer: newBuffer)], renderKeyMap: false)
+        with(buffer: views + [View(buffer: newBuffer)], menu: Menu.empty())
     }
     
     func replace(buffer newView: View) -> Model {
@@ -41,7 +38,32 @@ struct Model: Equatable, Encodable {
     }
     
     func back() -> Model {
-        with(buffer: views.dropLast(), renderKeyMap: false)
+        with(buffer: views.dropLast(), menu: Menu.empty())
+    }
+
+}
+
+struct Menu: Equatable, Encodable {
+    let keyMaps: [KeyMap]
+
+    static func empty() -> Menu {
+        Self(keyMaps: [])
+    }
+
+    func push(keyMap: KeyMap) -> Menu {
+        Self(keyMaps: keyMaps + [keyMap])
+    }
+
+    func pop() -> Menu {
+        Self(keyMaps: keyMaps.dropLast(1))
+    }
+
+    func shouldShow() -> Bool {
+        keyMaps.count > 0
+    }
+
+    func active() -> KeyMap? {
+        keyMaps.last
     }
 }
 

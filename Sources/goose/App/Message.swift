@@ -6,6 +6,8 @@ import Slowbox
 indirect enum Message {
     case TerminalEvent(TerminalEvent)
     case Action(Action)
+    case PushKeyMap(KeyMap)
+    case PopKeyMap
     case GitCommand(GitCmd)
     case GitResult([GitLogEntry], GitResult)
     case UpdateStatus(String, StatusModel)
@@ -59,8 +61,6 @@ enum GitResult {
 }
 
 enum Action {
-    case ToggleKeyMap(Bool)
-    case KeyMap(KeyMap)
     case Log
     case GitLog
     case Refresh
@@ -68,7 +68,6 @@ enum Action {
     case AmendCommit
     case Push
     case Pull
-    case Stash(StashType)
 }
 
 enum StashType {

@@ -15,12 +15,12 @@ func render(model: Model) -> Node {
         content = renderDiff(diff: commitModel)
     }
 
-    if model.renderKeyMap {
+    if model.menu.shouldShow() {
         return Vertical(.Fill, .Fill) {
             Vertical(.Fill, .Percentage(50)) {
                 content
             }
-            renderKeyMap(model.keyMap)
+            renderMenu(model.menu)
         }
     } else {
         return Vertical(.Fill, .Fill) {

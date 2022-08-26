@@ -12,6 +12,12 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .Action(action):
         return performAction(action, model)
 
+    case let .PushKeyMap(keyMap):
+        return (model.with(menu: model.menu.push(keyMap: keyMap)), Cmd.none())
+
+    case .PopKeyMap:
+        return (model.with(menu: model.menu.pop()), Cmd.none())
+
     case let .GitCommand(command):
         return performCommand(model, command)
 
@@ -26,25 +32,25 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 
     case let .UserInitiatedGitCommandResult(result):
         return result.fold(
-                { error in (model.with(keyMap: commandMap), Cmd.message(Message.Info(.Message(error.localizedDescription)))) },
+                { error in (model.with(menu: Menu.empty()), Cmd.message(Message.Info(.Message(error.localizedDescription)))) },
                 { success in
-                    let newModel = model.with(keyMap: commandMap, gitLog: model.gitLog.append([GitLogEntry(success)]))
+                    let newModel = model.with(menu: Menu.empty(), gitLog: model.gitLog.append([GitLogEntry(success)]))
                     return (newModel, getStatus(git: model.git))
                 }
         )
 
     case let .UserInitiatedGitComandResultShowStatus(result):
         return result.fold(
-                { error in (model.with(keyMap: commandMap), Cmd.message(Message.Info(.Message(error.localizedDescription)))) },
+                { error in (model.with(menu: Menu.empty()), Cmd.message(Message.Info(.Message(error.localizedDescription)))) },
                 { success in
-                    let newModel = model.with(keyMap: commandMap, gitLog: model.gitLog.append([GitLogEntry(success)]))
+                    let newModel = model.with(menu: Menu.empty(), gitLog: model.gitLog.append([GitLogEntry(success)]))
                     let message = Cmd.message(Message.Info(.Message(getResultMessage(success))))
                     return (newModel, Cmd.batch(message, getStatus(git: model.git)))
                 }
         )
 
     case .CommandSuccess:
-        return (model.with(keyMap: commandMap), getStatus(git: model.git))
+        return (model.with(menu: Menu.empty()), getStatus(git: model.git))
 
     case let .Info(info):
         switch info {
@@ -53,7 +59,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
                 Message.ClearInfo
             }, { Message.ClearInfo }))
         case let .Query(_, cmd):
-            return (model.with(info: info, keyMap: queryMap(cmd)), Cmd.none())
+            return (model.with(info: info, menu: model.menu.push(keyMap: queryMap(cmd))), Cmd.none())
         default:
             return (model.with(info: info), Cmd.none())
         }
@@ -64,9 +70,9 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
     case let .QueryResult(queryResult):
         switch queryResult {
         case .Abort:
-            return (model.with(info: .None, keyMap: commandMap), Cmd.none())
+            return (model.with(info: .None, menu: Menu.empty()), Cmd.none())
         case let .Perform(msg):
-            return (model.with(info: .None, keyMap: commandMap), Cmd.message(msg))
+            return (model.with(info: .None, menu: Menu.empty()), Cmd.message(msg))
         }
 
     case let .ViewFile(file):
@@ -80,7 +86,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 func terminalEventUpdate(_ model: Model, _ event: TerminalEvent) -> (Model, Cmd<Message>) {
     switch event {
     case let .Keyboard(event):
-        if let message = model.keyMap[event] {
+        if let message = model.menu.active()?[event] {
             return (model, Cmd.message(message))
         } else {
             return (model, getGeneralCommand(event: event))
@@ -170,8 +176,10 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
         }
 
     case .Stash:
-        //performGit
-        return (model, Cmd.none())
+        let gitCmd = model.git.stash.stash(StashConfig())
+        let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
+        let cmd = Effect(gitCmd.exec()).perform { Message.UserInitiatedGitComandResultShowStatus($0) }
+        return (model, Cmd.batch(Cmd.message(message), cmd))
     }
 }
 
@@ -216,12 +224,6 @@ func discard(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> 
 
 func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     switch action {
-    case let .ToggleKeyMap(show):
-        return (model.with(renderKeyMap: show, keyMap: show ? model.keyMap : commandMap), Cmd.none())
-
-    case let .KeyMap(keyMap):
-        return (model.with(keyMap: keyMap), Cmd.none())
-
     case .Commit:
         return (model, Tea.quit("commit"))
 
@@ -247,12 +249,6 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
         let gitCmd = model.git.pull()
         let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
         let cmd = Effect(gitCmd.exec()).perform({ Message.UserInitiatedGitComandResultShowStatus($0) })
-        return (model, Cmd.batch(Cmd.message(message), cmd))
-
-    case let .Stash(stash):
-        let gitCmd = model.git.stash.stash(StashConfig())
-        let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
-        let cmd = Effect(gitCmd.exec()).perform { Message.UserInitiatedGitComandResultShowStatus($0) }
         return (model, Cmd.batch(Cmd.message(message), cmd))
     }
 }

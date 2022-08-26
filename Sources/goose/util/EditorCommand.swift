@@ -7,9 +7,9 @@ func getGeneralCommand(event: KeyEvent) -> Cmd<Message> {
     case .q:
         return Cmd.message(.DropBuffer)
     case .question:
-        return Cmd.message(.Action(.ToggleKeyMap(true)))
+        return Cmd.message(.PushKeyMap(commandMap))
     case .esc:
-        return Cmd.message(.Action(.ToggleKeyMap(false)))
+        return Cmd.message(.PopKeyMap)
     case .j:
         return Cursor.move(0, 1)
     case .k:

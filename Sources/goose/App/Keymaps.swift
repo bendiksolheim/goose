@@ -61,12 +61,12 @@ func + (lhs: KeyMap, rhs: KeyMap) -> KeyMap {
 // Action maps
 
 let commandMap = KeyMap([
-    .l: KeyCommand("Log", .Action(.KeyMap(logActionsMap))),
+    .l: KeyCommand("Log", .PushKeyMap(logActionsMap)),
     .g: KeyCommand("Refresh current buffer", .Action(.Refresh)),
-    .c: KeyCommand("Commit", .Action(.KeyMap(commitActionsMap))),
-    .p: KeyCommand("Push", .Action(.KeyMap(pushActionsMap))),
-    .F: KeyCommand("Pull", .Action(.KeyMap(pullActionsMap))),
-    .Z: KeyCommand("Stash", .Action(.KeyMap(stashActionsMap))),
+    .c: KeyCommand("Commit", .PushKeyMap(commitActionsMap)),
+    .p: KeyCommand("Push", .PushKeyMap(pushActionsMap)),
+    .F: KeyCommand("Pull", .PushKeyMap(pullActionsMap)),
+    .Z: KeyCommand("Stash", .PushKeyMap(stashActionsMap)),
     .dollar: KeyCommand("Git output", .Action(.GitLog), false),
 ])
 
@@ -88,7 +88,7 @@ let pullActionsMap = KeyMap([
 ])
 
 let stashActionsMap = KeyMap([
-    .z: KeyCommand("both", .Action(.Stash(.Both)))
+    .z: KeyCommand("both", .GitCommand(.Stash))
 ])
 
 // Querying
