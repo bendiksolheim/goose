@@ -70,7 +70,7 @@ func execute(process: ProcessDescription, input: String? = nil) -> Task<LowLevel
         return LowLevelProcessResult(
             timestamp: Int(Date().timeIntervalSince1970),
             command: ([process.executable] + process.arguments).joined(separator: " "),
-            output: output.trimmingCharacters(in: .whitespacesAndNewlines),
+            output: output.trimmingCharacters(in: .newlines),
             exitCode: exitCode,
             success: exitCode == 0
         )
