@@ -18,6 +18,7 @@ public struct Git: Equatable, Encodable {
     public let show: Show
     public let diff: Diff
     public let stash: GitStash
+    public let log: GitLog
     
     public init(path: String) {
         self.path = path
@@ -25,6 +26,7 @@ public struct Git: Equatable, Encodable {
         show = Show(path: path)
         diff = Diff(path: path)
         stash = GitStash(path: path)
+        log = GitLog(path: path)
     }
     
     public func symbolicref() -> GitCommand {
@@ -37,10 +39,6 @@ public struct Git: Equatable, Encodable {
     
     public func revlist(_ branch: String) -> GitCommand {
         GitCommand(path, ["rev-list", "--left-right", "\(branch)...\(branch)@{u}"])
-    }
-
-    public func log(num: Int) -> GitCommand {
-        GitCommand(path, ["log", "--format=\(commitFormat)", "-z", "-n", "\(num)"])
     }
 
     public func status() -> GitCommand {
@@ -88,4 +86,6 @@ private let RAW_BODY = "%B"
 private let SUBJECT = "%s"
 private let REF_NAME = "%D"
 
-let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, SUBJECT, REF_NAME].joined(separator: NEWLINE)
+let ZERO_WIDTH_SPACE: Character = "\u{200B}"
+
+let commitFormat = [HASH, HASH_SHORT, AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_DATE, COMMITER_DATE, PARENT_HASHES, SUBJECT, REF_NAME].joined(separator: String(ZERO_WIDTH_SPACE))

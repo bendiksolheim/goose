@@ -26,7 +26,7 @@ func getStatus(git: Git) -> Cmd<Message> {
             behind <- getAheadOrBehind(git: git, parseBehind(aheadBehind.get)),
             status <- git.status().exec(),
             stash <- git.stash.list().exec(),
-            log <- git.log(num: 10).exec(),
+            log <- git.log.log(config: GitLogConfig()).exec(),
             worktree <- git.diff.files().exec(),
             index <- git.diff.index().exec(),
             gitConfig <- config(git: git),

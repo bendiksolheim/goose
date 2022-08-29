@@ -2,35 +2,6 @@ import Bow
 import Foundation
 import os.log
 
-public struct GitCommit: Equatable, Encodable {
-    public let hash: GitHash
-    public let message: String
-    public let parents: [String]
-    public let commitDate: Date
-    public let authorDate: Date
-    public let author: String
-    public let email: String
-    public let refName: Option<String>
-    public let diff: Option<GitDiff>
-}
-
-extension Option: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.unkeyedContainer()
-        try container.encode(self.description)
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case type
-        case value
-    }
-}
-
-public struct GitHash: Equatable, Encodable {
-    public let full: String
-    public let short: String
-}
-
 public func parseStat(_ input: String) -> Stats {
     let lines = input.split(regex: "\n")
     var stats: [Stat] = []
@@ -43,45 +14,6 @@ public func parseStat(_ input: String) -> Stats {
     }
 
     return Stats(stats: stats)
-}
-
-public func parseCommits(git: Git, _ input: String) -> [GitCommit] {
-    let commits = input.trimmingCharacters(in: .init(charactersIn: "\0")).split(regex: "\0")
-    return commits.map(parseCommit(git: git))
-}
-
-public func parseCommit(git: Git) -> (String) -> GitCommit {
-    return { commit in
-        let lines = commit.split(separator: "\n", omittingEmptySubsequences: false)
-        os_log("%{public}@", "\(lines)")
-        return GitCommit(hash: GitHash(full: String(lines[0]), short: String(lines[1])),
-                         message: String(lines[7]),
-                         parents: lines[6].split(separator: " ").map { parent in String(parent) },
-                         commitDate: Date(timeIntervalSince1970: Double(lines[4])!),
-                         authorDate: Date(timeIntervalSince1970: Double(lines[5])!),
-                         author: String(lines[2]),
-                         email: String(lines[3]),
-                         refName: parseRefName(lines[8]),
-                         diff: hasDiff(lines) ? .some(git.diff.parse(lines[9...].joined(separator: "\n"))) : .none())
-    }
-}
-
-func hasDiff<S: StringProtocol>(_ lines: [S]) -> Bool {
-    lines.count >= 10
-        && lines[9].starts(with: "diff --git")
-}
-
-public func parseRefName<S: StringProtocol>(_ input: S) -> Option<String> {
-    if input == "" {
-        return .none()
-    }
-
-    let parts = String(input).split(regex: " -> ")
-    return .some(parts.last!)
-}
-
-public func parseHash<S: StringProtocol>(_ input: S) -> GitHash {
-    GitHash(full: String(input), short: String(input.prefix(7)))
 }
 
 public struct Stats: Equatable, Encodable {

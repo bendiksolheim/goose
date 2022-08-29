@@ -36,6 +36,14 @@ public extension String {
         let ranges = [startIndex ..< startIndex] + matches.map { Range($0.range, in: self)! } + [endIndex ..< endIndex]
         return (0 ... matches.count).map { String(self[ranges[$0].upperBound ..< ranges[$0 + 1].lowerBound]) }
     }
+
+    func leftPad(toLength: Int, withPad character: Character) -> String {
+        if count < toLength {
+            return String(repeatElement(character, count: toLength - count)) + self
+        } else {
+            return substring(from: index(startIndex, offsetBy: count - toLength))
+        }
+    }
 }
 
 private extension String {

@@ -6,7 +6,7 @@ import Tea
 
 public struct LogInfo: Equatable, Encodable {
     let branch: String
-    let commits: [GitCommit]
+    let commits: [GitLogLine]
 }
 
 func getLog(git: Git) -> Cmd<Message> {
@@ -14,7 +14,7 @@ func getLog(git: Git) -> Cmd<Message> {
     let log = Task<LowLevelProcessResult>.var()
     let result = binding(
         ref <- git.symbolicref().exec(),
-        log <- git.log(num: 100).exec(),
+        log <- git.log.log(config: GitLogConfig(graph: true, num: 100)).exec(),
         yield: logSuccess(git: git, branch: ref.get, log: log.get)
     )^
 
@@ -27,6 +27,6 @@ func getLog(git: Git) -> Cmd<Message> {
 func logSuccess(git: Git, branch: LowLevelProcessResult, log: LowLevelProcessResult) -> GitLogAndResult<AsyncData<LogInfo>> {
     GitLogAndResult(
         [branch, log].map { GitLogEntry($0) },
-        .Success(LogInfo(branch: branch.output, commits: parseCommits(git: git, log.output)))
+        .Success(LogInfo(branch: branch.output, commits: parseLog(git: git, log.output)))
     )
 }
