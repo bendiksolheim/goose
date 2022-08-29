@@ -1,8 +1,7 @@
 import Foundation
 import Tea
 
-func renderMenu(_ menu: Menu) -> Node {
-    let keyMap = menu.active()!
+func renderMenu(_ keyMap: KeyMap) -> Node {
     let content: [Node] = keyMap.map
             .filter {
                 $0.value.visible

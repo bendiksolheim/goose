@@ -1,6 +1,7 @@
 import Foundation
 import GitLib
 import Tea
+import Slowbox
 
 struct Model: Equatable, Encodable {
     let git: Git
@@ -64,6 +65,10 @@ struct Menu: Equatable, Encodable {
 
     func active() -> KeyMap? {
         keyMaps.last
+    }
+
+    subscript(event: KeyEvent) -> Message? {
+        (keyMaps.last ?? commandMap)[event]
     }
 }
 

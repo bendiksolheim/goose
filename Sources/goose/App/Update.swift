@@ -86,7 +86,7 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
 func terminalEventUpdate(_ model: Model, _ event: TerminalEvent) -> (Model, Cmd<Message>) {
     switch event {
     case let .Keyboard(event):
-        if let message = model.menu.active()?[event] {
+        if let message = model.menu[event] {
             return (model, Cmd.message(message))
         } else {
             return (model, getGeneralCommand(event: event))
