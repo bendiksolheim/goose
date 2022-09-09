@@ -2,13 +2,19 @@ import Foundation
 import Tea
 
 func renderMenu(_ keyMap: KeyMap) -> Node {
-    let content: [Node] = keyMap.map
-            .filter {
-                $0.value.visible
-            }
-            .map { key in
-                Text(FormattedText(key.key.stringValue(), .Magenta) + " \(key.value.command)")
-            }
+    let content: [Node] = keyMap.sections.map { section in
+        let keys = section.map.filter {
+                    $0.value.visible
+                }
+                .map { key in
+                    Text(FormattedText(" " + key.key.stringValue(), .Magenta) + " \(key.value.command)")
+
+                }
+        return Vertical(padding: Padding(right: 5)) {
+            [Text(FormattedText(section.title, .Blue))]
+            keys
+        }
+    }
 
     let essential = Horizontal {
         Vertical {
@@ -22,8 +28,7 @@ func renderMenu(_ keyMap: KeyMap) -> Node {
     }
 
     return Vertical(.Fill, .Percentage(50)) {
-        [Text(FormattedText("Transient commands", .Blue))]
-        content
+        [Horizontal { content }]
         [EmptyLine()]
         [Text(FormattedText("Essential commands", .Blue))]
         [essential]

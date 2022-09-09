@@ -8,6 +8,8 @@ func getGeneralCommand(event: KeyEvent) -> Cmd<Message> {
         return Cmd.message(.DropBuffer)
     case .question:
         return Cmd.message(.PushKeyMap(commandMap))
+    case .dollar:
+        return Cmd.message(.Action(.GitLog))
     case .esc:
         return Cmd.message(.PopKeyMap)
     case .j:
