@@ -19,6 +19,7 @@ public struct Git: Equatable, Encodable {
     public let diff: Diff
     public let stash: GitStash
     public let log: GitLog
+    public let commit: Commit
     public let reset: Reset
     
     public init(path: String) {
@@ -28,6 +29,7 @@ public struct Git: Equatable, Encodable {
         diff = Diff(path: path)
         stash = GitStash(path: path)
         log = GitLog(path: path)
+        commit = Commit(path: path)
         reset = Reset(path: path)
     }
     
