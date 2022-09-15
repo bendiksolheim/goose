@@ -19,6 +19,7 @@ public struct Git: Equatable, Encodable {
     public let diff: Diff
     public let stash: GitStash
     public let log: GitLog
+    public let reset: Reset
     
     public init(path: String) {
         self.path = path
@@ -27,6 +28,7 @@ public struct Git: Equatable, Encodable {
         diff = Diff(path: path)
         stash = GitStash(path: path)
         log = GitLog(path: path)
+        reset = Reset(path: path)
     }
     
     public func symbolicref() -> GitCommand {
@@ -47,10 +49,6 @@ public struct Git: Equatable, Encodable {
 
     public func add(_ files: [String]) -> GitCommand {
         GitCommand(path, ["add", "--"] + files)
-    }
-
-    public func reset(_ files: [String]) -> GitCommand {
-        GitCommand(path, ["reset", "--"] + files)
     }
 
     public func apply(reverse: Bool = false, cached: Bool = false) -> GitCommand {
