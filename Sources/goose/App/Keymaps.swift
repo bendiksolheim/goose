@@ -100,7 +100,15 @@ let pullActionsMap = KeyMap([
 ])
 
 let stashActionsMap = KeyMap([
-    KeySection("Stash", [.z: KeyCommand("both", .GitCommand(.Stash))])
+    KeySection("Stash", [
+        .z: KeyCommand("both", .GitCommand(.Stash(.Both))),
+        .i: KeyCommand("index", .GitCommand(.Stash(.Index))),
+        .w: KeyCommand("worktree", .GitCommand(.Stash(.Worktree)))
+    ]),
+    KeySection("Use", [
+        .a: KeyCommand("Apply", .GitCommand(.Stash(.Apply))),
+        .p: KeyCommand("Pop", .GitCommand(.Stash(.Pop)))
+    ])
 ])
 
 // Querying

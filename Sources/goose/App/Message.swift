@@ -13,7 +13,7 @@ indirect enum Message {
     case UpdateStatus(String, StatusModel)
     case UpdateGitLog(String)
     case UserInitiatedGitCommandResult(Either<Error, LowLevelProcessResult>)
-    case UserInitiatedGitComandResultShowStatus(Either<Error, LowLevelProcessResult>)
+    case UserInitiatedGitComandResultShowStatus(Either<Error, [LowLevelProcessResult]>)
     case CommandSuccess
     case Info(InfoMessage)
     case ClearInfo
@@ -34,7 +34,15 @@ enum GitCmd {
     case Stage(Selection)
     case Unstage(Selection)
     case Discard(Selection)
-    case Stash
+    case Stash(StashGitCommand)
+}
+
+enum StashGitCommand {
+    case Both
+    case Index
+    case Worktree
+    case Apply
+    case Pop
 }
 
 enum QueryResult {

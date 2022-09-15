@@ -43,8 +43,8 @@ func update(message: Message, model: Model) -> (Model, Cmd<Message>) {
         return result.fold(
                 { error in (model.with(menu: Menu.empty()), Cmd.message(Message.Info(.Message(error.localizedDescription)))) },
                 { success in
-                    let newModel = model.with(menu: Menu.empty(), gitLog: model.gitLog.append([GitLogEntry(success)]))
-                    let message = Cmd.message(Message.Info(.Message(getResultMessage(success))))
+                    let newModel = model.with(menu: Menu.empty(), gitLog: model.gitLog.append(success.map { GitLogEntry($0) }))
+                    let message = Cmd.message(Message.Info(.Message(getResultMessage(success.last!))))
                     return (newModel, Cmd.batch(message, getStatus(git: model.git)))
                 }
         )
@@ -175,11 +175,37 @@ func performCommand(_ model: Model, _ gitCommand: GitCmd) -> (Model, Cmd<Message
             }
         }
 
-    case .Stash:
-        let gitCmd = model.git.stash.stash(StashConfig())
-        let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
-        let cmd = Effect(gitCmd.exec()).perform { Message.UserInitiatedGitComandResultShowStatus($0) }
-        return (model, Cmd.batch(Cmd.message(message), cmd))
+    case let .Stash(stashType):
+        switch stashType {
+        case .Both:
+//            let gitCmd = model.git.stash.stash(StashConfig())
+            let gitCmd = model.git.stash.push()
+            let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
+            let cmd = Effect(gitCmd.exec()).perform { Message.UserInitiatedGitComandResultShowStatus($0.map { [$0] }^) }
+            return (model, Cmd.batch(Cmd.message(message), cmd))
+        case .Index:
+            let cmd = model.git.stash.push(type: .Staged)
+            let message = Message.Info(.Message("Stashing index"))
+            let command = Effect(cmd.exec()).perform { Message.UserInitiatedGitComandResultShowStatus($0.map { [$0] }^) }
+            return (model, Cmd.batch(Cmd.message(message), command))
+        case .Worktree:
+            let intermediateCommit = model.git.commit.commit([.AllowEmpty, .NoVerify, .Message("Intermediate stash commit")]).exec()
+            let stashCommand = model.git.stash.push().exec()
+            let resetCommand = model.git.reset.soft("HEAD^").exec()
+            let command = Effect.sequence([intermediateCommit, stashCommand, resetCommand]).perform { Message.UserInitiatedGitComandResultShowStatus($0)}
+            return (model, command)
+
+        case .Apply:
+            let cmd = model.git.stash.apply().exec()
+            let message = Cmd.message(Message.Info(.Message("Applying stash")))
+            let command = Effect(cmd).perform { Message.UserInitiatedGitComandResultShowStatus($0.map { [$0] }^ ) }
+            return (model, Cmd.batch(message, command))
+        case .Pop:
+            let cmd = model.git.stash.pop().exec()
+            let message = Cmd.message(Message.Info(.Message("Popping stash")))
+            let command = Effect(cmd).perform { Message.UserInitiatedGitComandResultShowStatus($0.map { [$0] }^)}
+            return (model, Cmd.batch(message, command))
+        }
     }
 }
 
@@ -201,7 +227,7 @@ func unstage(_ model: Model, _ files: [String], _ type: Status) -> Cmd<Message> 
     case .Unstaged:
         return Cmd.message(.Info(.Message("Already unstaged")))
     case .Staged:
-        return Effect(model.git.reset(files).exec()).perform({ .UserInitiatedGitCommandResult($0) })
+        return Effect(model.git.reset.reset(files).exec()).perform({ .UserInitiatedGitCommandResult($0) })
     }
 }
 
@@ -242,13 +268,13 @@ func performAction(_ action: Action, _ model: Model) -> (Model, Cmd<Message>) {
     case .Push:
         let gitCmd = model.git.push()
         let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
-        let cmd = Effect(gitCmd.exec()).perform({ Message.UserInitiatedGitComandResultShowStatus($0) })
+        let cmd = Effect(gitCmd.exec()).perform({ Message.UserInitiatedGitComandResultShowStatus($0.map { [$0] }^) })
         return (model, Cmd.batch(Cmd.message(message), cmd))
 
     case .Pull:
         let gitCmd = model.git.pull()
         let message = Message.Info(.Message("Running \(gitCmd.cmd())"))
-        let cmd = Effect(gitCmd.exec()).perform({ Message.UserInitiatedGitComandResultShowStatus($0) })
+        let cmd = Effect(gitCmd.exec()).perform({ Message.UserInitiatedGitComandResultShowStatus($0.map { [$0] }^) })
         return (model, Cmd.batch(Cmd.message(message), cmd))
     }
 }
